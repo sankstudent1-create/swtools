@@ -37,7 +37,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between py-3.5">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <Image src="/brand/sw-logo-mark.svg" alt="SW Tools logo" width={36} height={36} className="h-9 w-9 rounded-lg shadow-[0_10px_22px_rgba(240,106,155,0.35)]" />
+            <Image src="/brand/site-logo.png" alt="SW Tools logo" width={36} height={36} className="h-9 w-9 rounded-lg object-contain shadow-[0_10px_22px_rgba(240,106,155,0.35)]" />
             <div className="hidden sm:flex sm:flex-col sm:leading-none">
               <span className="font-heading text-sm font-bold tracking-wide text-white/95">SW Tools</span>
               <span className="text-[10px] uppercase tracking-[0.14em] text-white/55">Format and Utility Hub</span>

@@ -90,6 +90,9 @@ const values = [
 ];
 
 export default function AboutPage() {
+  const websiteUrl = process.env.NEXT_PUBLIC_COMPANY_WEBSITE ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.swinfosystems.com";
+  const websiteLabel = websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -235,23 +238,13 @@ export default function AboutPage() {
             <p className="text-lg text-foreground/70">Have questions? We'd love to hear from you.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <div className="p-6 rounded-xl border border-foreground/10 bg-background/50">
-              <div className="text-3xl mb-3">📧</div>
-              <h3 className="font-semibold mb-2">Email</h3>
-              <p className="text-foreground/70">
-                <a href="mailto:support@swinfosystems.com" className="hover:text-brand-orange transition-colors">
-                  support@swinfosystems.com
-                </a>
-              </p>
-            </div>
-
+          <div className="grid md:grid-cols-2 gap-6 mt-12">
             <div className="p-6 rounded-xl border border-foreground/10 bg-background/50">
               <div className="text-3xl mb-3">🌐</div>
               <h3 className="font-semibold mb-2">Website</h3>
               <p className="text-foreground/70">
-                <a href="https://www.swinfosystems.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition-colors">
-                  www.swinfosystems.com
+                <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-orange transition-colors">
+                  {websiteLabel}
                 </a>
               </p>
             </div>
