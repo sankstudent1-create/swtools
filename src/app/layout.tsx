@@ -23,6 +23,9 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "SW Tools | Image, PDF, Signature and Document Utilities",
     template: "%s | SW Tools",
@@ -67,12 +70,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adsEnabled = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
   const adClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
   return (
     <html lang="en">
       <body className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased`}>
-        {adClient ? (
+        {adsEnabled && adClient ? (
           <Script
             id="adsense-script"
             async
@@ -83,9 +87,9 @@ export default function RootLayout({
         ) : null}
         <PwaRegister />
         <Navigation />
-        <AdSlot slotKey="global-top" label="Global Top Banner" />
+        {adsEnabled ? <AdSlot slotKey="global-top" label="Global Top Banner" /> : null}
         {children}
-        <AdSlot slotKey="global-bottom" label="Global Footer Banner" />
+        {adsEnabled ? <AdSlot slotKey="global-bottom" label="Global Footer Banner" /> : null}
       </body>
     </html>
   );

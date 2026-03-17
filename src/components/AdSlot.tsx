@@ -16,6 +16,7 @@ declare global {
 
 export default function AdSlot({ slotKey, label, variant = "banner" }: AdSlotProps) {
   const adRef = useRef<HTMLModElement | null>(null);
+  const adsEnabled = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
   const slotMap: Record<string, string | undefined> = {
     "global-top": process.env.NEXT_PUBLIC_AD_SLOT_GLOBAL_TOP,
@@ -26,6 +27,7 @@ export default function AdSlot({ slotKey, label, variant = "banner" }: AdSlotPro
   const slot = slotMap[slotKey];
 
   useEffect(() => {
+    if (!adsEnabled) return;
     if (!client || !slot || !adRef.current) return;
 
     try {
@@ -34,7 +36,9 @@ export default function AdSlot({ slotKey, label, variant = "banner" }: AdSlotPro
     } catch {
       // Ignore ad network boot failures and keep the slot reserved.
     }
-  }, [client, slot]);
+  }, [adsEnabled, client, slot]);
+
+  if (!adsEnabled) return null;
 
   const minHeight = variant === "banner" ? "min-h-[110px]" : "min-h-[260px]";
 
