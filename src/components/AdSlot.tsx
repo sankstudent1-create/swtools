@@ -17,9 +17,13 @@ declare global {
 export default function AdSlot({ slotKey, label, variant = "banner" }: AdSlotProps) {
   const adRef = useRef<HTMLModElement | null>(null);
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-  const slot = process.env.NEXT_PUBLIC_AD_SLOT_PREFIX
-    ? `${process.env.NEXT_PUBLIC_AD_SLOT_PREFIX}-${slotKey}`
-    : undefined;
+  const slotMap: Record<string, string | undefined> = {
+    "global-top": process.env.NEXT_PUBLIC_AD_SLOT_GLOBAL_TOP,
+    "global-bottom": process.env.NEXT_PUBLIC_AD_SLOT_GLOBAL_BOTTOM,
+    "tools-top": process.env.NEXT_PUBLIC_AD_SLOT_TOOLS_TOP,
+    "tools-bottom": process.env.NEXT_PUBLIC_AD_SLOT_TOOLS_BOTTOM,
+  };
+  const slot = slotMap[slotKey];
 
   useEffect(() => {
     if (!client || !slot || !adRef.current) return;
@@ -53,7 +57,7 @@ export default function AdSlot({ slotKey, label, variant = "banner" }: AdSlotPro
           />
         ) : (
           <div className="flex h-full min-h-[72px] items-center justify-center rounded-xl border border-dashed border-white/10 bg-black/15 px-4 text-center text-sm text-foreground/55">
-            Reserved ad inventory for {label}. Set NEXT_PUBLIC_ADSENSE_CLIENT and NEXT_PUBLIC_AD_SLOT_PREFIX to activate live ads.
+            Reserved ad inventory for {label}. Set NEXT_PUBLIC_ADSENSE_CLIENT and the matching NEXT_PUBLIC_AD_SLOT_* variable to activate live ads.
           </div>
         )}
       </div>
