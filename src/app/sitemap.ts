@@ -18,6 +18,9 @@ const routes = [
   "/tools/image-scanner",
   "/tools/image-format-converter",
   "/tools/image-rotate-flip",
+  "/tools/image-cropper",
+  "/tools/watermark-stamper",
+  "/tools/bulk-image-converter",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
