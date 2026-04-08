@@ -7,31 +7,17 @@ interface GroqMessage {
 
 interface LetterGenerationRequest {
   description: string;
-  template?: string;
-  tone?: string;
+  letterType?: string;
+  language?: string;
+  currentContext?: {
+    department?: string;
+    office?: string;
+    city?: string;
+  };
 }
 
-interface GeneratedLetter {
-  company_name: string;
-  address: string;
-  phone: string;
-  email: string;
-  website: string;
-  recipient_name: string;
-  recipient_designation: string;
-  recipient_address: string;
-  subject: string;
-  letter_body: string;
-  closing: string;
-  signatory_name: string;
-  signatory_designation: string;
-  footer_text: string;
-  template_type: string;
-}
-
-async function callGroqAPI(messages: GroqMessage[], maxTokens: number = 2000): Promise<string> {
+async function callGroqAPI(messages: GroqMessage[], model: string, maxTokens: number = 3000): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
   if (!apiKey) {
     console.error('GROQ_API_KEY environment variable is not set');
@@ -49,7 +35,8 @@ async function callGroqAPI(messages: GroqMessage[], maxTokens: number = 2000): P
         model,
         messages,
         max_tokens: maxTokens,
-        temperature: 0.7,
+        temperature: 0.6,
+        top_p: 0.95,
       }),
     });
 
@@ -57,7 +44,6 @@ async function callGroqAPI(messages: GroqMessage[], maxTokens: number = 2000): P
       const errorText = await response.text();
       console.error('Groq API Error:', response.status, errorText);
 
-      // Try to parse error response
       try {
         const errorJson = JSON.parse(errorText);
         throw new Error(`Groq API (${response.status}): ${errorJson.error?.message || errorText}`);
@@ -81,9 +67,12 @@ async function callGroqAPI(messages: GroqMessage[], maxTokens: number = 2000): P
 }
 
 export async function POST(request: NextRequest) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
   try {
     const body = (await request.json()) as LetterGenerationRequest;
-    const { description, template = 'professional', tone = 'formal' } = body;
+    const { description, letterType = 'office_order', language = 'en', currentContext = {} } = body;
 
     if (!description || description.trim().length === 0) {
       return NextResponse.json(
@@ -92,58 +81,114 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = `You are an expert letter writing AI that generates professional, government, and formal correspondence.
+    const systemPrompt = `You are an expert Government of India official correspondence specialist with deep knowledge of the DOPT Manual of Office Procedure, various ministries, and formal letter formats.
 
-When given a description of a letter, you must respond with ONLY a valid JSON object (no markdown, no explanation).
+Your task is to generate COMPLETE professional government letters that auto-fill EVERY field with authentic, realistic information.
+
+CRITICAL: Respond with ONLY a valid JSON object - no markdown, no code fences, no explanations.
 
 The JSON must have exactly these fields:
 {
-  "company_name": "Name of the organization/authority",
-  "address": "Official address",
-  "phone": "Contact phone",
-  "email": "Contact email",
-  "website": "Website URL",
-  "recipient_name": "Recipient's full name",
-  "recipient_designation": "Recipient's designation/title",
-  "recipient_address": "Recipient's office address",
-  "subject": "Clear subject line (max 100 chars)",
-  "letter_body": "Complete letter body with proper formatting and paragraphs. Start with salutation like 'Dear Sir/Madam,\\n\\n' and end with 'Yours faithfully,'",
-  "closing": "Closing phrase (e.g., 'Yours faithfully')",
-  "signatory_name": "Name of person signing",
-  "signatory_designation": "Designation of signatory",
-  "footer_text": "Footer information",
-  "template_type": "${template}"
+  "h1": "Hindi Line 1 (e.g., भारत सरकार)",
+  "h2": "Hindi Line 2 (e.g., संचार मंत्रालय)",
+  "e1": "English Line 1 (e.g., Government of India)",
+  "e2": "English Line 2 (e.g., Ministry of Communications)",
+  "dept": "Department Full Name",
+  "divn": "Division/Section (if applicable)",
+  "ofc": "Office/Building Name",
+  "city": "City",
+  "pin": "PIN Code",
+  "ph": "Phone Number",
+  "em": "Email",
+  "wb": "Website URL",
+  "fno": "File Number (Format: F.No.XX-XX/XXXX-XX)",
+  "toD": "Recipient's Designation/Title",
+  "toA": "Recipient's Office Address (use \\n for line breaks)",
+  "sub": "Subject Line (concise, professional)",
+  "ref": "Reference to previous correspondence or empty string",
+  "sal": "Salutation (Sir / Madam / Sir/Madam)",
+  "body": "Complete letter body (3-5 numbered paragraphs using GoI language, use \\n\\n for paragraph breaks)",
+  "cls": "Closing phrase (Yours faithfully / Yours sincerely)",
+  "sn": "Signatory Name",
+  "sd": "Signatory Designation",
+  "sp2": "Direct Phone/Extension (optional)",
+  "sh": "Hindi/Regional Name (optional)",
+  "sc": "Constituency/Circle (optional)",
+  "enclList": ["Enclosure 1", "Enclosure 2"] or [],
+  "copyList": ["Copy to 1", "Copy to 2", "Copy to 3"] or []
 }
 
-Guidelines:
-- Make letters professional, authentic, and well-structured
-- Use proper business letter formatting
-- Include all necessary details inferred from the description
-- Tone should be ${tone}
-- If it's a government-related letter, use appropriate government terminology
-- Body should have 2-4 paragraphs with proper spacing
-- Always include appropriate greeting and closing
+AUTHENTIC GoI LETTER PHRASES:
+- "I am directed to forward herewith..."
+- "It is requested that..."
+- "Necessary action may be taken accordingly."
+- "This issues with the approval of the competent authority."
+- "In this connection, it is intimated that..."
+- "Please refer to the office order dated..."
+- "The following guidelines have been issued..."
+
+FILE NUMBER FORMAT: F.No.[Section]/[Year]-[Abbreviation]
+Examples: F.No.38-0112013-PAP, F.No.1001(Acct)/2020-Est
+
+CRITICAL REQUIREMENTS:
+- Generate realistic, complete, professional letters
+- EVERY field must be filled with appropriate content
+- Body must have 2-4 numbered paragraphs with proper GoI terminology
+- Include realistic Copy To list (3-4 recipients)
+- Include relevant Enclosures
+- Use proper salutation and closing
+- Match letter type style and tone
+- Language preference compliance
+
+RESPOND WITH ONLY THE JSON OBJECT. NO OTHER TEXT.`;
+
+    const letterTypeMap = {
+      office_order: 'Office Order',
+      om: 'Office Memorandum (OM)',
+      do: 'Demi-Official (D.O.) Letter',
+      circular: 'Circular/General Order',
+      reminder: 'Reminder Letter',
+      forwarding: 'Forwarding/Endorsement Note',
+      scn: 'Show Cause Notice',
+      noc: 'No Objection Certificate',
+      appreciation: 'Letter of Appreciation',
+      tour: 'Tour Programme',
+      pm_do: 'PM Personal D.O. Letter',
+      mp_letter: 'MP Constituency Letter',
+      custom: 'Official Government Letter'
+    };
+
+    const langNote = language === 'hi' ? 'Write body and relevant fields in formal Hindi (Devanagari).' :
+                     language === 'bi' ? 'Write in Bilingual - alternating English and Hindi paragraphs.' :
+                     'Write in formal English matching Government of India style.';
+
+    const userPrompt = `Generate a complete ${letterTypeMap[letterType as keyof typeof letterTypeMap] || 'Government Letter'}.
+
+User Description: "${description}"
+
+Current Context:
+- Department: ${currentContext.department || 'Department of Posts'}
+- Office: ${currentContext.office || 'Dak Bhavan, Sansad Marg'}
+- City: ${currentContext.city || 'New Delhi'}
+- Language: ${langNote}
+
+CRITICAL: Fill EVERY single field in the JSON with appropriate, realistic, professional content.
+The body must be complete with 3-4 numbered paragraphs in authentic GoI style.
+Include Copy To list with 3-4 realistic recipients.
+Include relevant 1-2 Enclosures.
 
 RESPOND WITH ONLY THE JSON OBJECT.`;
-
-    const userMessage = `Generate a complete letter based on this description:
-
-"${description}"
-
-Template type: ${template}
-Tone: ${tone}
-
-Create all necessary fields to make a complete, professional letter.`;
 
     const response = await callGroqAPI(
       [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
+        { role: 'user', content: userPrompt },
       ],
-      2500
+      model,
+      3500
     );
 
-    // Clean response - remove markdown code fences if present
+    // Clean response
     let cleanedResponse = response.trim();
     if (cleanedResponse.startsWith('```json')) {
       cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/```\s*$/, '');
@@ -151,18 +196,19 @@ Create all necessary fields to make a complete, professional letter.`;
       cleanedResponse = cleanedResponse.replace(/^```\s*/i, '').replace(/```\s*$/, '');
     }
 
-    const letterData: GeneratedLetter = JSON.parse(cleanedResponse.trim());
+    const letterData = JSON.parse(cleanedResponse.trim());
 
     return NextResponse.json({
       success: true,
       data: letterData,
+      model: model,
     });
   } catch (error) {
     console.error('Letter generation error:', error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(
-        { error: 'Failed to parse AI response. Please try again.' },
+        { error: 'Failed to parse AI response. The AI response was not valid JSON. Please try again with a different description.' },
         { status: 500 }
       );
     }
