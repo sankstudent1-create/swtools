@@ -275,6 +275,21 @@ const TOOLS: ToolCard[] = [
     maxKb: 0,
     ratio: "Original",
   },
+  {
+    id: "letterpad-generator",
+    name: "Letterpad Generator",
+    org: "Utility Tool",
+    description: "Create professionally formatted business letterpads with customizable logos, colors, and footer details for companies and offices",
+    icon: "📄",
+    color: "from-brand-pink to-brand-orange",
+    colorText: "text-brand-pink",
+    href: "/tools/letterpad-generator",
+    width: 794,
+    height: 1123,
+    minKb: 0,
+    maxKb: 0,
+    ratio: "A4",
+  },
 ];
 
 function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
