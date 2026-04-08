@@ -153,12 +153,24 @@ Generate a complete letter using AI.
 
 ## Supported Groq Models
 
-Current available models (as of April 2026):
-- `llama-3.1-70b-versatile` ✅ (Used in this implementation)
-- `llama-3.1-8b-instant`
-- `mixtral-8x7b-32768` ❌ (Deprecated)
+Current available models (verified April 2026):
+- `llama-3.3-70b-versatile` ✅ (Recommended - Latest stable)
+- `llama-3.1-8b-instant` ✅ (Fast, smaller)
+- `openai/gpt-oss-120b` ✅ (Advanced reasoning)
+- `openai/gpt-oss-20b` ✅ (Fast inference)
 
-Check [Groq Docs](https://console.groq.com/docs/models) for latest models.
+**Current Default**: `llama-3.3-70b-versatile`
+
+Check [Groq Models](https://console.groq.com/docs/models) for latest list.
+
+### Deprecated Models (No Longer Works)
+- ❌ `mixtral-8x7b-32768`
+- ❌ `llama-3.1-70b-versatile`
+- ❌ `llama-3.2-90b-vision-preview`
+- ❌ `llama-3-70b-8192`
+- ❌ `llama-3-8b-8192`
+
+If you see deprecation errors, update to a model from the supported list above.
 
 ---
 

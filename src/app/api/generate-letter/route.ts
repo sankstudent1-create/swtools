@@ -31,7 +31,7 @@ interface GeneratedLetter {
 
 async function callGroqAPI(messages: GroqMessage[], maxTokens: number = 2000): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
-  const model = process.env.GROQ_MODEL || 'llama-3.2-90b-vision-preview';
+  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
   if (!apiKey) {
     console.error('GROQ_API_KEY environment variable is not set');
