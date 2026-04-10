@@ -43,8 +43,8 @@ export function buildPrompt(
   return `Generate a complete Government of India ${tMap[type] ?? 'official letter'} with all fields.
 
 Context:
-- From Department: ${form.dept || 'Department of Posts'}
-- From Office: ${form.ofc}, ${form.city}
+- From Department: ${form.dept || 'Determine based on user brief'}
+- From Office: ${form.ofc || 'Determine'}, ${form.city || 'Determine based on user brief'}
 - To (if given): ${form.toD || 'generate appropriate recipient'}
 - Subject hint: ${form.sub || 'generate appropriate subject'}
 - Signatory: ${form.sn || 'generate appropriate name'}, ${form.sd || 'generate appropriate designation'}
