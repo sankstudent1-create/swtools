@@ -349,13 +349,30 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
 
       {/* Body */}
       <div className={styles.body}>
-        {/* To block */}
+        {/* To block — each field is block-level inside a clear container */}
         {tpl !== 'E' && (
           <div className={styles.toBlock}>
             <span className={styles.toLabel}>To</span>
-            <div>
-              {E('toD', styles.toName, 'div', 'Recipient Designation')}
-              {E('toA', styles.toAddr, 'div', 'Recipient Address', true)}
+            <div className={styles.toInner}>
+              <div className={styles.toName}>
+                <Editable
+                  value={form.toD}
+                  onChange={v => onFormChange('toD', v)}
+                  tag="span"
+                  placeholder="Recipient Designation"
+                  aiTick={tick}
+                />
+              </div>
+              <div className={styles.toAddr}>
+                <Editable
+                  value={form.toA}
+                  onChange={v => onFormChange('toA', v)}
+                  tag="span"
+                  placeholder="Recipient Address"
+                  aiTick={tick}
+                  multiline
+                />
+              </div>
             </div>
           </div>
         )}
@@ -366,10 +383,17 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
           {E('sub', styles.subText, 'span', 'Subject')}
         </div>
 
-        {/* Reference */}
-        {(form.ref !== undefined) && (
+        {/* Reference — only show if there IS a ref value */}
+        {form.ref && (
           <div className={styles.refBlock}>
-            <strong>Ref:</strong> {E('ref', '', 'span', 'Reference (leave blank if none)')}
+            <strong>Ref:</strong>{' '}
+            <Editable
+              value={form.ref}
+              onChange={v => onFormChange('ref', v)}
+              tag="span"
+              placeholder="Reference"
+              aiTick={tick}
+            />
           </div>
         )}
 
@@ -391,28 +415,35 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
           multiline
         />
 
-        {/* Closing */}
-        <div className={styles.closingBlock}>
-          {E('cls', '', 'span', 'Yours faithfully')}
-        </div>
-
-        {/* Signature */}
-        <div className={styles.sigWrap}>
-          <div className={styles.sigSpace}>
-            {sigUrl && <img src={sigUrl} className={styles.sigImg} alt="signature" />}
+        {/* Closing + Signature — right-aligned per GoI format */}
+        <div className={styles.closingAndSig}>
+          <div className={styles.closingBlock}>
+            <Editable
+              value={form.cls}
+              onChange={v => onFormChange('cls', v)}
+              tag="span"
+              placeholder="Yours faithfully"
+              aiTick={tick}
+            />
+            ,
           </div>
-          {E('sn', styles.sigName, 'div', '(Signatory Name)')}
-          {E('sd', styles.sigDesig, 'div', 'Designation')}
-          {E('dept', styles.sigDept, 'div', 'Department')}
-          {(form.sp || form.em) && (
-            <div className={styles.sigContact}>
-              {E('sp', '', 'span', 'Phone/Extn')}
-              {form.sp && form.em ? '  |  ' : ''}
-              {E('em', '', 'span', 'email')}
+          <div className={styles.sigWrap}>
+            <div className={styles.sigSpace}>
+              {sigUrl && <img src={sigUrl} className={styles.sigImg} alt="signature" />}
             </div>
-          )}
+            <Editable value={form.sn}   onChange={v => onFormChange('sn', v)}   tag="div" className={styles.sigName}   placeholder="(Signatory Name)" aiTick={tick} />
+            <Editable value={form.sd}   onChange={v => onFormChange('sd', v)}   tag="div" className={styles.sigDesig} placeholder="Designation" aiTick={tick} />
+            <Editable value={form.dept} onChange={v => onFormChange('dept', v)} tag="div" className={styles.sigDept}  placeholder="Department" aiTick={tick} />
+            {(form.sp?.trim() || form.em?.trim()) && (
+              <div className={styles.sigContact}>
+                {form.sp?.trim() && <Editable value={form.sp} onChange={v => onFormChange('sp', v)} tag="span" placeholder="Phone/Extn" aiTick={tick} />}
+                {form.sp?.trim() && form.em?.trim() ? '  |  ' : ''}
+                {form.em?.trim() && <Editable value={form.em} onChange={v => onFormChange('em', v)} tag="span" placeholder="email" aiTick={tick} />}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </div>{/* end .body */}
 
       {/* Encl */}
       {showEncl && (
