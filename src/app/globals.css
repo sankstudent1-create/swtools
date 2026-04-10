@@ -441,3 +441,9 @@ p {
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklab, var(--foreground) 38%, transparent);
 }
+
+@media print {
+  nav, header, footer {
+    display: none !important;
+  }
+}

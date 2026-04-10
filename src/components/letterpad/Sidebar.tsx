@@ -21,7 +21,7 @@ interface SidebarProps {
   onOffice: (type: string) => void;
   onLogo: (side: LogoSide, src: string | null) => void;
   onSigApply: (url: string) => void;
-  onFillAI: (data: AILetterData) => void;
+  onFillAI: (data: AILetterData, isFull: boolean) => void;
   onToggleEncl: () => void;
   onToggleCopy: () => void;
   onToggleEndorse: () => void;
@@ -48,6 +48,7 @@ export default function Sidebar({
   const [aiType, setAiType]     = useState('office_order');
   const [aiLang, setAiLang]     = useState('en');
   const [aiPrompt, setAiPrompt] = useState('');
+  const [aiMode, setAiMode]     = useState<'content' | 'full'>('content');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState('');
 
@@ -69,16 +70,20 @@ export default function Sidebar({
     setAiLoading(true);
     setAiStatus('');
     try {
-      const prompt = buildPrompt(aiType, aiPrompt, aiLang, form, tpl);
+      const contextForm = aiMode === 'full' 
+        ? { ...form, dept: '', divn: '', ofc: '', city: '', pin: '', ph: '', em: '', wb: '', h1: '', h2: '', e1: '', e2: '' } 
+        : form;
+
+      const prompt = buildPrompt(aiType, aiPrompt, aiLang, contextForm, tpl);
       const data = await generateLetterWithAI(
         prompt,
         aiType,
         aiLang,
-        { department: form.dept, office: form.ofc, city: form.city },
+        aiMode === 'full' ? {} : { department: form.dept, office: form.ofc, city: form.city },
         setAiStatus
       );
-      onFillAI(data);
-      setAiStatus('✓ Complete letter generated — all fields filled!');
+      onFillAI(data, aiMode === 'full');
+      setAiStatus('✓ Letter generated successfully!');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setAiStatus('✗ ' + msg.slice(0, 100));
@@ -284,6 +289,13 @@ export default function Sidebar({
         <Field label="Letter Type">
           <select className={styles.select} value={aiType} onChange={e => setAiType(e.target.value)}>
             {AI_LETTER_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        </Field>
+
+        <Field label="AI Generation Mode">
+          <select className={styles.select} value={aiMode} onChange={e => setAiMode(e.target.value as 'content'|'full')}>
+            <option value="content">Body & Content Only (Keep my Logo/Headers)</option>
+            <option value="full">Entire Letterhead (Fully AI, replaces headers & logos)</option>
           </select>
         </Field>
 

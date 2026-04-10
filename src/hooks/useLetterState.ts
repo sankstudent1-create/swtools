@@ -106,26 +106,30 @@ export function useLetterState() {
   const toggleCopy    = useCallback(() => setState(s => ({ ...s, showCopy:    !s.showCopy })), []);
   const toggleEndorse = useCallback(() => setState(s => ({ ...s, showEndorse: !s.showEndorse })), []);
 
-  // ── AI fill — populates all fields from AI response ───
-  const fillFromAI = useCallback((data: AILetterData) => {
+  // ── AI fill — populates fields from AI response ───
+  const fillFromAI = useCallback((data: AILetterData, isFull: boolean = false) => {
+
     setState(s => ({
       ...s,
+      officeType: isFull ? 'custom' : s.officeType,
+      logoL: isFull ? null : s.logoL,
+      logoR: isFull ? null : s.logoR,
       showEncl: !!(data.encl?.trim()),
       showCopy: !!(data.copy_to?.length),
       form: {
         ...s.form,
-        h1: data.dept_hindi_1   || s.form.h1,
-        h2: data.dept_hindi_2   || s.form.h2,
-        e1: data.dept_english_1 || s.form.e1,
-        e2: data.dept_english_2 || s.form.e2,
-        dept: data.department   || s.form.dept,
-        divn: data.division     || s.form.divn,
-        ofc:  data.office       || s.form.ofc,
-        city: data.city         || s.form.city,
-        pin:  data.pin          || s.form.pin,
-        ph:   data.phone        || s.form.ph,
-        em:   data.email        || s.form.em,
-        wb:   data.website      || s.form.wb,
+        h1: isFull ? (data.dept_hindi_1 || s.form.h1) : s.form.h1,
+        h2: isFull ? (data.dept_hindi_2 || s.form.h2) : s.form.h2,
+        e1: isFull ? (data.dept_english_1 || s.form.e1) : s.form.e1,
+        e2: isFull ? (data.dept_english_2 || s.form.e2) : s.form.e2,
+        dept: isFull ? (data.department || s.form.dept) : s.form.dept,
+        divn: isFull ? (data.division || s.form.divn) : s.form.divn,
+        ofc:  isFull ? (data.office || s.form.ofc) : s.form.ofc,
+        city: isFull ? (data.city || s.form.city) : s.form.city,
+        pin:  isFull ? (data.pin || s.form.pin) : s.form.pin,
+        ph:   isFull ? (data.phone || s.form.ph) : s.form.ph,
+        em:   isFull ? (data.email || s.form.em) : s.form.em,
+        wb:   isFull ? (data.website || s.form.wb) : s.form.wb,
         fno:  data.file_no      || s.form.fno,
         toD:  data.to_designation || s.form.toD,
         toA:  data.to_address   || s.form.toA,
