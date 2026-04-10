@@ -7,8 +7,8 @@
 ─────────────────────────────────────────────────────────────── */
 .paper {
   background: #ffffff;
-  width: 794px;            /* exact A4 width at 96dpi */
-  min-height: 1123px;      /* exact A4 height at 96dpi — white space preserved */
+  width: 794px;
+  min-height: 1123px;
   box-shadow: 0 6px 40px rgba(0,0,0,.22), 0 1px 5px rgba(0,0,0,.08);
   display: flex;
   flex-direction: column;
@@ -17,6 +17,50 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+/* ── Edit hint bar ─────────────────────────── */
+.editHint {
+  text-align: center;
+  font-size: 9.5px;
+  color: rgba(6,3,141,.5);
+  font-family: 'DM Mono', monospace;
+  padding: 3px 0;
+  background: rgba(6,3,141,.04);
+  letter-spacing: .05em;
+  flex-shrink: 0;
+}
+
+/* ── Inline editable fields ────────────────── */
+/* All contentEditable fields get subtle hover + focus treatment */
+.editable {
+  display: inline;
+  outline: none;
+  border-bottom: 1.5px dashed transparent;
+  transition: border-color .12s, background .12s;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: text;
+  min-width: 24px;
+}
+.editable:hover {
+  border-bottom-color: rgba(6,3,141,.25);
+  background: rgba(6,3,141,.025);
+}
+.editable:focus {
+  border-bottom-color: rgba(6,3,141,.5);
+  background: rgba(6,3,141,.04);
+}
+.editable:empty::before {
+  content: attr(data-placeholder);
+  color: #bbb;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Block editable — full-width */
+.editable[contenteditable]:not([class*="bodyText"]) {
+  display: inline-block;
 }
 
 /* ── Tricolor ────────────────────────────────── */
@@ -129,6 +173,8 @@
 
 .toBlock { font-size: 13px; line-height: 1.8; }
 .toLabel { font-weight: 700; text-decoration: underline; display: block; margin-bottom: 2px; }
+.toName  { font-weight: 600; display: block; }
+.toAddr  { display: block; white-space: pre-wrap; }
 
 .subBlock { border-bottom: 1px dashed #aaa; padding-bottom: 5px; display: flex; gap: 8px; align-items: baseline; }
 .subLabel { font-weight: 700; font-size: 13px; white-space: nowrap; }
@@ -136,6 +182,7 @@
 
 .refBlock { font-size: 12px; color: #444; font-family: 'DM Mono', monospace; }
 .salBlock { font-weight: 700; font-size: 13.5px; }
+.closingBlock { font-weight: 600; font-size: 13px; margin-top: 8px; }
 
 .bodyText {
   min-height: 220px;
@@ -143,10 +190,11 @@
   white-space: pre-wrap; line-height: 2.1; font-size: 13.5px;
   text-align: justify; border-left: 2px solid transparent;
   padding-left: 5px; transition: border-color .18s;
+  display: block;
 }
 .bodyText:focus { border-left-color: rgba(200,168,75,.35); }
 .bodyText:empty::before {
-  content: 'Click to type or use AI to generate…';
+  content: attr(data-placeholder);
   color: #bbb; font-style: italic; font-size: 13px;
 }
 

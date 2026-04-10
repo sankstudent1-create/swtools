@@ -1,18 +1,16 @@
 // ─────────────────────────────────────────────
 //  components/letterpad/LetterPaper.tsx
-//  The A4 paper preview with all 6 template layouts
+//  Full inline editing on ALL fields + AI sync via refs
 // ─────────────────────────────────────────────
 'use client';
 import React, { useRef, useEffect, useCallback, useLayoutEffect } from 'react';
-import type { AppState, LogoSide } from '@/types/letterpad';
+import type { AppState, LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './LetterPaper.module.css';
 
 interface LetterPaperProps {
   state: AppState;
-  onBodyChange: (val: string) => void;
-  onEnclChange: (val: string) => void;
+  onFormChange: (key: keyof LetterForm, value: string) => void;
   onCopyChange: (val: string[]) => void;
-  onEndorseChange: (val: string) => void;
   onLogoPos: (side: LogoSide, pos: { x?: number; y?: number; w?: number; placed?: boolean }) => void;
 }
 
@@ -24,6 +22,54 @@ const FONT_MAP: Record<string, string> = {
   ft:    "'Tiro Devanagari Hindi', serif",
   fn:    "'DM Sans', sans-serif",
 };
+
+// ── Inline Editable field ────────────────────
+// Syncs content from props only when aiTick changes (not on every keystroke)
+interface EditableProps {
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+  tag?: keyof React.JSX.IntrinsicElements;
+  placeholder?: string;
+  aiTick?: number;
+  multiline?: boolean;
+}
+function Editable({ value, onChange, className, tag: Tag = 'span', placeholder, aiTick, multiline }: EditableProps) {
+  const ref = useRef<HTMLElement>(null);
+  const lastTick = useRef<number | undefined>(undefined);
+
+  // On mount: set initial content
+  useLayoutEffect(() => {
+    if (ref.current) {
+      ref.current.innerHTML = multiline
+        ? value.replace(/\n/g, '<br/>')
+        : value;
+      lastTick.current = aiTick;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // On AI update (aiTick change): force-sync content
+  useLayoutEffect(() => {
+    if (aiTick !== undefined && aiTick !== lastTick.current && ref.current) {
+      ref.current.innerHTML = multiline
+        ? value.replace(/\n/g, '<br/>')
+        : value;
+      lastTick.current = aiTick;
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiTick]);
+
+  return React.createElement(Tag as string, {
+    ref,
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    className: `${styles.editable} ${className || ''}`.trim(),
+    'data-placeholder': placeholder,
+    onBlur: (e: React.FocusEvent<HTMLElement>) =>
+      onChange(e.currentTarget.textContent?.replace(/<br\s*\/?>/gi, '\n') || ''),
+  });
+}
 
 // ── Logo placeholder SVG ────────────────────
 function LogoPlaceholder({ icon, label }: { icon: string; label: string }) {
@@ -46,20 +92,19 @@ interface DraggableLogoProps {
 }
 
 function DraggableLogo({ src, side, pos, paperRef, onPos, onRemove }: DraggableLogoProps) {
-  const divRef = useRef<HTMLDivElement>(null);
+  const divRef   = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const resizing = useRef(false);
   const offset   = useRef({ x: 0, y: 0 });
   const startW   = useRef(0);
   const startX   = useRef(0);
 
-  // Auto-place right logo on first mount
   useEffect(() => {
     if (side === 'R' && !pos.placed && paperRef.current) {
       const pw = paperRef.current.offsetWidth;
       onPos('R', { x: pw - pos.w - 44, y: 14, placed: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startDrag = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -139,7 +184,6 @@ function DraggableLogo({ src, side, pos, paperRef, onPos, onRemove }: DraggableL
   );
 }
 
-// ── Header sub-components ────────────────────
 function Tricolor() {
   return (
     <div className={styles.tricolor}>
@@ -149,34 +193,29 @@ function Tricolor() {
 }
 
 // ── Main Paper ───────────────────────────────
-export default function LetterPaper({
-  state, onBodyChange, onEnclChange, onCopyChange, onEndorseChange, onLogoPos,
-}: LetterPaperProps) {
+export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoPos }: LetterPaperProps) {
   const { form, tpl, font, logoL, logoR, posL, posR, sigUrl, showEncl, showCopy, showEndorse } = state;
-  const paperRef   = useRef<HTMLDivElement>(null);
-  const bodyRef    = useRef<HTMLDivElement>(null);
-  const enclRef    = useRef<HTMLDivElement>(null);
-  const endorseRef = useRef<HTMLDivElement>(null);
-
-  // ── Imperatively sync contentEditable content when AI fills fields ──
-  // React intentionally skips re-rendering contentEditable nodes to avoid
-  // clobbering user edits. We bypass this by using useLayoutEffect + refs.
-  useLayoutEffect(() => {
-    if (bodyRef.current) {
-      bodyRef.current.innerHTML = form.body.replace(/\n/g, '<br/>');
-    }
-    if (enclRef.current) {
-      enclRef.current.innerHTML = form.encl;
-    }
-    if (endorseRef.current) {
-      endorseRef.current.innerHTML = form.endorsement.replace(/\n/g, '<br/>');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.aiTick]);
-
+  const paperRef = useRef<HTMLDivElement>(null);
+  const tick     = state.aiTick;
 
   const addr = [form.ofc, form.city, form.pin ? '– ' + form.pin : ''].filter(Boolean).join(', ');
   const fontFamily = FONT_MAP[font] || FONT_MAP[''];
+
+  // Helper: Editable with correct aiTick wired in
+  const E = useCallback(
+    (key: keyof LetterForm, className?: string, tag?: keyof React.JSX.IntrinsicElements, placeholder?: string, multiline?: boolean) => (
+      <Editable
+        key={key}
+        value={String(form[key] ?? '')}
+        onChange={v => onFormChange(key, v)}
+        className={className}
+        tag={tag}
+        placeholder={placeholder || `[${key}]`}
+        aiTick={tick}
+        multiline={multiline}
+      />
+    ),
+  [form, onFormChange, tick]);
 
   // ── Header by template ───────────────────────
   function renderHeader() {
@@ -184,22 +223,35 @@ export default function LetterPaper({
       case 'A': case 'E': case 'F': return (
         <div className={styles.hA}>
           <div className={styles.hATop}>
-            <div className={styles.hAFno}>{form.fno}</div>
-            <div className={styles.hARslot} />  {/* right logo placeholder slot */}
+            {E('fno', styles.hAFno, 'div', 'F.No.')}
+            <div className={styles.hARslot} />
           </div>
           <div className={styles.hACenter}>
-            {form.h1 && <div className={styles.hAHi}>{form.h1}{form.h2 ? ' / ' + form.h2 : ''}</div>}
-            {form.e1 && <div className={styles.hAEn}>{form.e1}{form.e2 ? ' / ' + form.e2 : ''}</div>}
+            {(form.h1 || form.h2) && (
+              <div className={styles.hAHi}>
+                {E('h1', '', 'span', 'भारत सरकार')}
+                {form.h2 && <> / {E('h2', '', 'span', 'विभाग')}</>}
+              </div>
+            )}
+            {(form.e1 || form.e2) && (
+              <div className={styles.hAEn}>
+                {E('e1', '', 'span', 'Government of India')}
+                {form.e2 && <> / {E('e2', '', 'span', 'Ministry')}</>}
+              </div>
+            )}
             <div className={styles.hADept}>
-              {form.dept}
+              {E('dept', '', 'span', 'Department')}
               {tpl === 'F' && <span className={styles.circularBadge}>CIRCULAR</span>}
             </div>
-            {form.divn && <div className={styles.hADiv}>{form.divn}</div>}
+            {E('divn', styles.hADiv, 'div', 'Division / Section')}
             <div className={styles.hAStars}>★&nbsp;&nbsp;★&nbsp;&nbsp;★&nbsp;&nbsp;★</div>
           </div>
           <div className={styles.hAAddr}>
-            {form.ofc}{form.city ? ', ' + form.city : ''}{form.pin ? ' – ' + form.pin : ''}<br/>
-            {form.ph ? <>Phone: {form.ph}&emsp;</> : null}{form.em}
+            {E('ofc', '', 'span', 'Office')}{', '}
+            {E('city', '', 'span', 'City')}{' – '}
+            {E('pin', '', 'span', 'PIN')}<br/>
+            {'Phone: '}{E('ph', '', 'span', 'Phone')}&emsp;
+            {E('em', '', 'span', 'email')}
           </div>
         </div>
       );
@@ -207,51 +259,48 @@ export default function LetterPaper({
         <div className={styles.hB}>
           <div className={styles.hBCenter}>
             <div className={styles.hBLogoSlot} />
-            {form.sh && <div className={styles.hBHi}>{form.sh}</div>}
-            {form.sn && <div className={styles.hBEn}>{form.sn.replace(/[()]/g,'')}</div>}
-            {form.sd && <div className={styles.hBDg}>{form.sd}</div>}
+            {E('sh', styles.hBHi, 'div', 'हिन्दी नाम')}
+            {E('sn', styles.hBEn, 'div', 'Name')}
+            {E('sd', styles.hBDg, 'div', 'Designation')}
           </div>
           <div className={styles.hBAddr}>
-            {form.ofc}<br/>{form.city}{form.pin ? ' – ' + form.pin : ''}<br/>{form.dt}
+            {E('ofc', '', 'div', 'Office')}<br/>
+            {E('city', '', 'span', 'City')}{' – '}{E('pin', '', 'span', 'PIN')}<br/>
+            {E('dt', '', 'span', 'Date')}
           </div>
         </div>
       );
       case 'C': return (
         <div className={styles.hC}>
           <div className={styles.hCRow}>
-            <div className={styles.hCLogo} />{/* left logo slot */}
+            <div className={styles.hCLogo} />
             <div className={styles.hCMid}>
-              {form.sh && <div className={styles.hCHi}>{form.sh}</div>}
-              {form.sn && <div className={styles.hCEn}>{form.sn.replace(/[()]/g,'')}</div>}
-              {form.sd && <div className={styles.hCDg}>{form.sd}</div>}
-              {form.dept && <div className={styles.hCSub}>{form.dept}</div>}
-              {form.sc && <div className={styles.hCSub}>{form.sc}</div>}
-              <div className={styles.hCContact}>
-                {form.ph ? <>📞 {form.ph}&emsp;</> : null}
-                {form.em ? <>✉ {form.em}</> : null}
-              </div>
+              {E('sh', styles.hCHi, 'div', 'हिन्दी नाम')}
+              {E('sn', styles.hCEn, 'div', 'Name')}
+              {E('sd', styles.hCDg, 'div', 'Designation')}
+              {E('dept', styles.hCSub, 'div', 'Department')}
+              {E('sc', styles.hCSub, 'div', 'Constituency')}
             </div>
-            <div className={styles.hCLogo} />{/* right logo slot */}
+            <div className={styles.hCLogo} />
           </div>
         </div>
       );
       case 'D': return (
         <div className={styles.hD}>
           <div className={styles.hDRow}>
-            <div className={styles.hDLogo} />{/* left logo slot */}
+            <div className={styles.hDLogo} />
             <div className={styles.hDNames}>
-              {form.sh && <div className={styles.hDHi}>{form.sh}</div>}
-              {form.sn && <div className={styles.hDEn}>{form.sn.replace(/[()]/g,'')}</div>}
-              {form.sd && <div className={styles.hDDg}>{form.sd}</div>}
-              {form.sc && <div className={styles.hDCn}>{form.sc}</div>}
+              {E('sh', styles.hDHi, 'div', 'हिन्दी नाम')}
+              {E('sn', styles.hDEn, 'div', 'Name')}
+              {E('sd', styles.hDDg, 'div', 'Designation')}
+              {E('sc', styles.hDCn, 'div', 'Constituency')}
             </div>
             <div className={styles.hDAddr}>
-              {form.dept && <><strong>{form.dept}</strong><br/></>}
-              {form.ofc && <>{form.ofc}<br/></>}
-              {form.city}{form.pin ? ' – ' + form.pin : ''}<br/>
-              {form.ph ? <>📞 {form.ph}<br/></> : null}
-              {form.em ? <>✉ {form.em}<br/></> : null}
-              {form.wb ? <>🌐 {form.wb}</> : null}
+              {E('dept', styles.hDEn, 'div', 'Department')}<br/>
+              {E('ofc', '', 'div', 'Office')}<br/>
+              {E('city', '', 'span', 'City')}{' – '}{E('pin', '', 'span', 'PIN')}<br/>
+              {E('ph', '', 'div', 'Phone')}<br/>
+              {E('em', '', 'div', 'email')}
             </div>
           </div>
         </div>
@@ -260,7 +309,6 @@ export default function LetterPaper({
     }
   }
 
-  // ── Divider by template ──────────────────────
   function renderDivider() {
     switch (tpl) {
       case 'A': case 'E': case 'F': return <><hr className={styles.dblLine}/><hr className={styles.singleLine}/></>;
@@ -276,30 +324,26 @@ export default function LetterPaper({
     }
   }
 
-  // ── Footer style by template ─────────────────
-  const footerClass = tpl === 'C'
-    ? `${styles.footer} ${styles.footerC}`
-    : tpl === 'D'
-    ? `${styles.footer} ${styles.footerD}`
-    : `${styles.footer} ${styles.footerAB}`;
+  const footerClass = tpl === 'C' ? `${styles.footer} ${styles.footerC}` :
+                      tpl === 'D' ? `${styles.footer} ${styles.footerD}` :
+                                    `${styles.footer} ${styles.footerAB}`;
 
   return (
     <div className={styles.paper} ref={paperRef} style={{ fontFamily }}>
-      {/* Tricolor */}
       <Tricolor />
 
-      {/* Header */}
-      {renderHeader()}
+      {/* Edit hint */}
+      <div className={styles.editHint}>✏ Click any text to edit inline</div>
 
-      {/* Divider */}
+      {renderHeader()}
       {renderDivider()}
 
       {/* Meta row */}
       {(tpl === 'A' || tpl === 'E' || tpl === 'F') && (
         <div className={styles.meta}>
-          <span>{form.fno}</span>
+          {E('fno', '', 'span', 'F.No.')}
           <span>{addr}</span>
-          <span>Dated: {form.dt}</span>
+          <span>Dated: {E('dt', '', 'span', 'Date')}</span>
         </div>
       )}
 
@@ -310,8 +354,8 @@ export default function LetterPaper({
           <div className={styles.toBlock}>
             <span className={styles.toLabel}>To</span>
             <div>
-              <strong>{form.toD}</strong>
-              {form.toA.split('\n').map((line, i) => <div key={i}>{line}</div>)}
+              {E('toD', styles.toName, 'div', 'Recipient Designation')}
+              {E('toA', styles.toAddr, 'div', 'Recipient Address', true)}
             </div>
           </div>
         )}
@@ -319,40 +363,52 @@ export default function LetterPaper({
         {/* Subject */}
         <div className={styles.subBlock}>
           <span className={styles.subLabel}>Sub:</span>
-          <span className={styles.subText}>{form.sub || '—'}</span>
+          {E('sub', styles.subText, 'span', 'Subject')}
         </div>
 
         {/* Reference */}
-        {form.ref && (
+        {(form.ref !== undefined) && (
           <div className={styles.refBlock}>
-            <strong>Ref:</strong> {form.ref}
+            <strong>Ref:</strong> {E('ref', '', 'span', 'Reference (leave blank if none)')}
           </div>
         )}
 
         {/* Salutation */}
-        {tpl !== 'E' && <div className={styles.salBlock}>{form.sal},</div>}
+        {tpl !== 'E' && (
+          <div className={styles.salBlock}>
+            {E('sal', '', 'span', 'Sir/Madam')},
+          </div>
+        )}
 
-        {/* Body content — contenteditable, imperatively synced via ref on AI fill */}
-        <div
-          ref={bodyRef}
+        {/* Body text */}
+        <Editable
+          value={form.body}
+          onChange={v => onFormChange('body', v)}
           className={styles.bodyText}
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={e => onBodyChange(e.currentTarget.textContent || '')}
-          dangerouslySetInnerHTML={{ __html: form.body.replace(/\n/g, '<br/>') }}
+          tag="div"
+          placeholder="Click to type letter body, or use AI to generate…"
+          aiTick={tick}
+          multiline
         />
+
+        {/* Closing */}
+        <div className={styles.closingBlock}>
+          {E('cls', '', 'span', 'Yours faithfully')}
+        </div>
 
         {/* Signature */}
         <div className={styles.sigWrap}>
           <div className={styles.sigSpace}>
             {sigUrl && <img src={sigUrl} className={styles.sigImg} alt="signature" />}
           </div>
-          <div className={styles.sigName}>{form.sn || '(Authorised Signatory)'}</div>
-          {form.sd && <div className={styles.sigDesig}>{form.sd}</div>}
-          {form.dept && <div className={styles.sigDept}>{form.dept}</div>}
+          {E('sn', styles.sigName, 'div', '(Signatory Name)')}
+          {E('sd', styles.sigDesig, 'div', 'Designation')}
+          {E('dept', styles.sigDept, 'div', 'Department')}
           {(form.sp || form.em) && (
             <div className={styles.sigContact}>
-              {[form.sp, form.em].filter(Boolean).join('  |  ')}
+              {E('sp', '', 'span', 'Phone/Extn')}
+              {form.sp && form.em ? '  |  ' : ''}
+              {E('em', '', 'span', 'email')}
             </div>
           )}
         </div>
@@ -361,13 +417,13 @@ export default function LetterPaper({
       {/* Encl */}
       {showEncl && (
         <div className={styles.enclBlock}>
-          <div
-            ref={enclRef}
-            contentEditable
-            suppressContentEditableWarning
-            style={{ outline: 'none' }}
-            onBlur={e => onEnclChange(e.currentTarget.textContent || '')}
-            dangerouslySetInnerHTML={{ __html: form.encl }}
+          <Editable
+            value={form.encl}
+            onChange={v => onFormChange('encl', v)}
+            tag="div"
+            placeholder="Enclosures…"
+            aiTick={tick}
+            multiline
           />
         </div>
       )}
@@ -377,8 +433,9 @@ export default function LetterPaper({
         <div className={styles.copyBlock}>
           <div className={styles.copyHead}>Copy to:</div>
           <ol className={styles.copyList}>
-            {form.copyTo.map((item, i) => (
-              <li key={`copy-${i}-${state.aiTick || 0}`}
+            {(form.copyTo.length ? form.copyTo : ['']).map((item, i) => (
+              <li
+                key={`copy-${i}-${tick || 0}`}
                 contentEditable
                 suppressContentEditableWarning
                 style={{ outline: 'none' }}
@@ -397,25 +454,25 @@ export default function LetterPaper({
       {showEndorse && (
         <div className={styles.endorseBlock}>
           <div className={styles.endorseHead}>Forwarded / Endorsed to:</div>
-          <div
-            ref={endorseRef}
-            contentEditable
-            suppressContentEditableWarning
-            style={{ outline: 'none', minHeight: 38 }}
-            onBlur={e => onEndorseChange(e.currentTarget.textContent || '')}
-            dangerouslySetInnerHTML={{ __html: form.endorsement.replace(/\n/g,'<br/>') }}
+          <Editable
+            value={form.endorsement}
+            onChange={v => onFormChange('endorsement', v)}
+            tag="div"
+            placeholder="Endorsement details…"
+            aiTick={tick}
+            multiline
           />
         </div>
       )}
 
-      {/* Footer — always present */}
+      {/* Footer */}
       <div className={footerClass}>
         <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
         <span>{form.city}{form.pin ? ' – ' + form.pin : ''}</span>
         <span>{form.wb}</span>
       </div>
 
-      {/* Draggable Logos Layer */}
+      {/* Draggable Logos */}
       {logoL && (
         <DraggableLogo src={logoL} side="L" pos={posL} paperRef={paperRef}
           onPos={onLogoPos} onRemove={() => {}} />

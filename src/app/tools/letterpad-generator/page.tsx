@@ -1,16 +1,14 @@
 // ─────────────────────────────────────────────
 //  tools/letterpad-generator/page.tsx
-//  Full-featured letterpad page using the swinfsystems-letterhead
-//  components, integrated with Groq AI (no Claude API key needed)
 // ─────────────────────────────────────────────
 'use client';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Appbar      from '@/components/letterpad/Appbar';
 import Sidebar     from '@/components/letterpad/Sidebar';
 import LetterPaper from '@/components/letterpad/LetterPaper';
 import EditToolbar from '@/components/letterpad/EditToolbar';
 import { useLetterState } from '@/hooks/useLetterState';
-import type { LogoSide } from '@/types/letterpad';
+import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
 
 export default function LetterpadGeneratorPage() {
@@ -29,13 +27,19 @@ export default function LetterpadGeneratorPage() {
     fillFromAI,
   } = useLetterState();
 
-  // ── Responsive paper scale ─────────────────────────────
+  // ── Mobile tab: 'edit' | 'preview' ──────────
+  const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('preview');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // ── Responsive paper scale ───────────────────
   useEffect(() => {
     function updateScale() {
       const vw = window.innerWidth;
+      const mobile = vw <= 900;
+      setIsMobile(mobile);
       let scale = 1;
-      if (vw <= 640)  scale = Math.max(0.38, (vw - 16) / 794);
-      else if (vw <= 900) scale = Math.max(0.65, (vw - 16) / 794);
+      if (vw <= 640)       scale = Math.max(0.38, (vw - 16) / 794);
+      else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
       document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
     }
     updateScale();
@@ -43,22 +47,21 @@ export default function LetterpadGeneratorPage() {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
-  // ── Print / PDF ──────────────────────────────────
-  function doPrint() {
-    window.print();
-  }
-  function doPDF() {
-    window.print(); // browser shows "Save as PDF" option automatically
-  }
+  // ── Print / PDF ──────────────────────────────
+  function doPrint() { window.print(); }
+  function doPDF()   { window.print(); }
 
-  // ── Logo pos update ──────────────────────────
   const handleLogoPos = useCallback((side: LogoSide, pos: object) => {
     setLogoPos(side, pos as Parameters<typeof setLogoPos>[1]);
   }, [setLogoPos]);
 
+  const handleFormChange = useCallback((key: keyof LetterForm, value: string) => {
+    updateForm(key, value);
+  }, [updateForm]);
+
   return (
     <div className={styles.letterpadRoot}>
-      {/* Google Fonts for letterpad (serif fonts) */}
+      {/* Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
         href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Tiro+Devanagari+Hindi:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
@@ -72,9 +75,24 @@ export default function LetterpadGeneratorPage() {
         onToggleCopy={toggleCopy}
       />
 
-      <div className={styles.workspace}>
-        {/* ── SIDEBAR (wrapped for sticky scroll) ── */}
-        <div className={styles.sidebarCol}>
+      {/* ── Mobile tab bar ── */}
+      {isMobile && (
+        <div className={styles.mobileTabBar}>
+          <button
+            className={`${styles.mobileTab} ${mobileTab === 'edit' ? styles.mobileTabActive : ''}`}
+            onClick={() => setMobileTab('edit')}
+          >✏️ Edit</button>
+          <button
+            className={`${styles.mobileTab} ${mobileTab === 'preview' ? styles.mobileTabActive : ''}`}
+            onClick={() => setMobileTab('preview')}
+          >📄 Preview</button>
+        </div>
+      )}
+
+      <div className={`${styles.workspace} ${isMobile ? styles.workspaceMobile : ''}`}>
+
+        {/* ── SIDEBAR ── */}
+        <div className={`${styles.sidebarCol} ${isMobile && mobileTab !== 'edit' ? styles.hidden : ''}`}>
           <Sidebar
             state={state}
             onUpdateForm={updateForm}
@@ -91,37 +109,30 @@ export default function LetterpadGeneratorPage() {
         </div>
 
         {/* ── PREVIEW AREA ── */}
-        <main className={styles.preview}>
+        <main className={`${styles.preview} ${isMobile && mobileTab !== 'preview' ? styles.hidden : ''}`}>
           {/* Toolbar row */}
           <div className={styles.previewTop}>
             <span className={styles.previewLabel}>
-              📄 A4 GoI Format · Drag logos to reposition · Live Preview · Powered by Groq AI
+              📄 A4 · Click paper to edit · AI fills all fields · Groq powered
             </span>
-            <button className={styles.clearBtn} onClick={() => updateForm('body', '')}>
-              ✕ Clear Body
-            </button>
+            <EditToolbar
+              showEncl={state.showEncl}
+              showCopy={state.showCopy}
+              showEndorse={state.showEndorse}
+              onToggleEncl={toggleEncl}
+              onToggleCopy={toggleCopy}
+              onToggleEndorse={toggleEndorse}
+              onPrint={doPrint}
+              onPDF={doPDF}
+            />
           </div>
-
-          {/* Edit bar */}
-          <EditToolbar
-            showEncl={state.showEncl}
-            showCopy={state.showCopy}
-            showEndorse={state.showEndorse}
-            onToggleEncl={toggleEncl}
-            onToggleCopy={toggleCopy}
-            onToggleEndorse={toggleEndorse}
-            onPrint={doPrint}
-            onPDF={doPDF}
-          />
 
           {/* Paper */}
           <div className={styles.paperWrap}>
             <LetterPaper
               state={state}
-              onBodyChange={val => updateForm('body', val)}
-              onEnclChange={val => updateForm('encl', val)}
+              onFormChange={handleFormChange}
               onCopyChange={val => updateForm('copyTo', val)}
-              onEndorseChange={val => updateForm('endorsement', val)}
               onLogoPos={handleLogoPos}
             />
           </div>
