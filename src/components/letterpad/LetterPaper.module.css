@@ -1,10 +1,14 @@
 /* components/letterpad/LetterPaper.module.css */
 
-/* ── Paper ──────────────────────────────────── */
+/* ── Paper ──────────────────────────────────────────────────────
+   A4 = 210mm × 297mm. At screen 96dpi that's ~794×1123px.
+   We lock to a real A4 aspect ratio and let content flow inside.
+   footer is pinned to the bottom via flex.
+─────────────────────────────────────────────────────────────── */
 .paper {
   background: #ffffff;
-  width: 100%;
-  min-height: 1100px;
+  width: 794px;            /* exact A4 width at 96dpi */
+  min-height: 1123px;      /* exact A4 height at 96dpi — white space preserved */
   box-shadow: 0 6px 40px rgba(0,0,0,.22), 0 1px 5px rgba(0,0,0,.08);
   display: flex;
   flex-direction: column;
@@ -12,6 +16,7 @@
   color: #0f0f0f;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 /* ── Tricolor ────────────────────────────────── */
@@ -109,11 +114,18 @@
 .meta {
   display: flex; justify-content: space-between; padding: 7px 44px 5px;
   font-family: 'DM Mono', monospace; font-size: 11.5px; color: #333;
-  border-bottom: 1px solid #ddd; background: #FAFAF5;
+  border-bottom: 1px solid #ddd; background: #FAFAF5; flex-shrink: 0;
 }
 
-/* ── Body ────────────────────────────────────── */
-.body { padding: 18px 46px 14px; flex: 1; display: flex; flex-direction: column; gap: 13px; }
+/* ── Body — fills remaining space so footer stays at bottom ── */
+.body {
+  padding: 18px 46px 14px;
+  flex: 1;                /* grows to push footer down */
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-height: 0;          /* allow flex shrink below content */
+}
 
 .toBlock { font-size: 13px; line-height: 1.8; }
 .toLabel { font-weight: 700; text-decoration: underline; display: block; margin-bottom: 2px; }
@@ -126,7 +138,8 @@
 .salBlock { font-weight: 700; font-size: 13.5px; }
 
 .bodyText {
-  flex: 1; min-height: 280px; outline: none; cursor: text;
+  min-height: 220px;
+  outline: none; cursor: text;
   white-space: pre-wrap; line-height: 2.1; font-size: 13.5px;
   text-align: justify; border-left: 2px solid transparent;
   padding-left: 5px; transition: border-color .18s;
@@ -137,36 +150,58 @@
   color: #bbb; font-style: italic; font-size: 13px;
 }
 
-/* ── Signature ───────────────────────────────── */
-.sigWrap { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; }
-.sigSpace { height: 54px; display: flex; align-items: flex-end; }
-.sigImg { max-height: 52px; max-width: 180px; object-fit: contain; }
-.sigName { font-size: 14px; font-weight: 700; margin-top: 3px; }
+/* ── Signature — consistent sizing across all screen sizes ── */
+.sigWrap { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; flex-shrink: 0; }
+.sigSpace {
+  height: 60px;           /* fixed, consistent on all devices */
+  display: flex;
+  align-items: flex-end;
+  min-width: 140px;
+}
+.sigImg {
+  max-height: 56px;       /* never overflows the sigSpace */
+  max-width: 200px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.sigName  { font-size: 14px; font-weight: 700; margin-top: 3px; }
 .sigDesig { font-size: 12.5px; color: #333; margin-top: 1px; }
-.sigDept { font-size: 12px; color: #444; margin-top: 1px; }
+.sigDept  { font-size: 12px; color: #444; margin-top: 1px; }
 .sigContact { font-size: 11px; color: #666; margin-top: 3px; font-family: 'DM Mono', monospace; }
 
 /* ── Encl / Copy / Endorse ────────────────────── */
-.enclBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; }
-.copyBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; }
+.enclBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; flex-shrink: 0; }
+.copyBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; flex-shrink: 0; }
 .copyHead   { font-weight: 700; text-decoration: underline; margin-bottom: 3px; }
 .copyList   { margin-left: 20px; }
 .copyList li{ margin-bottom: 1px; }
 .endorseBlock {
   margin: 6px 42px; border: 1px solid #bbb; padding: 8px 12px;
-  background: #f9f8f4; font-size: 12px;
+  background: #f9f8f4; font-size: 12px; flex-shrink: 0;
 }
 .endorseHead {
   font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
   border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 4px;
 }
 
-/* ── Footer ──────────────────────────────────── */
+/* ── Footer — always pinned to bottom of A4 sheet ────────────
+   margin-top: auto pushes it down when content is short.
+   flex-shrink: 0 prevents it from collapsing.
+   No gradient — clean flat design.
+─────────────────────────────────────────────────────────────── */
 .footer {
-  margin-top: auto; padding: 8px 44px;
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 10px; color: #555; font-family: 'DM Mono', monospace; flex-shrink: 0;
+  margin-top: auto;
+  padding: 9px 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #555;
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
 }
 .footerAB { border-top: 2px solid #06038D; background: #f0eee6; }
-.footerC  { background: #06038D; color: rgba(255,255,255,.72); }
+.footerC  { background: #06038D; color: rgba(255,255,255,.85); }
 .footerD  { border-top: 3px solid #FF6600; background: #fff8f2; }

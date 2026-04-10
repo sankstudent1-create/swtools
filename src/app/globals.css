@@ -443,7 +443,20 @@ p {
 }
 
 @media print {
-  nav, header, footer {
+  /* Hide all site chrome globally during print/PDF */
+  nav, header, footer,
+  [class*="Navbar"], [class*="navbar"],
+  [class*="Header"], [class*="SiteHeader"],
+  [class*="Footer"], [class*="SiteFooter"],
+  [class*="sidebar"], [class*="Sidebar"],
+  [class*="EditToolbar"], [class*="toolbar"] {
     display: none !important;
+  }
+
+  /* No margins on html/body */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
 }

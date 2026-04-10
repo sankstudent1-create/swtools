@@ -4,7 +4,7 @@
 //  components, integrated with Groq AI (no Claude API key needed)
 // ─────────────────────────────────────────────
 'use client';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import Appbar      from '@/components/letterpad/Appbar';
 import Sidebar     from '@/components/letterpad/Sidebar';
 import LetterPaper from '@/components/letterpad/LetterPaper';
@@ -29,13 +29,26 @@ export default function LetterpadGeneratorPage() {
     fillFromAI,
   } = useLetterState();
 
-  // ── Print / PDF ──────────────────────────────
+  // ── Responsive paper scale ─────────────────────────────
+  useEffect(() => {
+    function updateScale() {
+      const vw = window.innerWidth;
+      let scale = 1;
+      if (vw <= 640)  scale = Math.max(0.38, (vw - 16) / 794);
+      else if (vw <= 900) scale = Math.max(0.65, (vw - 16) / 794);
+      document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
+    }
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
+  // ── Print / PDF ──────────────────────────────────
   function doPrint() {
     window.print();
   }
   function doPDF() {
-    alert('Select "Save as PDF" in the print dialog.');
-    setTimeout(doPrint, 400);
+    window.print(); // browser shows "Save as PDF" option automatically
   }
 
   // ── Logo pos update ──────────────────────────
@@ -60,20 +73,22 @@ export default function LetterpadGeneratorPage() {
       />
 
       <div className={styles.workspace}>
-        {/* ── SIDEBAR ── */}
-        <Sidebar
-          state={state}
-          onUpdateForm={updateForm}
-          onTemplate={setTemplate}
-          onFont={setFont}
-          onOffice={applyOfficePreset}
-          onLogo={setLogo}
-          onSigApply={setSigUrl}
-          onFillAI={fillFromAI}
-          onToggleEncl={toggleEncl}
-          onToggleCopy={toggleCopy}
-          onToggleEndorse={toggleEndorse}
-        />
+        {/* ── SIDEBAR (wrapped for sticky scroll) ── */}
+        <div className={styles.sidebarCol}>
+          <Sidebar
+            state={state}
+            onUpdateForm={updateForm}
+            onTemplate={setTemplate}
+            onFont={setFont}
+            onOffice={applyOfficePreset}
+            onLogo={setLogo}
+            onSigApply={setSigUrl}
+            onFillAI={fillFromAI}
+            onToggleEncl={toggleEncl}
+            onToggleCopy={toggleCopy}
+            onToggleEndorse={toggleEndorse}
+          />
+        </div>
 
         {/* ── PREVIEW AREA ── */}
         <main className={styles.preview}>
