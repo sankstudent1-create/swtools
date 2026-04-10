@@ -3,7 +3,7 @@
 //  The A4 paper preview with all 6 template layouts
 // ─────────────────────────────────────────────
 'use client';
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import type { AppState, LogoSide } from '@/types/letterpad';
 import styles from './LetterPaper.module.css';
 
@@ -153,7 +153,27 @@ export default function LetterPaper({
   state, onBodyChange, onEnclChange, onCopyChange, onEndorseChange, onLogoPos,
 }: LetterPaperProps) {
   const { form, tpl, font, logoL, logoR, posL, posR, sigUrl, showEncl, showCopy, showEndorse } = state;
-  const paperRef = useRef<HTMLDivElement>(null);
+  const paperRef   = useRef<HTMLDivElement>(null);
+  const bodyRef    = useRef<HTMLDivElement>(null);
+  const enclRef    = useRef<HTMLDivElement>(null);
+  const endorseRef = useRef<HTMLDivElement>(null);
+
+  // ── Imperatively sync contentEditable content when AI fills fields ──
+  // React intentionally skips re-rendering contentEditable nodes to avoid
+  // clobbering user edits. We bypass this by using useLayoutEffect + refs.
+  useLayoutEffect(() => {
+    if (bodyRef.current) {
+      bodyRef.current.innerHTML = form.body.replace(/\n/g, '<br/>');
+    }
+    if (enclRef.current) {
+      enclRef.current.innerHTML = form.encl;
+    }
+    if (endorseRef.current) {
+      endorseRef.current.innerHTML = form.endorsement.replace(/\n/g, '<br/>');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.aiTick]);
+
 
   const addr = [form.ofc, form.city, form.pin ? '– ' + form.pin : ''].filter(Boolean).join(', ');
   const fontFamily = FONT_MAP[font] || FONT_MAP[''];
@@ -312,9 +332,9 @@ export default function LetterPaper({
         {/* Salutation */}
         {tpl !== 'E' && <div className={styles.salBlock}>{form.sal},</div>}
 
-        {/* Body content — contenteditable */}
+        {/* Body content — contenteditable, imperatively synced via ref on AI fill */}
         <div
-          key={`body-${state.aiTick || 0}`}
+          ref={bodyRef}
           className={styles.bodyText}
           contentEditable
           suppressContentEditableWarning
@@ -342,7 +362,7 @@ export default function LetterPaper({
       {showEncl && (
         <div className={styles.enclBlock}>
           <div
-            key={`encl-${state.aiTick || 0}`}
+            ref={enclRef}
             contentEditable
             suppressContentEditableWarning
             style={{ outline: 'none' }}
@@ -378,7 +398,7 @@ export default function LetterPaper({
         <div className={styles.endorseBlock}>
           <div className={styles.endorseHead}>Forwarded / Endorsed to:</div>
           <div
-            key={`endorse-${state.aiTick || 0}`}
+            ref={endorseRef}
             contentEditable
             suppressContentEditableWarning
             style={{ outline: 'none', minHeight: 38 }}
@@ -390,7 +410,7 @@ export default function LetterPaper({
 
       {/* Footer — always present */}
       <div className={footerClass}>
-        <span>{(form.dept || 'Department of Posts') + ' · Government of India'}</span>
+        <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
         <span>{form.city}{form.pin ? ' – ' + form.pin : ''}</span>
         <span>{form.wb}</span>
       </div>
