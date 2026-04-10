@@ -168,66 +168,87 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE — Tablet (900px and below)
+   RESPONSIVE — Tablet (≤ 900px)
+   Tab-based layout: sidebar or paper, never both at once
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
+  /* Grid collapses to single column */
   .workspace {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    display: flex;
+    flex-direction: column;
   }
 
+  /* In mobile-tab mode each panel is full screen */
+  .workspaceMobile {
+    display: block;
+    min-height: calc(100vh - 100px); /* 52px appbar + 48px tab bar */
+  }
+
+  /* Sidebar takes full width, scrolls internally */
   .sidebarCol {
     height: auto;
-    position: relative;
-    top: 0;
-    max-height: 50vh;
+    max-height: calc(100vh - 100px);
     overflow-y: auto;
+    position: static;
   }
 
+  /* Preview fills remaining space */
   .preview {
-    padding: 12px 8px 40px;
+    min-height: calc(100vh - 100px);
+    padding: 14px 10px 50px;
   }
+
+  /* Paper scales to fit screen */
+  .paperWrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .paperWrap > * {
+    transform: scale(var(--paper-scale, 0.7));
+    transform-origin: top center;
+    /* negative margin collapses the empty gap left by scaling */
+    margin-bottom: calc((var(--paper-scale, 0.7) - 1) * 1123px);
+  }
+
+  .previewLabel { display: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE — Mobile (600px and below)
-   Paper scales down to fit the screen
+   RESPONSIVE — Mobile (≤ 640px)
+   Sidebar becomes bottom drawer, paper scales to ~42-50% 
 ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  .workspace {
-    grid-template-columns: 1fr;
+  .mobileTabBar {
+    /* Move tab bar below any sticky appbar (~52px) */
+    top: 52px;
   }
 
   .sidebarCol {
-    max-height: 45vh;
-  }
-
-  /* Scale paper to fit mobile screen width */
-  .paperWrap {
-    transform: scale(var(--paper-scale, 0.45));
-    transform-origin: top center;
-    /* Compensate height after scale so content below is correct */
-    margin-bottom: calc((var(--paper-scale, 0.45) - 1) * 1123px);
+    /* Sidebar in edit tab: full height, good scrolling */
+    max-height: calc(100vh - 104px);
+    padding-bottom: 20px;
   }
 
   .preview {
     padding: 8px 4px 30px;
+    min-height: calc(100vh - 104px);
+  }
+
+  /* Tighter paper scale on very small phones */
+  .paperWrap > * {
+    transform: scale(var(--paper-scale, 0.42));
+    margin-bottom: calc((var(--paper-scale, 0.42) - 1) * 1123px);
   }
 
   .previewTop {
     flex-wrap: wrap;
     gap: 6px;
+    justify-content: flex-end;
   }
+
+  /* Preview label too long on mobile */
+  .previewLabel { display: none; }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE — Medium screens (641px – 900px)
-   Paper scales to fit between sidebar-removed layout
-═══════════════════════════════════════════════════════════════ */
-@media (min-width: 641px) and (max-width: 900px) {
-  .paperWrap {
-    transform: scale(var(--paper-scale, 0.8));
-    transform-origin: top center;
-    margin-bottom: calc((var(--paper-scale, 0.8) - 1) * 1123px);
-  }
-}

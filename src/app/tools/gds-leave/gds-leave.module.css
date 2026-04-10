@@ -1,0 +1,199 @@
+/* src/app/tools/gds-leave/gds-leave.module.css */
+/* Premium GDS Leave Application styling — no Tailwind dependency */
+
+.root {
+  min-height: 100vh;
+  background: #e8ecf2;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  background: #1b2d4f;
+  height: 52px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 14px rgba(0,0,0,.25);
+}
+.headerBrand { display: flex; align-items: center; gap: 11px; }
+.headerLogo {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, #b8890a, #7a5010);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 10px; color: #fff; font-family: serif;
+  flex-shrink: 0;
+}
+.headerTitle  { font-size: 14px; font-weight: 700; color: #fff; }
+.headerSub    { font-size: 9px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: 1px; }
+.headerBadge  {
+  background: rgba(184,137,10,.18);
+  border: 1px solid rgba(184,137,10,.4);
+  color: #d4a017;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 11px;
+  border-radius: 20px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+@media (max-width: 480px) { .headerBadge { display: none; } }
+
+/* ── Tab bar ─────────────────────────────────── */
+.tabBar {
+  background: #22386a;
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.tabBtn {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.tabBtn:hover   { color: rgba(255,255,255,.75); }
+.tabBtnActive   { color: #fff !important; border-bottom-color: #b8890a !important; }
+
+/* ── Main ────────────────────────────────────── */
+.main {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 22px 16px 100px;
+}
+.hidden { display: none !important; }
+
+/* ── Banner ──────────────────────────────────── */
+.banner {
+  background: linear-gradient(135deg, #1b2d4f, #253e6a);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+.bannerTitle  { font-family: serif; font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 3px; }
+.bannerSub    { color: rgba(255,255,255,.42); font-size: 12px; margin: 0 0 9px; }
+.bannerTags   { display: flex; gap: 6px; flex-wrap: wrap; }
+.bannerTag    {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.52);
+  font-size: 10px; font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+/* ── Action bar ──────────────────────────────── */
+.actionBar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(232,236,242,.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #c5cede;
+  padding: 11px 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  z-index: 50;
+}
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #fff;
+  color: #1b2d4f;
+  border: 1.5px solid #c5cede;
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btnSecondary:hover { background: #eef1ff; border-color: #1b2d4f; }
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1b2d4f, #22386a);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(27,45,79,.28);
+  transition: all .15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btnPrimary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(27,45,79,.38); }
+
+/* ── Preview modal ───────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,10,26,.88);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modalBox {
+  background: #1b2d4f;
+  border-radius: 10px;
+  width: 95vw;
+  max-width: 960px;
+  height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.modalTitle  { font-family: serif; font-weight: 700; color: #fff; font-size: 14px; }
+.modalClose  { background: rgba(255,255,255,.08); border: none; color: #fff; width: 28px; height: 28px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+.modalClose:hover { background: rgba(255,255,255,.2); }
+.modalFrame  { flex: 1; border: none; }
+
+/* ── Toast ───────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  background: #1a6a42;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.2);
+  z-index: 9999;
+  animation: slideUp .2s ease;
+}
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 600px) {
+  .main    { padding: 12px 10px 90px; }
+  .banner  { padding: 14px 14px; }
+  .tabBtn  { padding: 10px 12px; font-size: 12px; }
+  .actionBar { justify-content: stretch; }
+  .btnPrimary, .btnSecondary { flex: 1; justify-content: center; }
+}
