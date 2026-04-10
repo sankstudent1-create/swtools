@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# GDS source folder — exclude its node_modules and build cache
+gds-nextjs/
+gds-leave-nextjs.zip
