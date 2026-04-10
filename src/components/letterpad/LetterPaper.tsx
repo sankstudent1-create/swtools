@@ -314,6 +314,7 @@ export default function LetterPaper({
 
         {/* Body content — contenteditable */}
         <div
+          key={`body-${state.aiTick || 0}`}
           className={styles.bodyText}
           contentEditable
           suppressContentEditableWarning
@@ -341,6 +342,7 @@ export default function LetterPaper({
       {showEncl && (
         <div className={styles.enclBlock}>
           <div
+            key={`encl-${state.aiTick || 0}`}
             contentEditable
             suppressContentEditableWarning
             style={{ outline: 'none' }}
@@ -356,7 +358,7 @@ export default function LetterPaper({
           <div className={styles.copyHead}>Copy to:</div>
           <ol className={styles.copyList}>
             {form.copyTo.map((item, i) => (
-              <li key={i}
+              <li key={`copy-${i}-${state.aiTick || 0}`}
                 contentEditable
                 suppressContentEditableWarning
                 style={{ outline: 'none' }}
@@ -376,6 +378,7 @@ export default function LetterPaper({
         <div className={styles.endorseBlock}>
           <div className={styles.endorseHead}>Forwarded / Endorsed to:</div>
           <div
+            key={`endorse-${state.aiTick || 0}`}
             contentEditable
             suppressContentEditableWarning
             style={{ outline: 'none', minHeight: 38 }}

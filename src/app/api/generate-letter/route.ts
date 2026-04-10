@@ -167,9 +167,9 @@ RESPOND WITH ONLY THE JSON OBJECT. NO OTHER TEXT.`;
 User Description: "${description}"
 
 Current Context:
-- Department: ${currentContext.department || 'Department of Posts'}
-- Office: ${currentContext.office || 'Dak Bhavan, Sansad Marg'}
-- City: ${currentContext.city || 'New Delhi'}
+- Department: ${currentContext.department || 'Determine from user description'}
+- Office: ${currentContext.office || 'Determine from user description'}
+- City: ${currentContext.city || 'Determine from user description'}
 - Language: ${langNote}
 
 CRITICAL: Fill EVERY single field in the JSON with appropriate, realistic, professional content.

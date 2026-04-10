@@ -143,6 +143,7 @@ export function useLetterState() {
         encl: data.encl         || s.form.encl,
         copyTo: data.copy_to?.length ? data.copy_to : s.form.copyTo,
       },
+      aiTick: (s.aiTick || 0) + 1,
     }));
   }, []);
 

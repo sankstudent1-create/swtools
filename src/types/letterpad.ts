@@ -76,6 +76,7 @@ export interface AppState {
   showCopy: boolean;
   showEndorse: boolean;
   form: LetterForm;
+  aiTick?: number;
 }
 
 // ── AI response JSON shape ──────────────────────────────
