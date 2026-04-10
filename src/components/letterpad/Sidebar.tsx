@@ -334,7 +334,7 @@ export default function Sidebar({
 
         {/* Groq-powered badge — no API key input needed */}
         <div className={styles.groqBadge}>
-          <strong>⚡ Groq AI</strong> — Server-side integration. No API key needed from the user. Powered by <strong>Llama 3.3 70B</strong>.
+          <strong>⚡ Groq AI</strong> — Server-side · No API key needed · <strong>Auto-fallback chain</strong>: Llama 3.3 70B → Llama 4 Scout → Llama 3.1 8B Instant
         </div>
       </div>
 

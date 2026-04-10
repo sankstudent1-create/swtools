@@ -16,59 +16,102 @@ interface LetterGenerationRequest {
   };
 }
 
-async function callGroqAPI(messages: GroqMessage[], model: string, maxTokens: number = 3000): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY;
+// ── Groq model fallback chain ─────────────────────────────────
+// Ordered by quality → speed. Falls back automatically on rate-limit (429).
+const GROQ_FALLBACK_MODELS = [
+  'llama-3.3-70b-versatile',          // Best quality — try first
+  'meta-llama/llama-4-scout-17b-16e-instruct', // Llama 4 Scout — good quality
+  'llama-3.1-70b-versatile',          // 70B alternative
+  'llama-3.1-8b-instant',             // Fast, low rate-limit pressure
+  'gemma2-9b-it',                     // Google fallback
+];
 
-  if (!apiKey) {
-    console.error('GROQ_API_KEY environment variable is not set');
-    throw new Error('GROQ_API_KEY is not configured. Please set it in your environment variables.');
+async function callGroqModel(
+  messages: GroqMessage[],
+  model: string,
+  maxTokens: number,
+  apiKey: string
+): Promise<{ content: string; model: string }> {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      max_tokens: maxTokens,
+      temperature: 0.6,
+      top_p: 0.95,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    let errorMsg = `HTTP ${response.status}`;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMsg = errorJson.error?.message || errorText;
+    } catch { errorMsg = errorText; }
+
+    const isRateLimit = response.status === 429 ||
+      errorMsg.toLowerCase().includes('rate_limit') ||
+      errorMsg.toLowerCase().includes('rate limit') ||
+      errorMsg.toLowerCase().includes('tokens per') ||
+      errorMsg.toLowerCase().includes('exceeded');
+
+    const err = new Error(errorMsg) as Error & { isRateLimit?: boolean; statusCode?: number };
+    err.isRateLimit = isRateLimit;
+    err.statusCode = response.status;
+    throw err;
   }
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens: maxTokens,
-        temperature: 0.6,
-        top_p: 0.95,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Groq API Error:', response.status, errorText);
-
-      try {
-        const errorJson = JSON.parse(errorText);
-        throw new Error(`Groq API (${response.status}): ${errorJson.error?.message || errorText}`);
-      } catch {
-        throw new Error(`Groq API Error ${response.status}: ${errorText}`);
-      }
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('No content in Groq API response');
-    }
-
-    return content;
-  } catch (error) {
-    console.error('Groq API call failed:', error);
-    throw error;
-  }
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('No content in Groq API response');
+  return { content, model };
 }
 
-export async function POST(request: NextRequest) {
-  const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+async function callGroqWithFallback(
+  messages: GroqMessage[],
+  maxTokens: number = 3000
+): Promise<{ content: string; model: string }> {
+  const apiKey = process.env.GROQ_API_KEY!;
+  const preferredModel = process.env.GROQ_MODEL;
 
+  // Build model order: preferred first (if set), then fallback chain
+  const models = preferredModel && !GROQ_FALLBACK_MODELS.includes(preferredModel)
+    ? [preferredModel, ...GROQ_FALLBACK_MODELS]
+    : preferredModel
+      ? [preferredModel, ...GROQ_FALLBACK_MODELS.filter(m => m !== preferredModel)]
+      : GROQ_FALLBACK_MODELS;
+
+  let lastError: Error | null = null;
+
+  for (const model of models) {
+    try {
+      console.log(`[groq] Trying model: ${model}`);
+      const result = await callGroqModel(messages, model, maxTokens, apiKey);
+      console.log(`[groq] Success with model: ${model}`);
+      return result;
+    } catch (err) {
+      const e = err as Error & { isRateLimit?: boolean };
+      lastError = e;
+      if (e.isRateLimit) {
+        console.warn(`[groq] Rate limit on ${model}, trying next model…`);
+        continue; // try next model
+      }
+      // Non-rate-limit error — don't fallback, just throw
+      throw e;
+    }
+  }
+
+  throw lastError ?? new Error('All Groq models exhausted or unavailable');
+}
+
+
+export async function POST(request: NextRequest) {
   // Guard: ensure GROQ_API_KEY is configured in Vercel environment variables
   if (!process.env.GROQ_API_KEY) {
     console.error('[letterpad] GROQ_API_KEY is not set in environment variables');
@@ -199,23 +242,22 @@ IMPORTANT RULES:
 
 RESPOND WITH ONLY THE JSON OBJECT.`;
 
-    const response = await callGroqAPI(
+    const result = await callGroqWithFallback(
       [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      model,
       3500
     );
 
     // Clean response — strip markdown fences if AI adds them
-    let cleanedResponse = response.trim();
+    let cleanedResponse = result.content.trim();
     // Remove code fence wrappers
     cleanedResponse = cleanedResponse
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
       .replace(/```\s*$/,    '');
-    // If response has text before the JSON object, extract the JSON portion
+    // Extract JSON object even if AI adds surrounding text
     const jsonStart = cleanedResponse.indexOf('{');
     const jsonEnd   = cleanedResponse.lastIndexOf('}');
     if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
@@ -227,7 +269,7 @@ RESPOND WITH ONLY THE JSON OBJECT.`;
     return NextResponse.json({
       success: true,
       data: letterData,
-      model: model,
+      model: result.model,   // tells the UI which fallback model was actually used
     });
   } catch (error) {
     console.error('Letter generation error:', error);

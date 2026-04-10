@@ -76,7 +76,7 @@ export async function generateLetterWithAI(
     }),
   });
 
-  const json = await res.json() as { success?: boolean; data?: Record<string, unknown>; error?: string };
+  const json = await res.json() as { success?: boolean; data?: Record<string, unknown>; error?: string; model?: string };
 
   if (!res.ok || json.error) {
     throw new Error(json.error ?? `Server error: HTTP ${res.status}`);
@@ -85,6 +85,8 @@ export async function generateLetterWithAI(
   if (!json.data) {
     throw new Error('AI returned an empty response. Please try again.');
   }
+
+  const modelUsed = json.model || 'Groq AI';
 
   // Map the Groq response (which uses short keys) to AILetterData format
   const d = json.data;
@@ -115,6 +117,8 @@ export async function generateLetterWithAI(
     copy_to:               (Array.isArray(d.copyList) ? d.copyList as string[] : Array.isArray(d.copy_to) ? d.copy_to as string[] : []) as string[],
   };
 
-  onStatus('✓ Letter generated successfully!');
+  // Show which model was actually used (may be a fallback)
+  const shortModel = modelUsed.split('/').pop() ?? modelUsed;
+  onStatus(`✓ Letter generated! (via ${shortModel})`);
   return result;
 }
