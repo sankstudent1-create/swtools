@@ -1,0 +1,172 @@
+/* components/letterpad/LetterPaper.module.css */
+
+/* ── Paper ──────────────────────────────────── */
+.paper {
+  background: #ffffff;
+  width: 100%;
+  min-height: 1100px;
+  box-shadow: 0 6px 40px rgba(0,0,0,.22), 0 1px 5px rgba(0,0,0,.08);
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+  color: #0f0f0f;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Tricolor ────────────────────────────────── */
+.tricolor { display: flex; height: 7px; flex-shrink: 0; }
+.tc1 { flex: 1; background: #FF9933; }
+.tc2 { flex: 1; background: #fff; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; }
+.tc3 { flex: 1; background: #138808; }
+
+/* ── Draggable Logo ──────────────────────────── */
+.dlogo {
+  position: absolute; cursor: move; user-select: none; z-index: 20;
+  border: 1.5px dashed transparent; transition: border-color .15s; border-radius: 2px;
+}
+.dlogo:hover { border-color: rgba(200,168,75,.5); }
+.logoPh {
+  width: 100%; height: 100%; border: 2px dashed #ccc; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #ccc; font-size: 13px; text-align: center; line-height: 1.3;
+  background: rgba(255,255,255,.6);
+}
+.logoPh small { font-size: 8px; color: #bbb; font-family: 'DM Mono', monospace; }
+.resizeHandle {
+  position: absolute; bottom: -7px; right: -7px;
+  width: 14px; height: 14px; background: #c8a84b; border-radius: 50%;
+  cursor: se-resize; z-index: 21; opacity: .75;
+}
+.resizeHandle:hover { opacity: 1; }
+.delBtn {
+  position: absolute; top: -8px; right: -8px;
+  width: 16px; height: 16px; background: #cc3333; border-radius: 50%;
+  cursor: pointer; display: none; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; font-weight: 700; z-index: 22; border: none; padding: 0;
+}
+.dlogo:hover .delBtn { display: flex; }
+
+/* ── Type-A Header ───────────────────────────── */
+.hA { padding: 10px 44px 0; }
+.hATop { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+.hAFno { font-size: 12px; font-family: 'DM Mono', monospace; padding-top: 4px; }
+.hARslot { width: 72px; height: 72px; }
+.hACenter { text-align: center; padding: 2px 0 6px; line-height: 1.6; }
+.hAHi { font-family: 'Noto Serif Devanagari', serif; font-size: 14px; font-weight: 700; }
+.hAEn { font-size: 14px; font-weight: 700; }
+.hADept { font-size: 13.5px; font-weight: 700; margin-top: 1px; }
+.hADiv { font-size: 12px; margin-top: 1px; }
+.hAStars { font-size: 12px; color: #333; letter-spacing: 7px; margin-top: 3px; }
+.hAAddr { text-align: right; font-size: 12px; line-height: 1.8; padding: 4px 44px 0; }
+.circularBadge {
+  margin-left: 10px; background: #06038D; color: #fff;
+  font-size: 9.5px; padding: 1px 7px; letter-spacing: .1em;
+  border-radius: 2px; font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Type-B Header ───────────────────────────── */
+.hB { padding: 14px 44px 10px; display: flex; justify-content: center; position: relative; min-height: 115px; }
+.hBCenter { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.hBLogoSlot { width: 72px; height: 72px; }
+.hBHi { font-family: 'Noto Serif Devanagari', serif; font-size: 18px; font-weight: 700; color: #111; margin-top: 3px; }
+.hBEn { font-size: 14px; font-weight: 700; color: #111; }
+.hBDg { font-size: 12px; color: #333; }
+.hBAddr { position: absolute; top: 14px; right: 44px; text-align: right; font-size: 11.5px; line-height: 1.8; color: #333; }
+
+/* ── Type-C Header ───────────────────────────── */
+.hC { padding: 11px 32px 9px; }
+.hCRow { display: flex; align-items: center; gap: 10px; }
+.hCLogo { width: 70px; height: 70px; flex-shrink: 0; }
+.hCMid { flex: 1; text-align: center; line-height: 1.4; }
+.hCHi { font-family: 'Noto Serif Devanagari', serif; font-size: 19px; font-weight: 700; color: #06038D; }
+.hCEn { font-size: 15px; font-weight: 700; color: #06038D; margin-top: 1px; }
+.hCDg, .hCSub, .hCContact { font-size: 11px; color: #444; margin-top: 2px; }
+
+/* ── Type-D Header ───────────────────────────── */
+.hD { padding: 10px 32px 9px; }
+.hDRow { display: flex; align-items: flex-start; gap: 12px; }
+.hDLogo { width: 70px; height: 70px; flex-shrink: 0; }
+.hDNames { flex: 1; }
+.hDHi { font-family: 'Noto Serif Devanagari', serif; font-size: 22px; font-weight: 700; color: #06038D; }
+.hDEn { font-size: 13px; font-weight: 600; color: #222; margin-top: 2px; }
+.hDDg { font-size: 11.5px; color: #444; margin-top: 2px; }
+.hDCn { font-size: 10.5px; color: #666; margin-top: 2px; }
+.hDAddr { text-align: right; font-size: 10.5px; line-height: 1.75; color: #444; min-width: 175px; flex-shrink: 0; }
+
+/* ── Dividers ────────────────────────────────── */
+.dblLine    { border: none; border-top: 3px double #06038D; margin: 0 36px; }
+.singleLine { border: none; border-top: 1px solid #555; margin: 3px 36px 0; }
+.solidLine  { border: none; border-top: 2px solid #06038D; margin: 0; }
+.saffronLine{ border: none; border-top: 3px solid #FF6600; margin: 0; }
+.triStrip   { display: flex; height: 4px; }
+.ts1 { flex: 1; background: #FF9933; }
+.ts2 { flex: 1; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+.ts3 { flex: 1; background: #138808; }
+.thinLine   { border: none; border-top: 1px solid #444; margin: 2px 36px 0; }
+
+/* ── Meta row ────────────────────────────────── */
+.meta {
+  display: flex; justify-content: space-between; padding: 7px 44px 5px;
+  font-family: 'DM Mono', monospace; font-size: 11.5px; color: #333;
+  border-bottom: 1px solid #ddd; background: #FAFAF5;
+}
+
+/* ── Body ────────────────────────────────────── */
+.body { padding: 18px 46px 14px; flex: 1; display: flex; flex-direction: column; gap: 13px; }
+
+.toBlock { font-size: 13px; line-height: 1.8; }
+.toLabel { font-weight: 700; text-decoration: underline; display: block; margin-bottom: 2px; }
+
+.subBlock { border-bottom: 1px dashed #aaa; padding-bottom: 5px; display: flex; gap: 8px; align-items: baseline; }
+.subLabel { font-weight: 700; font-size: 13px; white-space: nowrap; }
+.subText  { font-weight: 600; font-size: 13px; flex: 1; }
+
+.refBlock { font-size: 12px; color: #444; font-family: 'DM Mono', monospace; }
+.salBlock { font-weight: 700; font-size: 13.5px; }
+
+.bodyText {
+  flex: 1; min-height: 280px; outline: none; cursor: text;
+  white-space: pre-wrap; line-height: 2.1; font-size: 13.5px;
+  text-align: justify; border-left: 2px solid transparent;
+  padding-left: 5px; transition: border-color .18s;
+}
+.bodyText:focus { border-left-color: rgba(200,168,75,.35); }
+.bodyText:empty::before {
+  content: 'Click to type or use AI to generate…';
+  color: #bbb; font-style: italic; font-size: 13px;
+}
+
+/* ── Signature ───────────────────────────────── */
+.sigWrap { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; }
+.sigSpace { height: 54px; display: flex; align-items: flex-end; }
+.sigImg { max-height: 52px; max-width: 180px; object-fit: contain; }
+.sigName { font-size: 14px; font-weight: 700; margin-top: 3px; }
+.sigDesig { font-size: 12.5px; color: #333; margin-top: 1px; }
+.sigDept { font-size: 12px; color: #444; margin-top: 1px; }
+.sigContact { font-size: 11px; color: #666; margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+/* ── Encl / Copy / Endorse ────────────────────── */
+.enclBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; }
+.copyBlock  { font-size: 12.5px; line-height: 1.9; padding: 0 46px; margin-bottom: 5px; }
+.copyHead   { font-weight: 700; text-decoration: underline; margin-bottom: 3px; }
+.copyList   { margin-left: 20px; }
+.copyList li{ margin-bottom: 1px; }
+.endorseBlock {
+  margin: 6px 42px; border: 1px solid #bbb; padding: 8px 12px;
+  background: #f9f8f4; font-size: 12px;
+}
+.endorseHead {
+  font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .07em;
+  border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 4px;
+}
+
+/* ── Footer ──────────────────────────────────── */
+.footer {
+  margin-top: auto; padding: 8px 44px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 10px; color: #555; font-family: 'DM Mono', monospace; flex-shrink: 0;
+}
+.footerAB { border-top: 2px solid #06038D; background: #f0eee6; }
+.footerC  { background: #06038D; color: rgba(255,255,255,.72); }
+.footerD  { border-top: 3px solid #FF6600; background: #fff8f2; }

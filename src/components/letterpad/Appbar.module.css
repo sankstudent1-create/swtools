@@ -1,0 +1,36 @@
+/* components/letterpad/Appbar.module.css */
+.bar {
+  background: linear-gradient(90deg, #020270, #06038D, #030280);
+  color: #fff; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 18px; height: 52px; position: sticky; top: 0; z-index: 500;
+  box-shadow: 0 3px 16px rgba(0,0,0,.5);
+}
+.left { display: flex; align-items: center; gap: 11px; }
+.logo {
+  width: 30px; height: 30px; background: #FF6600; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Libre Baskerville', serif; font-weight: 700; font-size: 13px; color: #fff;
+}
+.name { font-family: 'Libre Baskerville', serif; font-size: 13px; font-weight: 700; line-height: 1.1; }
+.sub  { font-size: 8px; color: rgba(255,255,255,.4); letter-spacing: .1em; text-transform: uppercase; }
+.tag  {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); border-radius: 3px;
+  padding: 2px 8px; font-size: 9px; color: rgba(255,255,255,.55); letter-spacing: .07em; text-transform: uppercase;
+}
+.right { display: flex; gap: 5px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 3px;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600; cursor: pointer;
+  border: none; transition: all .13s;
+}
+.btnGhost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.22); }
+.btnGhost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.5); }
+.btnSaffron { background: #FF6600; color: #fff; }
+.btnSaffron:hover { background: #d45500; }
+.backBtn {
+  background: transparent; color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 3px; padding: 3px 8px; font-size: 10px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all .12s; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.backBtn:hover { background: rgba(255,255,255,.08); color: #fff; }
