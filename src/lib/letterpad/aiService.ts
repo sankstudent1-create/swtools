@@ -42,17 +42,13 @@ export function buildPrompt(
 
   return `Generate a complete Government of India ${tMap[type] ?? 'official letter'} with all fields.
 
-Context:
-- From Department: ${form.dept || 'Determine based on user brief'}
-- From Office: ${form.ofc || 'Determine'}, ${form.city || 'Determine based on user brief'}
-- To (if given): ${form.toD || 'generate appropriate recipient'}
-- Subject hint: ${form.sub || 'generate appropriate subject'}
-- Signatory: ${form.sn || 'generate appropriate name'}, ${form.sd || 'generate appropriate designation'}
-- User brief: ${brief || 'Generate a complete realistic example letter of this type'}
-- Language: ${langNote}
-- Style: ${styleNote}
+User Brief: "${brief || 'Generate a complete realistic example letter of this type'}"
 
-Generate ALL fields completely. Body: 3-5 paragraphs with proper GoI phrasing.
+Letter Style: ${styleNote}
+Language: ${langNote}
+
+Generate ALL fields completely based solely on the user brief.
+Body: 3-5 paragraphs with proper GoI phrasing.
 copy_to: 3-4 realistic recipients. encl: 1-2 realistic enclosures if applicable.
 
 RESPOND WITH ONLY THE JSON OBJECT.`;

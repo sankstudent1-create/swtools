@@ -24,14 +24,9 @@ const INITIAL_STATE: AppState = {
 
 export function useLetterState() {
   const [state, setState] = useState<AppState>(() => {
-    // Pre-set logos from presets
-    const logoL = svgToDataUri('ip');
-    const logoR = svgToDataUri('ashoka');
     const dt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
     return {
       ...INITIAL_STATE,
-      logoL,
-      logoR,
       form: { ...DEFAULT_FORM, dt },
     };
   });
