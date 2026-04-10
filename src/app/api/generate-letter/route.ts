@@ -67,8 +67,16 @@ async function callGroqAPI(messages: GroqMessage[], model: string, maxTokens: nu
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+  // Guard: ensure GROQ_API_KEY is configured in Vercel environment variables
+  if (!process.env.GROQ_API_KEY) {
+    console.error('[letterpad] GROQ_API_KEY is not set in environment variables');
+    return NextResponse.json(
+      { error: 'Server configuration error: GROQ_API_KEY is not set. Please add it to your Vercel environment variables.' },
+      { status: 500 }
+    );
+  }
 
   try {
     const body = (await request.json()) as LetterGenerationRequest;
@@ -200,12 +208,18 @@ RESPOND WITH ONLY THE JSON OBJECT.`;
       3500
     );
 
-    // Clean response
+    // Clean response — strip markdown fences if AI adds them
     let cleanedResponse = response.trim();
-    if (cleanedResponse.startsWith('```json')) {
-      cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/```\s*$/, '');
-    } else if (cleanedResponse.startsWith('```')) {
-      cleanedResponse = cleanedResponse.replace(/^```\s*/i, '').replace(/```\s*$/, '');
+    // Remove code fence wrappers
+    cleanedResponse = cleanedResponse
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/,    '');
+    // If response has text before the JSON object, extract the JSON portion
+    const jsonStart = cleanedResponse.indexOf('{');
+    const jsonEnd   = cleanedResponse.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      cleanedResponse = cleanedResponse.slice(jsonStart, jsonEnd + 1);
     }
 
     const letterData = JSON.parse(cleanedResponse.trim());
