@@ -229,21 +229,21 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
           <div className={styles.hACenter}>
             {(form.h1 || form.h2) && (
               <div className={styles.hAHi}>
-                {E('h1', '', 'span', 'भारत सरकार')}
-                {form.h2 && <> / {E('h2', '', 'span', 'विभाग')}</>}
+                {E('h1', '', 'span', state.officeType === 'custom' ? 'Hindi Heading 1' : 'भारत सरकार')}
+                {form.h2 && <> / {E('h2', '', 'span', state.officeType === 'custom' ? 'Hindi Heading 2' : 'विभाग')}</>}
               </div>
             )}
             {(form.e1 || form.e2) && (
               <div className={styles.hAEn}>
-                {E('e1', '', 'span', 'Government of India')}
-                {form.e2 && <> / {E('e2', '', 'span', 'Ministry')}</>}
+                {E('e1', '', 'span', state.officeType === 'custom' ? 'Heading 1' : 'Government of India')}
+                {form.e2 && <> / {E('e2', '', 'span', state.officeType === 'custom' ? 'Heading 2' : 'Ministry')}</>}
               </div>
             )}
             <div className={styles.hADept}>
-              {E('dept', '', 'span', 'Department')}
+              {E('dept', '', 'span', state.officeType === 'custom' ? 'Title / Company Name' : 'Department')}
               {tpl === 'F' && <span className={styles.circularBadge}>CIRCULAR</span>}
             </div>
-            {E('divn', styles.hADiv, 'div', 'Division / Section')}
+            {E('divn', styles.hADiv, 'div', state.officeType === 'custom' ? 'Subtitle / Branch' : 'Division / Section')}
             <div className={styles.hAStars}>★&nbsp;&nbsp;★&nbsp;&nbsp;★&nbsp;&nbsp;★</div>
           </div>
           <div className={styles.hAAddr}>
@@ -498,7 +498,11 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
 
       {/* Footer */}
       <div className={footerClass}>
-        <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
+        {state.officeType === 'custom' ? (
+          <span>{form.dept || ''}</span>
+        ) : (
+          <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
+        )}
         <span>{form.city}{form.pin ? ' – ' + form.pin : ''}</span>
         <span>{form.wb}</span>
       </div>

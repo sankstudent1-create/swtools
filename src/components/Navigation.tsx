@@ -32,7 +32,7 @@ export default function Navigation() {
   ];
 
   // Hide site nav on full-screen tool pages that have their own appbar
-  const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave'];
+  const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission'];
   const isFullscreen = FULLSCREEN_TOOLS.some(p => pathname.startsWith(p));
   if (isFullscreen) return null;
 

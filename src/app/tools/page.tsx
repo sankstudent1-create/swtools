@@ -305,6 +305,21 @@ const TOOLS: ToolCard[] = [
     maxKb: 0,
     ratio: "A4 Quad",
   },
+  {
+    id: "td-commission",
+    name: "TD Commission / BPM Incentive",
+    org: "India Post (Gramin Dak Sevak)",
+    description: "Generate official BPM Incentive Bills for Time Deposit (TD) commissions with auto-calculating rates, amounts, and PDF exports",
+    icon: "💰",
+    color: "from-amber-500 to-yellow-600",
+    colorText: "text-amber-500",
+    href: "/tools/td-commission",
+    width: 0,
+    height: 0,
+    minKb: 0,
+    maxKb: 0,
+    ratio: "Letter/A4",
+  },
 ];
 
 function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {

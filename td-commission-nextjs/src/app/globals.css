@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #1b2d4f;
+}
+
+.text-navy  { color: var(--navy); }
+.bg-navy    { background-color: var(--navy); }
+.border-navy { border-color: var(--navy); }
+.focus\:border-navy:focus { border-color: var(--navy); }
+.focus\:ring-navy\/7:focus { --tw-ring-color: rgba(27,45,79,0.07); }
