@@ -21,6 +21,9 @@ const routes = [
   "/tools/image-cropper",
   "/tools/watermark-stamper",
   "/tools/bulk-image-converter",
+  "/tools/letterpad-generator",
+  "/tools/gds-leave",
+  "/tools/td-commission",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

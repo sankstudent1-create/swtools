@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 
 
 export const metadata: Metadata = {
-  title: 'SW Tools - TD Commission BPM Incentive Bill Generator',
-  description: 'TD Commission BPM Incentive Bill Generator for GDS/BPM Post Offices',
+  title: 'India Post TD Commission Bill Generator | SW Tools',
+  description: 'Generate official India Post TD Commission BPM Incentive Bills for Branch Postmasters. Features auto-calculation for interest rates, dynamic table generation, and instant high-quality PDF exports.',
+  keywords: "TD Commission, BPM Incentive Bill, India Post tools, GDS TD Commission, Branch Postmaster tools, postal forms, time deposit commission calculator, post office forms, SW Tools India Post",
 }
 
 export default function TDCommissionLayout({ children }: { children: React.ReactNode }) {
