@@ -21,7 +21,7 @@ interface SidebarProps {
   onOffice: (type: string) => void;
   onLogo: (side: LogoSide, src: string | null) => void;
   onSigApply: (url: string) => void;
-  onFillAI: (data: AILetterData, isFull: boolean) => void;
+  onFillAI: (data: AILetterData, isFull: boolean, model?: string) => void;
   onToggleEncl: () => void;
   onToggleCopy: () => void;
   onToggleEndorse: () => void;
@@ -75,15 +75,15 @@ export default function Sidebar({
         : form;
 
       const prompt = buildPrompt(aiType, aiPrompt, aiLang, contextForm, tpl);
-      const data = await generateLetterWithAI(
+      const result = await generateLetterWithAI(
         prompt,
         aiType,
         aiLang,
         aiMode === 'full' ? {} : { department: form.dept, office: form.ofc, city: form.city },
         setAiStatus
       );
-      onFillAI(data, aiMode === 'full');
-      setAiStatus('✓ Letter generated successfully!');
+      onFillAI(result.data, aiMode === 'full', result.model);
+      setAiStatus(`✓ Generated via ${result.model.replace(/-versatile|-instant/gi,'').replace('llama-','L-')}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setAiStatus('✗ ' + msg.slice(0, 100));

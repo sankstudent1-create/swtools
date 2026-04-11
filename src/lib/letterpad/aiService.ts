@@ -35,8 +35,8 @@ export function buildPrompt(
     'Write in formal English.';
 
   const styleNote =
-    (tpl === 'B' || type === 'pm_do')    ? 'PM/senior official personal DO letter — warm formal, no numbered paragraphs.' :
-    (tpl === 'C' || type === 'mp_letter')? 'MP letter — formal but personal.' :
+    (tpl === 'B' || type === 'pm_do')     ? 'PM/senior official personal DO letter — warm formal, no numbered paragraphs.' :
+    (tpl === 'C' || type === 'mp_letter') ? 'MP letter — formal but personal.' :
     (tpl === 'E' || type === 'om')        ? 'Office Memorandum — body starts "The undersigned is directed to inform..."' :
     'Standard GoI formal letter with numbered paragraphs.';
 
@@ -54,71 +54,81 @@ copy_to: 3-4 realistic recipients. encl: 1-2 realistic enclosures if applicable.
 RESPOND WITH ONLY THE JSON OBJECT.`;
 }
 
+// ── Result type includes which Groq model was used ──
+export interface AILetterResult {
+  data: AILetterData;
+  model: string;    // e.g. "llama-3.3-70b-versatile" or a fallback
+}
+
 // ── Main function — calls /api/generate-letter route ─
-// The API route handles Groq auth server-side, zero CORS issues.
 export async function generateLetterWithAI(
   prompt: string,
   letterType: string,
   language: string,
   currentContext: { department?: string; office?: string; city?: string },
   onStatus: (msg: string) => void
-): Promise<AILetterData> {
+): Promise<AILetterResult> {
   onStatus('⏳ Sending to Groq AI server…');
 
   const res = await fetch('/api/generate-letter', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      description: prompt,
-      letterType,
-      language,
-      currentContext,
-    }),
+    body: JSON.stringify({ description: prompt, letterType, language, currentContext }),
   });
 
-  const json = await res.json() as { success?: boolean; data?: Record<string, unknown>; error?: string; model?: string };
+  const json = await res.json() as {
+    success?: boolean;
+    data?: Record<string, unknown>;
+    error?: string;
+    model?: string;
+  };
 
   if (!res.ok || json.error) {
     throw new Error(json.error ?? `Server error: HTTP ${res.status}`);
   }
-
   if (!json.data) {
     throw new Error('AI returned an empty response. Please try again.');
   }
 
   const modelUsed = json.model || 'Groq AI';
 
-  // Map the Groq response (which uses short keys) to AILetterData format
+  // Map short-key Groq response → AILetterData
   const d = json.data;
-  const result: AILetterData = {
-    file_no:               (d.fno || d.file_no || '') as string,
-    dept_hindi_1:          (d.h1 || d.dept_hindi_1 || '') as string,
-    dept_hindi_2:          (d.h2 || d.dept_hindi_2 || '') as string,
-    dept_english_1:        (d.e1 || d.dept_english_1 || '') as string,
-    dept_english_2:        (d.e2 || d.dept_english_2 || '') as string,
+  const data: AILetterData = {
+    file_no:               (d.fno  || d.file_no  || '') as string,
+    dept_hindi_1:          (d.h1   || d.dept_hindi_1 || '') as string,
+    dept_hindi_2:          (d.h2   || d.dept_hindi_2 || '') as string,
+    dept_english_1:        (d.e1   || d.dept_english_1 || '') as string,
+    dept_english_2:        (d.e2   || d.dept_english_2 || '') as string,
     department:            (d.dept || d.department || '') as string,
     division:              (d.divn || d.division || '') as string,
-    office:                (d.ofc || d.office || '') as string,
+    office:                (d.ofc  || d.office || '') as string,
     city:                  (d.city || '') as string,
-    pin:                   (d.pin || '') as string,
-    phone:                 (d.ph || d.phone || '') as string,
-    email:                 (d.em || d.email || '') as string,
-    website:               (d.wb || d.website || '') as string,
-    to_designation:        (d.toD || d.to_designation || '') as string,
-    to_address:            (d.toA || d.to_address || '') as string,
-    subject:               (d.sub || d.subject || '') as string,
-    reference:             (d.ref || d.reference || '') as string,
-    salutation:            (d.sal || d.salutation || '') as string,
+    pin:                   (d.pin  || '') as string,
+    phone:                 (d.ph   || d.phone || '') as string,
+    email:                 (d.em   || d.email || '') as string,
+    website:               (d.wb   || d.website || '') as string,
+    to_designation:        (d.toD  || d.to_designation || '') as string,
+    to_address:            (d.toA  || d.to_address || '') as string,
+    subject:               (d.sub  || d.subject || '') as string,
+    reference:             (d.ref  || d.reference || '') as string,
+    salutation:            (d.sal  || d.salutation || '') as string,
     body:                  (d.body || '') as string,
-    closing:               (d.cls || d.closing || '') as string,
-    signatory_name:        (d.sn || d.signatory_name || '') as string,
-    signatory_designation: (d.sd || d.signatory_designation || '') as string,
-    encl:                  (Array.isArray(d.enclList) ? (d.enclList as string[]).join('\n') : (d.encl || '')) as string,
-    copy_to:               (Array.isArray(d.copyList) ? d.copyList as string[] : Array.isArray(d.copy_to) ? d.copy_to as string[] : []) as string[],
+    closing:               (d.cls  || d.closing || '') as string,
+    signatory_name:        (d.sn   || d.signatory_name || '') as string,
+    signatory_designation: (d.sd   || d.signatory_designation || '') as string,
+    encl: (Array.isArray(d.enclList)
+      ? (d.enclList as string[]).join('\n')
+      : (d.encl || '')) as string,
+    copy_to: (Array.isArray(d.copyList)
+      ? d.copyList as string[]
+      : Array.isArray(d.copy_to)
+        ? d.copy_to as string[]
+        : []) as string[],
   };
 
-  // Show which model was actually used (may be a fallback)
   const shortModel = modelUsed.split('/').pop() ?? modelUsed;
   onStatus(`✓ Letter generated! (via ${shortModel})`);
-  return result;
+
+  return { data, model: modelUsed };
 }

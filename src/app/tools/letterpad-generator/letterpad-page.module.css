@@ -7,31 +7,57 @@
 /* ── Mobile tab bar ─────────────────────────────────────────── */
 .mobileTabBar {
   display: flex;
+  align-items: center;
   background: #111827;
   border-bottom: 1px solid #1e293b;
   position: sticky;
-  top: 52px;
+  top: 52px;          /* desktop appbar height */
   z-index: 100;
+  gap: 0;
 }
+/* On mobile the appbar is 48px */
+@media (max-width: 640px) { .mobileTabBar { top: 48px; } }
+
 .mobileTab {
   flex: 1;
-  padding: 10px;
+  padding: 10px 8px;
   background: transparent;
   border: none;
   color: rgba(255,255,255,.5);
-  font-size: 13px;
+  font-size: 12px;
   font-family: 'DM Sans', sans-serif;
   font-weight: 600;
   cursor: pointer;
   transition: all .15s;
   letter-spacing: .02em;
+  border-bottom: 2px solid transparent;
 }
 .mobileTab:hover { color: rgba(255,255,255,.8); }
 .mobileTabActive {
   color: #FF6600 !important;
-  border-bottom: 2px solid #FF6600;
+  border-bottom-color: #FF6600;
   background: rgba(255,102,0,.07);
 }
+
+/* Quick-access Print/PDF in mobile tab bar */
+.mobileTabPrint {
+  padding: 7px 10px;
+  background: rgba(255,255,255,.06);
+  border: none;
+  border-left: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .12s;
+  font-family: 'DM Sans', sans-serif;
+}
+.mobileTabPrint:hover { background: rgba(255,255,255,.12); color: #fff; }
+.mobileTabPDF {
+  background: rgba(255,102,0,.2);
+  color: #FF8C00;
+}
+.mobileTabPDF:hover { background: rgba(255,102,0,.35); }
 
 /* ── Utility ─────────────────────────────────────────────────── */
 .hidden { display: none !important; }
@@ -105,65 +131,76 @@
 
 /* ═══════════════════════════════════════════════════════════════
    PRINT / PDF STYLES
-   ─ Hide all UI chrome: nav, header, sidebar, toolbar
-   ─ Paper renders at exact A4: 210mm × 297mm, zero margin
-   ─ Footer fixed at bottom, no artifacts
+   Key fix: undo ALL transform scaling; force A4 dimensions in mm.
+   This is the ONLY safe way to get pixel-perfect PDF on any device.
 ═══════════════════════════════════════════════════════════════ */
 @media print {
-  /* Root background white */
-  .letterpadRoot { background: #fff !important; }
-
-  /* Hide site chrome */
-  .letterpadRoot :global(header),
-  .letterpadRoot :global(nav),
-  .letterpadRoot :global(footer),
-  .letterpadRoot :global(aside),
-  .sidebarCol { display: none !important; }
-
-  /* Hide toolbar */
-  .previewTop { display: none !important; }
-
-  /* Hide interactive handles */
-  .letterpadRoot :global([class*="EditToolbar"]),
-  .letterpadRoot :global([class*="resizeHandle"]),
-  .letterpadRoot :global([class*="delBtn"]) {
-    display: none !important;
+  /* Page size — must come first */
+  @page {
+    size: A4 portrait;
+    margin: 0;
   }
 
-  /* Flat full-width layout */
-  .workspace { display: block !important; }
-  .preview   { padding: 0 !important; background: #fff !important; gap: 0 !important; }
-  .paperWrap { max-width: 100% !important; transform: none !important; }
+  /* Root bg becomes white */
+  .letterpadRoot { background: #fff !important; }
 
-  /* Paper = exact A4. No overflow – single page guaranteed for normal content */
+  /* ── Hide ALL chrome ────────────────────────────── */
+  /* Appbar */
+  .letterpadRoot :global(header) { display: none !important; }
+  /* Mobile tab bar */
+  .mobileTabBar { display: none !important; }
+  /* Sidebar */
+  .sidebarCol { display: none !important; }
+  /* Edit toolbar */
+  .previewTop { display: none !important; }
+  /* EditToolbar component */
+  .letterpadRoot :global([class*="toolbar"]) { display: none !important; }
+  /* Edit handles */
+  .letterpadRoot :global([class*="resizeHandle"]),
+  .letterpadRoot :global([class*="delBtn"]),
+  .letterpadRoot :global([class*="editHint"]) { display: none !important; }
+
+  /* ── Layout reset ───────────────────────────────── */
+  .workspace    { display: block !important; }
+  .preview      { padding: 0 !important; background: #fff !important; gap: 0 !important; min-height: 0 !important; }
+  /* CRITICAL: reset any CSS transform scaling on the wrapper */
+  .paperWrap    {
+    transform: none !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+  }
+  /* Also reset the child — in some layouts the child carries the scale */
+  .paperWrap > * {
+    transform: none !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ── Paper itself ───────────────────────────────── */
   .letterpadRoot :global([class*="paper"]) {
     box-shadow: none !important;
     width: 210mm !important;
     min-height: 297mm !important;
     max-width: 210mm !important;
+    page-break-inside: avoid;
   }
 
-  /* Logo: no edit border */
-  .letterpadRoot :global([class*="dlogo"]) {
+  /* ── Content clean-up ───────────────────────────── */
+  /* Remove editable borders/backgrounds */
+  .letterpadRoot :global([contenteditable]) {
     border: none !important;
+    outline: none !important;
+    background: transparent !important;
     cursor: default !important;
   }
+  .letterpadRoot :global([class*="bodyText"]) { border-left: none !important; }
+  .letterpadRoot :global([class*="dlogo"])    { border: none !important; cursor: default !important; }
 
-  /* Body text: no edit indicator */
-  .letterpadRoot :global([class*="bodyText"]) {
-    border-left: none !important;
-  }
-
-  /* Ensure colors print exactly */
+  /* Ensure color accuracy */
   .letterpadRoot :global(*) {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-
-  /* Page setup */
-  @page {
-    size: A4 portrait;
-    margin: 0;
   }
 }
 

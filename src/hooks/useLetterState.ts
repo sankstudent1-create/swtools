@@ -25,11 +25,9 @@ const INITIAL_STATE: AppState = {
 export function useLetterState() {
   const [state, setState] = useState<AppState>(() => {
     const dt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-    return {
-      ...INITIAL_STATE,
-      form: { ...DEFAULT_FORM, dt },
-    };
+    return { ...INITIAL_STATE, form: { ...DEFAULT_FORM, dt } };
   });
+  const [lastModel, setLastModel] = useState<string | undefined>(undefined);
 
   // ── Form field update ────────────────────────────────
   const updateForm = useCallback(<K extends keyof LetterForm>(key: K, value: LetterForm[K]) => {
@@ -102,7 +100,8 @@ export function useLetterState() {
   const toggleEndorse = useCallback(() => setState(s => ({ ...s, showEndorse: !s.showEndorse })), []);
 
   // ── AI fill — populates fields from AI response ───
-  const fillFromAI = useCallback((data: AILetterData, isFull: boolean = false) => {
+  const fillFromAI = useCallback((data: AILetterData, isFull: boolean = false, model?: string) => {
+    if (model) setLastModel(model);
 
     setState(s => ({
       ...s,
@@ -144,6 +143,7 @@ export function useLetterState() {
 
   return {
     state,
+    lastModel,
     updateForm,
     setForm,
     setTemplate,

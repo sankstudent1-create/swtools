@@ -25,6 +25,7 @@ export default function LetterpadGeneratorPage() {
     toggleCopy,
     toggleEndorse,
     fillFromAI,
+    lastModel,
   } = useLetterState();
 
   // ── Mobile tab: 'edit' | 'preview' ──────────
@@ -37,8 +38,10 @@ export default function LetterpadGeneratorPage() {
       const vw = window.innerWidth;
       const mobile = vw <= 900;
       setIsMobile(mobile);
+      // Desktop: scale = 1, tablet: fit to available width, mobile: tighter
       let scale = 1;
-      if (vw <= 640)       scale = Math.max(0.38, (vw - 16) / 794);
+      if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
+      else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
       else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
       document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
     }
@@ -47,9 +50,21 @@ export default function LetterpadGeneratorPage() {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
-  // ── Print / PDF ──────────────────────────────
-  function doPrint() { window.print(); }
-  function doPDF()   { window.print(); }
+  // ── Print / PDF — reset scale to 1 then print then restore ──
+  function doPrint() {
+    // Force scale=1 for print so paper renders at full A4 size
+    document.documentElement.style.setProperty('--paper-scale', '1');
+    window.print();
+    // Restore after print dialog closes (slight delay)
+    setTimeout(() => {
+      const vw = window.innerWidth;
+      let scale = 1;
+      if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
+      else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
+      else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
+      document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
+    }, 800);
+  }
 
   const handleLogoPos = useCallback((side: LogoSide, pos: object) => {
     setLogoPos(side, pos as Parameters<typeof setLogoPos>[1]);
@@ -70,9 +85,10 @@ export default function LetterpadGeneratorPage() {
 
       <Appbar
         onPrint={doPrint}
-        onPDF={doPDF}
+        onPDF={doPrint}
         onToggleEndorse={toggleEndorse}
         onToggleCopy={toggleCopy}
+        lastModel={lastModel}
       />
 
       {/* ── Mobile tab bar ── */}
@@ -86,6 +102,9 @@ export default function LetterpadGeneratorPage() {
             className={`${styles.mobileTab} ${mobileTab === 'preview' ? styles.mobileTabActive : ''}`}
             onClick={() => setMobileTab('preview')}
           >📄 Preview</button>
+          {/* Print & PDF accessible on mobile too */}
+          <button className={styles.mobileTabPrint} onClick={doPrint}>🖨 Print</button>
+          <button className={`${styles.mobileTabPrint} ${styles.mobileTabPDF}`} onClick={doPrint}>⬇ PDF</button>
         </div>
       )}
 
@@ -110,25 +129,28 @@ export default function LetterpadGeneratorPage() {
 
         {/* ── PREVIEW AREA ── */}
         <main className={`${styles.preview} ${isMobile && mobileTab !== 'preview' ? styles.hidden : ''}`}>
-          {/* Toolbar row */}
-          <div className={styles.previewTop}>
-            <span className={styles.previewLabel}>
-              📄 A4 · Click paper to edit · AI fills all fields · Groq powered
-            </span>
-            <EditToolbar
-              showEncl={state.showEncl}
-              showCopy={state.showCopy}
-              showEndorse={state.showEndorse}
-              onToggleEncl={toggleEncl}
-              onToggleCopy={toggleCopy}
-              onToggleEndorse={toggleEndorse}
-              onPrint={doPrint}
-              onPDF={doPDF}
-            />
-          </div>
+          {/* Toolbar row — hidden on mobile (actions are in tab bar) */}
+          {!isMobile && (
+            <div className={styles.previewTop}>
+              <span className={styles.previewLabel}>
+                📄 A4 · Click paper to edit · AI fills all fields · Groq powered
+                {lastModel && <> · <span style={{color:'#4ade80'}}>⚡ {lastModel}</span></>}
+              </span>
+              <EditToolbar
+                showEncl={state.showEncl}
+                showCopy={state.showCopy}
+                showEndorse={state.showEndorse}
+                onToggleEncl={toggleEncl}
+                onToggleCopy={toggleCopy}
+                onToggleEndorse={toggleEndorse}
+                onPrint={doPrint}
+                onPDF={doPrint}
+              />
+            </div>
+          )}
 
           {/* Paper */}
-          <div className={styles.paperWrap}>
+          <div className={styles.paperWrap} id="print-area">
             <LetterPaper
               state={state}
               onFormChange={handleFormChange}
