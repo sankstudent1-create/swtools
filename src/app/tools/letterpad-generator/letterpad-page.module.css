@@ -166,9 +166,9 @@
   /* CRITICAL: reset any CSS transform scaling on the wrapper */
   .paperWrap    {
     transform: none !important;
-    width: 210mm !important;
-    max-width: 210mm !important;
-    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     overflow: hidden !important;
   }
   /* Also reset the child — in some layouts the child carries the scale */
@@ -180,9 +180,10 @@
   /* ── Paper itself ───────────────────────────────── */
   .letterpadRoot :global([class*="paper"]) {
     box-shadow: none !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
-    max-width: 210mm !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100% !important;
+    margin: 0 !important;
     page-break-inside: avoid;
   }
 

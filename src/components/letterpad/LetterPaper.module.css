@@ -199,13 +199,13 @@ div.editable { display: block; }
   display: flex;
   flex-direction: column;
   align-items: flex-end;     /* push entire block to right */
-  margin-top: 12px;
+  margin-top: 15px;
   gap: 0;
 }
 .closingBlock {
   font-weight: 600;
   font-size: 13.5px;
-  text-align: left;
+  text-align: center;         /* center text inside the sig wrap area */
 }
 
 .bodyText {
@@ -227,13 +227,15 @@ div.editable { display: block; }
   margin-top: 6px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* text inside sig left-aligned */
-  min-width: 220px;
+  align-items: center; /* text inside sig centered */
+  min-width: 180px;
+  text-align: center;
   flex-shrink: 0;
 }
 .sigSpace {
   height: 60px;           /* fixed, consistent on all devices */
   display: flex;
+  justify-content: center;
   align-items: flex-end;
   min-width: 140px;
 }

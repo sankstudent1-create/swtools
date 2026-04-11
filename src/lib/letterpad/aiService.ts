@@ -26,30 +26,35 @@ export function buildPrompt(
     tour:         'Tour Programme Communication',
     pm_do:        'Prime Ministerial personal DO letter',
     mp_letter:    'MP Constituency Letter',
-    custom:       'Official Government Letter',
+    custom:       'Letter',
   };
 
   const langNote =
-    lang === 'hi' ? 'Write EVERYTHING in formal Hindi (Devanagari script).' :
+    lang === 'hi' ? 'Write EVERYTHING in Hindi (Devanagari script).' :
     lang === 'bi' ? 'Write body in bilingual format (English paragraph then Hindi equivalent).' :
-    'Write in formal English.';
+    'Write in English.';
 
+  const isOfficial = type !== 'custom' && type !== 'appreciation';
+  
   const styleNote =
-    (tpl === 'B' || type === 'pm_do')     ? 'PM/senior official personal DO letter — warm formal, no numbered paragraphs.' :
+    (tpl === 'B' || type === 'pm_do')     ? 'Warm formal DO letter — no numbered paragraphs.' :
     (tpl === 'C' || type === 'mp_letter') ? 'MP letter — formal but personal.' :
     (tpl === 'E' || type === 'om')        ? 'Office Memorandum — body starts "The undersigned is directed to inform..."' :
-    'Standard GoI formal letter with numbered paragraphs.';
+    isOfficial                            ? 'Standard formal letter with numbered paragraphs for clarity.' :
+                                            'Natural letter format. DO NOT use numbered paragraphs unless explicitly requested.';
 
-  return `Generate a complete Government of India ${tMap[type] ?? 'official letter'} with all fields.
+  return `Generate a complete ${isOfficial ? 'Government of India ' : ''}${tMap[type] ?? 'letter'} with all fields based ONLY on this brief.
 
-User Brief: "${brief || 'Generate a complete realistic example letter of this type'}"
+User Brief: "${brief || 'Generate a complete realistic example letter'}"
 
 Letter Style: ${styleNote}
 Language: ${langNote}
 
-Generate ALL fields completely based solely on the user brief.
-Body: 3-5 paragraphs with proper GoI phrasing.
-copy_to: 3-4 realistic recipients. encl: 1-2 realistic enclosures if applicable.
+CRITICAL RULES:
+1. Do NOT invent unrelated Government Ministries/Departments for personal letters or custom letters unless requested in the brief. 
+2. If the user brief is personal (e.g. a love letter, letter to a friend), keep the tone and headers personal. Leave department fields empty if they do not make sense.
+3. Body: Write a natural letter. Only use numbered paragraphs if it is a strict official order, OM, or circular.
+${isOfficial ? '4. copy_to: 2-3 realistic recipients if applicable. encl: 1-2 realistic enclosures if applicable.' : '4. DO NOT add "copy_to" or "encl" fields unless the brief specifically asks for them.'}
 
 RESPOND WITH ONLY THE JSON OBJECT.`;
 }
