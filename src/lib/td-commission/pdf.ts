@@ -62,8 +62,8 @@ export async function buildPDFDoc(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const { jsPDF } = await import('jspdf')
-  await import('jspdf-autotable')
-
+  const autoTableModule = await import('jspdf-autotable')
+  const autoTable = autoTableModule.default || autoTableModule
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc: any = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
@@ -143,7 +143,7 @@ export async function buildPDFDoc(
   if (dDisp) doc.text(dDisp, PW - mg - 21, y)
   y += 3
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: y,
     head: [[
       { content: 'SR\nNO', styles: { halign: 'center' } },
