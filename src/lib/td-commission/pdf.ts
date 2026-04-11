@@ -59,7 +59,8 @@ declare global {
 export async function buildPDFDoc(
   office: OfficeDetails,
   rows: EntryRow[],
-): Promise<InstanceType<typeof Object>> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> {
   // jsPDF loaded via <Script> in layout
   const { jsPDF } = window.jspdf
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
