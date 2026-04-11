@@ -198,9 +198,11 @@ div.editable { display: block; }
 .closingAndSig {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;     /* push entire block to right */
+  align-items: center;       /* center them relative to each other */
+  align-self: flex-end;      /* push the whole block itself to the right edge */
   margin-top: 15px;
   gap: 0;
+  min-width: 180px;
 }
 .closingBlock {
   font-weight: 600;

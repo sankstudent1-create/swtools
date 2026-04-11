@@ -117,7 +117,6 @@
 @media (max-width: 900px) {
   .backBtn { padding: 4px 6px; }
   .tag     { display: none; }
-  .modelBadge { display: none; }
 }
 
 /* Mobile: collapsed bar */
@@ -128,6 +127,7 @@
   .logo { width: 24px; height: 24px; font-size: 10px; }
   .name { font-size: 11px; }
   .sub  { display: none; }
+  .modelBadge { max-width: 70px; font-size: 6.5px; padding: 2px 4px; border-radius: 2px; }
   .btn  { padding: 4px 8px; font-size: 10px; }
 
   /* On mobile hide Endorse/Copy buttons — they're in the Edit tab sidebar */

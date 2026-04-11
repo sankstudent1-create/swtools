@@ -1,551 +1,476 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { 
+  Search, Image as ImageIcon, FileText, Settings, ChevronRight, Menu, X, 
+  Maximize, Sparkles, Layers, PenTool, Edit3, Fingerprint, RefreshCw, 
+  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator
+} from 'lucide-react';
 
-type ToolCard = {
-  id: string;
-  name: string;
-  org: string;
-  description: string;
-  icon: string;
-  color: string;
-  colorText: string;
-  href: string;
-  width: number;
-  height: number;
-  minKb: number;
-  maxKb: number;
-  ratio: string;
-};
-
-const TOOLS: ToolCard[] = [
+// Unified Tools Data mapped to the new Crystalline design system
+const TOOLS_DATA = [
   {
     id: "ssc",
     name: "SSC Exam Signature",
-    org: "Staff Selection Commission",
     description: "Format signature for all SSC examination platforms with official compliance",
-    icon: "📋",
-    color: "from-brand-orange to-orange-500",
-    colorText: "text-brand-orange",
+    category: "Format",
+    icon: PenTool,
+    accent: "text-orange-400",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/20",
     href: "/tools/ssc",
-    width: 472,
-    height: 236,
-    minKb: 10,
-    maxKb: 20,
-    ratio: "4.0:2.0",
   },
   {
     id: "rrb",
     name: "RRB Railway Signature",
-    org: "Railway Recruitment Board",
     description: "Format signature for RRB Railway recruitment examinations with handwriting emphasis",
-    icon: "🚂",
-    color: "from-brand-pink to-pink-500",
-    colorText: "text-brand-pink",
+    category: "Format",
+    icon: Edit3,
+    accent: "text-pink-400",
+    bg: "bg-pink-400/10",
+    border: "border-pink-400/20",
     href: "/tools/rrb",
-    width: 140,
-    height: 60,
-    minKb: 30,
-    maxKb: 49,
-    ratio: "~7:3",
   },
   {
     id: "india-post-photo",
     name: "India Post GDS Photo",
-    org: "India Post (Gramin Dak Sevak)",
     description: "Format photo for India Post GDS Online Engagement with portrait orientation",
-    icon: "📮",
-    color: "from-brand-sky to-sky-500",
-    colorText: "text-brand-sky",
+    category: "India Post",
+    icon: ImageIcon,
+    accent: "text-sky-400",
+    bg: "bg-sky-400/10",
+    border: "border-sky-400/20",
     href: "/tools/india-post-photo",
-    width: 320,
-    height: 400,
-    minKb: 30,
-    maxKb: 100,
-    ratio: "4:5",
   },
   {
     id: "india-post-signature",
     name: "India Post GDS Signature",
-    org: "India Post (Gramin Dak Sevak)",
     description: "Format signature for India Post GDS Online Engagement with landscape orientation",
-    icon: "✍️",
-    color: "from-brand-sky to-cyan-500",
-    colorText: "text-brand-sky",
+    category: "India Post",
+    icon: PenTool,
+    accent: "text-cyan-400",
+    bg: "bg-cyan-400/10",
+    border: "border-cyan-400/20",
     href: "/tools/india-post-signature",
-    width: 300,
-    height: 120,
-    minKb: 20,
-    maxKb: 100,
-    ratio: "5:2",
   },
   {
     id: "bank-thumb",
     name: "Banking Thumb Impression",
-    org: "SBI / IBPS",
     description: "Format left-thumb impression for banking recruitments with square ratio and clarity optimization",
-    icon: "👆",
-    color: "from-violet-500 to-brand-pink",
-    colorText: "text-violet-300",
+    category: "Format",
+    icon: Fingerprint,
+    accent: "text-violet-400",
+    bg: "bg-violet-400/10",
+    border: "border-violet-400/20",
     href: "/tools/bank-thumb",
-    width: 240,
-    height: 240,
-    minKb: 20,
-    maxKb: 50,
-    ratio: "1:1",
   },
   {
     id: "ibps-declaration",
     name: "IBPS Declaration",
-    org: "IBPS",
     description: "Prepare handwritten declaration image for IBPS portals with exact landscape output profile",
-    icon: "📝",
-    color: "from-emerald-400 to-brand-sky",
-    colorText: "text-emerald-300",
+    category: "Format",
+    icon: FileText,
+    accent: "text-emerald-400",
+    bg: "bg-emerald-400/10",
+    border: "border-emerald-400/20",
     href: "/tools/ibps-declaration",
-    width: 800,
-    height: 400,
-    minKb: 50,
-    maxKb: 100,
-    ratio: "2:1",
   },
   {
     id: "neet-signature",
     name: "NEET Signature",
-    org: "NTA NEET",
     description: "Format NEET signature image with balanced compression and official upload-friendly dimensions",
-    icon: "🧪",
-    color: "from-emerald-400 to-brand-orange",
-    colorText: "text-emerald-300",
+    category: "Format",
+    icon: PenTool,
+    accent: "text-orange-400",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/20",
     href: "/tools/neet-signature",
-    width: 420,
-    height: 140,
-    minKb: 10,
-    maxKb: 50,
-    ratio: "3:1",
   },
   {
     id: "image-resizer",
     name: "Image Resizer",
-    org: "Utility Tool",
     description: "Resize with presets, fit modes, background fill, quality control, and export format switching",
-    icon: "🖼️",
-    color: "from-brand-orange to-brand-sky",
-    colorText: "text-brand-orange",
+    category: "Image Utility",
+    icon: Maximize,
+    accent: "text-orange-400",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/20",
     href: "/tools/image-resizer",
-    width: 800,
-    height: 600,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Custom",
   },
   {
     id: "image-compressor",
     name: "Image Compressor",
-    org: "Utility Tool",
     description: "Reduce file size with output format conversion, size targeting, scaling, and width constraints",
-    icon: "🗜️",
-    color: "from-brand-pink to-brand-sky",
-    colorText: "text-brand-pink",
+    category: "Image Utility",
+    icon: Settings,
+    accent: "text-fuchsia-400",
+    bg: "bg-fuchsia-400/10",
+    border: "border-fuchsia-400/20",
     href: "/tools/image-compressor",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Original",
   },
   {
     id: "aspect-ratio-changer",
     name: "Aspect Ratio Changer",
-    org: "Utility Tool",
     description: "Convert ratios with cover or contain framing, custom backgrounds, presets, and export format control",
-    icon: "📐",
-    color: "from-brand-sky to-cyan-500",
-    colorText: "text-brand-sky",
+    category: "Image Utility",
+    icon: Maximize,
+    accent: "text-sky-400",
+    bg: "bg-sky-400/10",
+    border: "border-sky-400/20",
     href: "/tools/aspect-ratio-changer",
-    width: 1200,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Preset/Custom",
   },
   {
     id: "pdf-maker",
     name: "PDF Maker",
-    org: "Utility Tool",
     description: "Build PDFs with page size, orientation, margins, fit mode, compression level, and file naming controls",
-    icon: "📄",
-    color: "from-brand-orange to-brand-pink",
-    colorText: "text-brand-orange",
+    category: "PDF Utility",
+    icon: FileText,
+    accent: "text-rose-400",
+    bg: "bg-rose-400/10",
+    border: "border-rose-400/20",
     href: "/tools/pdf-maker",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Multi-page",
   },
   {
     id: "image-scanner",
     name: "Image Scanner",
-    org: "Utility Tool",
     description: "Create scan outputs with black-and-white, grayscale, cleanup, invert, and export format modes",
-    icon: "🧾",
-    color: "from-brand-sky to-brand-pink",
-    colorText: "text-brand-sky",
+    category: "Image Utility",
+    icon: Search,
+    accent: "text-indigo-400",
+    bg: "bg-indigo-400/10",
+    border: "border-indigo-400/20",
     href: "/tools/image-scanner",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Document",
   },
   {
     id: "image-format-converter",
     name: "Image Format Converter",
-    org: "Utility Tool",
     description: "Convert JPG, PNG, and WEBP files with quality control, background fill, and export sizing",
-    icon: "🔄",
-    color: "from-brand-orange to-brand-pink",
-    colorText: "text-brand-orange",
+    category: "Image Utility",
+    icon: RefreshCw,
+    accent: "text-amber-400",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/20",
     href: "/tools/image-format-converter",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Original",
   },
   {
     id: "image-rotate-flip",
     name: "Image Rotate & Flip",
-    org: "Utility Tool",
     description: "Rotate, mirror, and export images with background control and angle presets",
-    icon: "🧭",
-    color: "from-brand-sky to-brand-orange",
-    colorText: "text-brand-sky",
+    category: "Image Utility",
+    icon: FlipHorizontal,
+    accent: "text-teal-400",
+    bg: "bg-teal-400/10",
+    border: "border-teal-400/20",
     href: "/tools/image-rotate-flip",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Original",
   },
   {
     id: "image-cropper",
     name: "Image Cropper",
-    org: "Utility Tool",
     description: "Center-crop images to common or custom aspect ratios with export size and format controls",
-    icon: "✂️",
-    color: "from-brand-pink to-brand-orange",
-    colorText: "text-brand-pink",
+    category: "Image Utility",
+    icon: Crop,
+    accent: "text-pink-400",
+    bg: "bg-pink-400/10",
+    border: "border-pink-400/20",
     href: "/tools/image-cropper",
-    width: 1080,
-    height: 1080,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Preset/Custom",
   },
   {
     id: "watermark-stamper",
     name: "Watermark Stamper",
-    org: "Utility Tool",
     description: "Apply text watermarks with position, opacity, color, and output format settings",
-    icon: "🪧",
-    color: "from-brand-sky to-brand-pink",
-    colorText: "text-brand-sky",
+    category: "Image Utility",
+    icon: Type,
+    accent: "text-sky-400",
+    bg: "bg-sky-400/10",
+    border: "border-sky-400/20",
     href: "/tools/watermark-stamper",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Original",
   },
   {
     id: "bulk-image-converter",
     name: "Bulk Image Converter",
-    org: "Utility Tool",
     description: "Convert multiple images in one run with target format and quality controls",
-    icon: "🗂️",
-    color: "from-brand-orange to-brand-sky",
-    colorText: "text-brand-orange",
+    category: "Image Utility",
+    icon: LayersIcon,
+    accent: "text-orange-400",
+    bg: "bg-orange-400/10",
+    border: "border-orange-400/20",
     href: "/tools/bulk-image-converter",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Original",
   },
   {
     id: "letterpad-generator",
     name: "Letterpad Generator",
-    org: "Utility Tool",
-    description: "Create professionally formatted government & office letterpads with AI assistance, customizable templates, inline editing, and A4-ready PDF output",
-    icon: "📝",
-    color: "from-brand-pink to-brand-orange",
-    colorText: "text-brand-pink",
+    description: "Create professionally formatted government & office letterpads with AI assistance, customizable templates, and PDF output",
+    category: "Generators",
+    icon: Mail,
+    accent: "text-pink-400",
+    bg: "bg-pink-400/10",
+    border: "border-pink-400/20",
     href: "/tools/letterpad-generator",
-    width: 794,
-    height: 1123,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "A4",
   },
   {
     id: "gds-leave",
     name: "GDS Leave Application",
-    org: "India Post (Gramin Dak Sevak)",
     description: "Generate official GDS Leave Applications in quadruplicate format — Paid Leave or LWA — with cover letter, auto-filled fields, and print-ready PDF output",
-    icon: "🏤",
-    color: "from-yellow-600 to-amber-500",
-    colorText: "text-yellow-400",
+    category: "India Post",
+    icon: Building,
+    accent: "text-amber-400",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/20",
     href: "/tools/gds-leave",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "A4 Quad",
   },
   {
     id: "td-commission",
-    name: "TD Commission / BPM Incentive",
-    org: "India Post (Gramin Dak Sevak)",
+    name: "TD Commission / BPM",
     description: "Generate official BPM Incentive Bills for Time Deposit (TD) commissions with auto-calculating rates, amounts, and PDF exports",
-    icon: "💰",
-    color: "from-amber-500 to-yellow-600",
-    colorText: "text-amber-500",
+    category: "India Post",
+    icon: Calculator,
+    accent: "text-emerald-400",
+    bg: "bg-emerald-400/10",
+    border: "border-emerald-400/20",
     href: "/tools/td-commission",
-    width: 0,
-    height: 0,
-    minKb: 0,
-    maxKb: 0,
-    ratio: "Letter/A4",
   },
 ];
 
-function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <line x1="5" y1="12" x2="19" y2="12" />
-      <polyline points="12 5 19 12 12 19" />
-    </svg>
-  );
-}
+const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators'];
 
 export default function ToolsPage() {
-  const [activeTab, setActiveTab] = useState<"all" | "exam" | "utility">("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const filteredTools = useMemo(() => {
-    if (activeTab === "all") return TOOLS;
-    if (activeTab === "exam") return TOOLS.filter((tool) => tool.org !== "Utility Tool");
-    return TOOLS.filter((tool) => tool.org === "Utility Tool");
-  }, [activeTab]);
-
-  const examCount = TOOLS.filter((tool) => tool.org !== "Utility Tool").length;
-  const utilityCount = TOOLS.filter((tool) => tool.org === "Utility Tool").length;
+    return TOOLS_DATA.filter((tool) => {
+      const matchesSearch = 
+        tool.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = activeCategory === 'All' || tool.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, activeCategory]);
 
   return (
-    <main className="min-h-screen">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-fuchsia-500/30 relative overflow-x-hidden font-outfit">
+      
+      {/* GLASSMORPHISM BACKGROUND
+        These blurred orbs create the colorful distortion effect through the frosted glass panels.
+      */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-600/20 blur-[120px] mix-blend-screen animate-pulse duration-1000"></div>
+        <div className="absolute top-[20%] right-[-5%] w-[35vw] h-[35vw] rounded-full bg-fuchsia-600/20 blur-[130px] mix-blend-screen"></div>
+        <div className="absolute bottom-[-10%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-cyan-600/10 blur-[150px] mix-blend-screen"></div>
+      </div>
+
+      {/* Frosted Glass Header */}
+      <header className="fixed top-0 inset-x-0 z-50 bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0 flex items-center gap-3 cursor-pointer group">
+              <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] backdrop-blur-md flex items-center justify-center group-hover:bg-white/[0.1] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                <Layers className="text-white w-5 h-5" />
+              </div>
+              <span className="font-semibold text-xl tracking-wide text-white">
+                SW<span className="text-white/40 font-light">Tools</span>
+              </span>
+            </Link>
+
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex space-x-1">
+              <Link href="/tools" className="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5">
+                Tools
+              </Link>
+              <Link href="/about" className="px-4 py-2 rounded-lg text-sm font-medium transition-all text-white/50 hover:text-white hover:bg-white/5">
+                About
+              </Link>
+            </nav>
+
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white transition-colors backdrop-blur-md"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-lg pt-20 md:hidden">
+            <nav className="flex flex-col p-6 space-y-4">
+              <Link href="/tools" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-medium text-white p-2">Tools</Link>
+              <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-medium text-white/50 p-2">About</Link>
+            </nav>
+        </div>
+      )}
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-brand-orange/18 via-brand-pink/10 to-brand-sky/15" />
-        <div className="absolute -top-20 right-0 -z-10 h-72 w-72 rounded-full bg-brand-pink/25 blur-3xl" />
-        <div className="absolute bottom-0 left-10 -z-10 h-64 w-64 rounded-full bg-brand-sky/20 blur-3xl" />
-        
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80">
-                SW InfoSystems • Utility Tool Hub
-              </div>
-              <h1 className="font-heading text-4xl md:text-6xl font-bold tracking-tight">
-                Signatures, Photos <br className="hidden sm:inline" />
-                <span className="bg-gradient-to-r from-brand-orange via-brand-pink to-brand-sky bg-clip-text text-transparent">
-                  plus Advanced Image
-                </span>{" "}
-                <br />
-                and PDF Controls
-              </h1>
-              <p className="max-w-3xl text-lg text-foreground/80">
-                Specialized upload formatters alongside utility tools with deeper output control for resizing, compression, format conversion, aspect ratios, scans, PDF generation, and rotation.
-              </p>
-            </div>
+      <section className="relative pt-40 pb-20 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md mb-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <Sparkles className="w-4 h-4 text-fuchsia-400" />
+            <span className="text-xs font-medium tracking-widest uppercase text-white/70">Redesigned Experience</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-semibold text-white tracking-tight mb-6 leading-[1.1]">
+            Elevate your workflow <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-400 to-fuchsia-400">
+              in crystal clarity.
+            </span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-14 font-light leading-relaxed">
+            A premium suite of web utilities wrapped in a seamless, distraction-free glassmorphic interface.
+          </p>
 
-            <div className="grid max-w-3xl gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur">
-                <p className="text-2xl font-bold">{TOOLS.length}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">Total Workflows</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur">
-                <p className="text-2xl font-bold">{examCount}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">Format Tools</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur">
-                <p className="text-2xl font-bold">{utilityCount}</p>
-                <p className="text-xs uppercase tracking-[0.18em] text-white/55">Utility Tools</p>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-3 max-w-xl">
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-black/20 px-6 py-3 text-center transition-colors hover:border-white/40"
-              >
-                ← Back Home
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 text-center transition-colors hover:bg-white/15"
-              >
-                About Us
-              </Link>
+          {/* Master Search Bar (Glass Pill) */}
+          <div className="relative max-w-2xl mx-auto group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-fuchsia-500/20 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition duration-700"></div>
+            
+            <div className="relative flex items-center bg-white/[0.03] backdrop-blur-2xl border border-white/[0.1] rounded-full p-2 shadow-[0_8px_32px_0_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] group-focus-within:border-white/[0.2] group-focus-within:bg-white/[0.05] transition-all duration-300">
+              <Search className="w-6 h-6 text-white/40 ml-4 shrink-0" />
+              <input
+                type="text"
+                className="w-full bg-transparent text-white placeholder-white/30 px-4 py-4 focus:outline-none text-lg"
+                placeholder="Search tools, formats, or utilities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoComplete="off"
+                spellCheck="false"
+              />
+              <button className="hidden sm:flex items-center px-6 py-3 rounded-full bg-white text-black text-sm font-semibold hover:bg-white/90 transition-colors mr-1 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                Search
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Tools Grid */}
-      <section className="border-t border-white/10 py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <div className="mb-12">
-            <h2 className="font-heading mb-3 text-2xl md:text-3xl font-bold">Select Your Tool</h2>
-            <p className="text-foreground/75">Choose a formatting workflow or utility tool based on the output control you need.</p>
-            <div className="mt-4 flex flex-wrap gap-2">
+      {/* Main Content Area */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 relative z-10">
+        
+        {/* Glass Category Filters */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+          <h2 className="text-2xl font-medium text-white tracking-tight">
+            {searchQuery ? 'Search Results' : 'Utility Grid'}
+          </h2>
+          
+          <div className="flex overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar gap-3 snap-x">
+            {CATEGORIES.map(category => (
               <button
-                className={`ui-btn-secondary ${activeTab === "all" ? "border-white/35 bg-white/10" : ""}`}
-                onClick={() => setActiveTab("all")}
+                key={category}
+                onClick={() => {
+                  setActiveCategory(category);
+                  setSearchQuery('');
+                }}
+                className={`snap-start whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] ${
+                  activeCategory === category
+                    ? 'bg-white/15 text-white border border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+                    : 'bg-white/[0.02] text-white/50 border border-white/[0.05] hover:bg-white/[0.08] hover:text-white'
+                }`}
               >
-                All ({TOOLS.length})
+                {category}
               </button>
-              <button
-                className={`ui-btn-secondary ${activeTab === "exam" ? "border-white/35 bg-white/10" : ""}`}
-                onClick={() => setActiveTab("exam")}
-              >
-                Format Tools ({examCount})
-              </button>
-              <button
-                className={`ui-btn-secondary ${activeTab === "utility" ? "border-white/35 bg-white/10" : ""}`}
-                onClick={() => setActiveTab("utility")}
-              >
-                Utility Tools ({utilityCount})
-              </button>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {filteredTools.map((tool) => (
-              <Link
-                key={tool.id}
-                href={tool.href}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(21,26,38,0.95),rgba(12,17,27,0.95))] transition-all duration-300 hover:-translate-y-1 hover:border-white/25 hover:shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
-              >
-                {/* Background Gradient */}
-                <div className={`absolute inset-0 -z-10 bg-gradient-to-br ${tool.color} opacity-10 transition-opacity duration-300 group-hover:opacity-20`} />
-
-                <div className="p-6 md:p-8 space-y-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <p className={`text-sm font-semibold uppercase tracking-wider ${tool.colorText}`}>
-                        {tool.org.split("(")[0].trim()}
-                      </p>
-                      <h3 className="font-heading text-xl md:text-2xl font-bold text-white">{tool.name}</h3>
-                    </div>
-                    <span className="text-4xl flex-shrink-0">{tool.icon}</span>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-sm leading-relaxed text-foreground/80">{tool.description}</p>
-
-                  {/* Specs Grid */}
-                  <div className={`grid grid-cols-3 gap-3 rounded-xl border border-white/10 bg-gradient-to-br ${tool.color} p-4 opacity-20`}>
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-white/65">Size</p>
-                      <p className={`font-mono text-sm font-bold ${tool.colorText}`}>
-                        {tool.minKb === 0 && tool.maxKb === 0 ? "Dynamic" : `${tool.minKb}–${tool.maxKb} KB`}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-white/65">Dimensions</p>
-                      <p className={`font-mono text-sm font-bold ${tool.colorText}`}>
-                        {tool.width === 0 || tool.height === 0 ? "Flexible" : `${tool.width}×${tool.height}`}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-white/65">Ratio</p>
-                      <p className={`font-mono text-sm font-bold ${tool.colorText}`}>{tool.ratio}</p>
-                    </div>
-                  </div>
-
-                  {/* CTA Button */}
-                  <div className={`w-full translate-y-0.5 rounded-xl bg-gradient-to-r ${tool.color} px-4 py-3 font-semibold text-black shadow-[0_12px_24px_rgba(0,0,0,0.22)] transition-shadow group-hover:translate-y-0 group-hover:shadow-[0_16px_30px_rgba(0,0,0,0.3)]`}>
-                    <span className="flex items-center justify-center gap-2">
-                    Access Tool
-                    <ArrowRightIcon className="w-4 h-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="border-t border-white/10 bg-white/[0.02] py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-6">
-          <h2 className="font-heading mb-12 text-2xl md:text-3xl font-bold">Why Use Our Tools?</h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="space-y-3">
-              <div className="text-3xl mb-2">✓</div>
-              <h3 className="font-bold text-lg">Precision Presets</h3>
-              <p className="text-foreground/70 text-sm leading-relaxed">
-                Size windows, ratios, and export settings are tuned for practical upload and publishing workflows
-              </p>
+        {/* Tools Grid - Frosted Glass Cards */}
+        {filteredTools.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredTools.map((tool) => {
+              const Icon = tool.icon;
+              return (
+                <Link 
+                  href={tool.href}
+                  key={tool.id} 
+                  className="group relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.15] hover:-translate-y-1 rounded-3xl p-7 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col h-full shadow-[0_8px_30px_rgb(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.05)]"
+                >
+                  {/* Subtle inner card glow on hover */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-0 group-hover:opacity-[0.03] blur-3xl transition-opacity duration-500 rounded-full"></div>
+                  
+                  <div className="relative z-10 flex items-start justify-between mb-6">
+                    {/* Glowing Icon Container */}
+                    <div className={`p-3 rounded-2xl ${tool.bg} ${tool.border} border backdrop-blur-md shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                      <Icon className={`w-6 h-6 ${tool.accent}`} strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-white/40 bg-white/[0.05] border border-white/[0.05] px-3 py-1.5 rounded-full">
+                      {tool.category}
+                    </span>
+                  </div>
+                  
+                  <h3 className="relative z-10 text-xl font-medium text-white mb-3">
+                    {tool.name}
+                  </h3>
+                  
+                  <p className="relative z-10 text-sm text-white/50 leading-relaxed flex-grow mb-8 line-clamp-2 font-light">
+                    {tool.description}
+                  </p>
+                  
+                  <div className="relative z-10 mt-auto flex items-center text-sm font-medium text-white/40 group-hover:text-white transition-colors duration-300">
+                    Open Tool
+                    <ChevronRight className="w-4 h-4 ml-1.5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          /* Glass Empty State */
+          <div className="text-center py-28 px-6 border border-white/[0.05] rounded-3xl bg-white/[0.02] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/[0.05] border border-white/[0.1] mb-6 shadow-lg">
+              <Search className="h-6 w-6 text-white/40" />
             </div>
+            <h3 className="text-xl font-medium text-white mb-3">No utilities found</h3>
+            <p className="text-white/50 max-w-sm mx-auto text-base font-light">
+              We couldn't find anything matching "<span className="text-white font-medium">{searchQuery}</span>". 
+            </p>
+            <button 
+              onClick={() => {
+                setSearchQuery('');
+                setActiveCategory('All');
+              }}
+              className="mt-8 px-6 py-3 rounded-xl text-sm font-medium text-black bg-white hover:bg-white/90 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
+      </main>
 
-            <div className="space-y-3">
-              <div className="text-3xl mb-2">⚡</div>
-              <h3 className="font-bold text-lg">Advanced Output Control</h3>
-              <p className="text-foreground/70 text-sm leading-relaxed">
-                Adjust fit mode, quality, export format, page layout, thresholds, backgrounds, and more
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="text-3xl mb-2">📥</div>
-              <h3 className="font-bold text-lg">Auto-Fix & Download</h3>
-              <p className="text-foreground/70 text-sm leading-relaxed">
-                Automatically resize, crop, compress, scan, or package files into ready-to-use downloads
-              </p>
-            </div>
+      {/* Glass Footer */}
+      <footer className="relative z-10 border-t border-white/[0.05] bg-white/[0.01] backdrop-blur-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Layers className="text-white/30 w-5 h-5" />
+            <span className="text-sm font-medium text-white/50">SW Tools Directory</span>
+          </div>
+          <div className="text-sm font-light text-white/30">
+            &copy; {new Date().getFullYear()} SW Info Systems. Crafted with glass.
           </div>
         </div>
-      </section>
+      </footer>
 
-      {/* Footer CTA */}
-      <section className="border-t border-white/10 py-12 md:py-16">
-        <div className="mx-auto max-w-4xl px-4 md:px-6 text-center space-y-6">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold">Ready to Format Your Documents?</h2>
-          <p className="mx-auto max-w-2xl text-lg text-foreground/75">
-            Select one of our specialized tools above to prepare images, signatures, PDFs, and other upload-ready assets in seconds.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/tools/ssc"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-orange to-orange-500 text-white font-semibold hover:shadow-lg transition-shadow"
-            >
-              Get Started <ArrowRightIcon className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-foreground/20 hover:border-foreground/40 transition-colors"
-            >
-              Learn More
-            </Link>
-          </div>
-        </div>
-      </section>
-    </main>
+      {/* CSS Utilities & Font Injection */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        .font-outfit {
+          font-family: 'Outfit', sans-serif;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Subtle selection color */
+        ::selection {
+          background-color: rgba(217, 70, 239, 0.3); /* fuchsia */
+          color: white;
+        }
+      `}} />
+    </div>
   );
 }
