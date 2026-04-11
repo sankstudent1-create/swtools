@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { lsGet, lsAdd } from '@/utils/pdf'
+import { lsGet, lsAdd } from '@/lib/td-commission/pdf'
 
 export function useLS() {
   const get = useCallback((key: string): string[] => lsGet(key), [])
