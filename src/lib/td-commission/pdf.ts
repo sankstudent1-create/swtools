@@ -105,7 +105,8 @@ export async function buildPDFDoc(
       : [i + 1, '', '', '', '', '', '', ''])
   }
 
-  const totalRow = [
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totalRow: any[] = [
     { content: 'Total', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
     { content: tDep > 0 ? formatINR(tDep) : '', styles: { halign: 'right', fontStyle: 'bold' } },
     { content: '', styles: {} },
