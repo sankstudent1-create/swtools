@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
+
 
 export const metadata: Metadata = {
   title: 'SW Tools - TD Commission BPM Incentive Bill Generator',
@@ -14,15 +14,6 @@ export default function TDCommissionLayout({ children }: { children: React.React
         rel="stylesheet"
       />
       {children}
-      {/* jsPDF + autoTable loaded globally so they're available in utils/pdf.ts */}
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-        strategy="beforeInteractive"
-      />
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"
-        strategy="beforeInteractive"
-      />
     </>
   )
 }

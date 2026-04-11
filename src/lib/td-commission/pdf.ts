@@ -61,8 +61,9 @@ export async function buildPDFDoc(
   rows: EntryRow[],
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
-  // jsPDF loaded via <Script> in layout
-  const { jsPDF } = window.jspdf
+  const { jsPDF } = await import('jspdf')
+  await import('jspdf-autotable')
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc: any = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
