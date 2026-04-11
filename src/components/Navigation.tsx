@@ -31,6 +31,11 @@ export default function Navigation() {
     { href: "/about", label: "About" },
   ];
 
+  // Hide site nav on full-screen tool pages that have their own appbar
+  const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave'];
+  const isFullscreen = FULLSCREEN_TOOLS.some(p => pathname.startsWith(p));
+  if (isFullscreen) return null;
+
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#080b12]/85 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
