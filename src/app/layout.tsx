@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Syne } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import AdSlot from "@/components/AdSlot";
 import Navigation from "@/components/Navigation";
@@ -10,22 +10,13 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-});
-
-import { Outfit } from "next/font/google";
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -94,7 +85,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         {adsEnabled && adClient ? (
           <Script
             id="adsense-script"
