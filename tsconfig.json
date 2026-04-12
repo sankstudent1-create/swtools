@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "swinfsystems-letterhead"]
+  "exclude": ["node_modules", "swinfsystems-letterhead", "gds-nextjs"]
 }

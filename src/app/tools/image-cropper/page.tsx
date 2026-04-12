@@ -1,123 +1,147 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import SuccessPopup from "@/components/SuccessPopup";
+import { Download, Upload, Crop as CropIcon, Image as ImageIcon, Settings, CheckCircle2 } from "lucide-react";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
 
 const RATIO_PRESETS = [
-  { label: "1:1", w: 1, h: 1 },
-  { label: "4:5", w: 4, h: 5 },
-  { label: "16:9", w: 16, h: 9 },
-  { label: "9:16", w: 9, h: 16 },
-  { label: "3:2", w: 3, h: 2 },
+  { label: "Free", w: 0, h: 0 },
+  { label: "1:1 Square", w: 1, h: 1 },
+  { label: "4:5 Insta", w: 4, h: 5 },
+  { label: "16:9 Wide", w: 16, h: 9 },
+  { label: "9:16 Story", w: 9, h: 16 },
+  { label: "3:2 Standard", w: 3, h: 2 },
 ];
 
-function ArrowLeftIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
+function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
+  return centerCrop(
+    makeAspectCrop(
+      {
+        unit: "%",
+        width: 90,
+      },
+      aspect,
+      mediaWidth,
+      mediaHeight
+    ),
+    mediaWidth,
+    mediaHeight
   );
 }
 
-async function cropImage(
-  file: File,
-  ratioW: number,
-  ratioH: number,
-  outputWidth: number,
-  outputFormat: OutputFormat,
-  quality: number
-): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
-  const targetRatio = ratioW / ratioH;
-  const sourceRatio = bitmap.width / bitmap.height;
-
-  let sx = 0;
-  let sy = 0;
-  let sWidth = bitmap.width;
-  let sHeight = bitmap.height;
-
-  if (sourceRatio > targetRatio) {
-    sWidth = bitmap.height * targetRatio;
-    sx = (bitmap.width - sWidth) / 2;
-  } else {
-    sHeight = bitmap.width / targetRatio;
-    sy = (bitmap.height - sHeight) / 2;
-  }
-
-  const outputHeight = Math.max(60, Math.round(outputWidth / targetRatio));
-  const canvas = document.createElement("canvas");
-  canvas.width = outputWidth;
-  canvas.height = outputHeight;
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Canvas unavailable.");
-
-  context.drawImage(bitmap, sx, sy, sWidth, sHeight, 0, 0, outputWidth, outputHeight);
-
-  return await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) reject(new Error("Failed to crop image."));
-      else resolve(blob);
-    }, outputFormat, outputFormat === "image/png" ? undefined : quality / 100);
-  });
-}
-
 export default function ImageCropperPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imgSrc, setImgSrc] = useState("");
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [aspect, setAspect] = useState<number | undefined>(undefined);
+
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [outputName, setOutputName] = useState("");
-  const [ratioW, setRatioW] = useState(1);
-  const [ratioH, setRatioH] = useState(1);
-  const [outputWidth, setOutputWidth] = useState(1080);
+  const [outputWidthTarget, setOutputWidthTarget] = useState(1080);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
   const [quality, setQuality] = useState(92);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (imgSrc) URL.revokeObjectURL(imgSrc);
       if (outputUrl) URL.revokeObjectURL(outputUrl);
     };
-  }, [previewUrl, outputUrl]);
+  }, [imgSrc, outputUrl]);
 
-  const ratioLabel = useMemo(() => `${ratioW}:${ratioH}`, [ratioW, ratioH]);
-
-  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null;
-    setError(null);
-    setShowSuccess(false);
-    setFile(selected);
-    if (!selected) {
-      setPreviewUrl(null);
-      return;
+  function onSelectFile(e: ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files.length > 0) {
+      setCrop(undefined);
+      const reader = new FileReader();
+      reader.addEventListener("load", () =>
+        setImgSrc(reader.result?.toString() || "")
+      );
+      reader.readAsDataURL(e.target.files[0]);
     }
-    setPreviewUrl(URL.createObjectURL(selected));
   }
 
-  async function onCrop() {
-    if (!file) {
-      setError("Upload an image first.");
-      return;
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    if (aspect) {
+      const { width, height } = e.currentTarget;
+      setCrop(centerAspectCrop(width, height, aspect));
     }
+  }
+
+  function applyPreset(preset: typeof RATIO_PRESETS[0]) {
+    if (preset.w === 0) {
+      setAspect(undefined);
+    } else {
+      const newAspect = preset.w / preset.h;
+      setAspect(newAspect);
+      if (imgRef.current) {
+        setCrop(centerAspectCrop(imgRef.current.width, imgRef.current.height, newAspect));
+      }
+    }
+  }
+
+  async function generateCrop() {
+    const image = imgRef.current;
+    const cropPixel = completedCrop;
+    if (!image || !cropPixel || cropPixel.width === 0 || cropPixel.height === 0) return;
 
     setIsProcessing(true);
-    setError(null);
     try {
-      const blob = await cropImage(file, ratioW, ratioH, outputWidth, outputFormat, quality);
-      const extension = outputFormat === "image/png" ? "png" : outputFormat === "image/webp" ? "webp" : "jpg";
-      const out = new File([blob], `${file.name.split(".")[0]}-crop-${ratioW}x${ratioH}.${extension}`, { type: outputFormat });
-      const url = URL.createObjectURL(out);
-      setOutputUrl(url);
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+      const sourceX = cropPixel.x * scaleX;
+      const sourceY = cropPixel.y * scaleY;
+      const sourceWidth = cropPixel.width * scaleX;
+      const sourceHeight = cropPixel.height * scaleY;
+
+      const targetRatio = sourceWidth / sourceHeight;
+      const outputWidth = outputWidthTarget;
+      const outputHeight = Math.round(outputWidth / targetRatio);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("No 2d context");
+
+      ctx.imageSmoothingQuality = "high";
+
+      ctx.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        outputWidth,
+        outputHeight
+      );
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => {
+            if (!b) reject(new Error("Canvas is empty"));
+            else resolve(b);
+          },
+          outputFormat,
+          outputFormat === "image/png" ? undefined : quality / 100
+        );
+      });
+
+      const extension = outputFormat.split("/")[1];
+      const out = new File([blob], `swtools-cropped.${extension}`, { type: outputFormat });
+      setOutputUrl(URL.createObjectURL(out));
       setOutputName(out.name);
       setShowSuccess(true);
-    } catch (cropError) {
-      setError(cropError instanceof Error ? cropError.message : "Failed to crop image.");
+    } catch (e) {
+      alert("Error cropping image: " + e);
     } finally {
       setIsProcessing(false);
     }
@@ -132,82 +156,180 @@ export default function ImageCropperPage() {
   }
 
   return (
-    <main className="min-h-screen">
-      <section className="relative overflow-hidden pt-20 pb-12 md:pt-28">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-brand-orange/10 via-brand-sky/10 to-transparent" />
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
-          <Link href="/tools" className="mb-6 inline-flex items-center gap-2 text-sm font-medium opacity-85 hover:opacity-100"><ArrowLeftIcon className="h-4 w-4" /> Back to Tools</Link>
-          <h1 className="text-4xl font-bold">Image Cropper</h1>
-          <p className="mt-2 text-foreground/75">Center-crop images to common aspect ratios with export size and format controls.</p>
-        </div>
-      </section>
+    <main className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30 font-sans">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] mix-blend-screen" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[100px] mix-blend-screen" />
+      </div>
 
-      <section className="py-10">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 md:grid-cols-2 md:px-6">
-          <div className="ui-modal-shell p-6 space-y-4">
-            <label className="block">
-              <div className="ui-upload-dropzone p-8 text-center cursor-pointer" onDragOver={(event) => event.preventDefault()}>
-                <p className="text-sm font-medium">Upload image</p>
-                <input type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-              </div>
-            </label>
-
-            <div>
-              <p className="mb-2 text-xs uppercase tracking-wider text-foreground/60">Ratio Presets</p>
-              <div className="flex flex-wrap gap-2">
-                {RATIO_PRESETS.map((preset) => (
-                  <button key={preset.label} className="ui-btn-secondary" onClick={() => {
-                    setRatioW(preset.w);
-                    setRatioH(preset.h);
-                  }}>{preset.label}</button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <input className="ui-input" type="number" min={1} value={ratioW} onChange={(event) => setRatioW(Number(event.target.value) || 1)} />
-              <input className="ui-input" type="number" min={1} value={ratioH} onChange={(event) => setRatioH(Number(event.target.value) || 1)} />
-              <input className="ui-input" type="number" min={120} value={outputWidth} onChange={(event) => setOutputWidth(Number(event.target.value) || 120)} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
-                <option value="image/jpeg">JPEG</option>
-                <option value="image/png">PNG</option>
-                <option value="image/webp">WEBP</option>
-              </select>
-              <div className="ui-field">
-                <span className="ui-label">Quality ({quality}%)</span>
-                <input type="range" min={20} max={100} value={quality} onChange={(event) => setQuality(Number(event.target.value))} />
-              </div>
-            </div>
-
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <button className="ui-btn-primary w-full" onClick={onCrop} disabled={!file || isProcessing}>{isProcessing ? "Cropping..." : `Crop to ${ratioLabel}`}</button>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+        <div className="mb-10 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/[0.05] border border-white/[0.1] shadow-xl backdrop-blur-xl mb-6">
+            <CropIcon className="w-8 h-8 text-emerald-400" />
           </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60 mb-4">
+            Advanced Image Cropper
+          </h1>
+          <p className="text-lg text-white/50 max-w-2xl mx-auto">
+            Perfectly crop and resize your images with professional ratios and deep glassmorphic controls.
+          </p>
+        </div>
 
-          <div className="ui-preview-card p-4">
-            <h2 className="mb-3 text-lg font-semibold">Preview</h2>
-            {!previewUrl && !outputUrl && <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-white/20 text-foreground/60">No image yet</div>}
-            {previewUrl && <img src={previewUrl} alt="Original" className="mb-4 max-h-52 w-full rounded-lg border border-white/10 object-contain" />}
-            {outputUrl && (
-              <div>
-                <img src={outputUrl} alt="Cropped" className="max-h-52 w-full rounded-lg border border-white/10 object-contain" />
-                <button className="ui-btn-secondary mt-3 w-full" onClick={onDownload}>Download {outputName}</button>
+        <div className="grid lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 flex flex-col gap-6">
+            <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-2 md:p-6 backdrop-blur-xl shadow-2xl relative min-h-[400px] flex items-center justify-center overflow-hidden">
+              {!imgSrc ? (
+                <label className="flex flex-col items-center justify-center w-full h-full min-h-[300px] cursor-pointer group hover:bg-white/[0.02] transition-colors rounded-2xl">
+                  <div className="w-16 h-16 mb-4 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all duration-300">
+                    <Upload className="w-8 h-8" />
+                  </div>
+                  <span className="text-lg font-medium text-white/80">Click to upload image</span>
+                  <span className="text-sm text-white/40 mt-1">JPEG, PNG, WEBP</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={onSelectFile} />
+                </label>
+              ) : (
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  aspect={aspect}
+                  className="max-h-[600px] rounded-xl overflow-hidden shadow-2xl border border-white/10"
+                >
+                  <img
+                    ref={imgRef}
+                    alt="Upload"
+                    src={imgSrc}
+                    onLoad={onImageLoad}
+                    className="max-h-[600px] w-auto h-auto object-contain"
+                  />
+                </ReactCrop>
+              )}
+            </div>
+
+            {imgSrc && (
+              <div className="flex gap-4 justify-between items-center bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 backdrop-blur-xl">
+                 <label className="text-sm text-emerald-400 cursor-pointer font-medium hover:text-emerald-300 transition-colors flex items-center gap-2">
+                   <Upload className="w-4 h-4" /> Change Image
+                   <input type="file" accept="image/*" className="hidden" onChange={onSelectFile} />
+                 </label>
+                 <span className="text-sm text-white/40">Drag corners to crop visually</span>
               </div>
             )}
           </div>
-        </div>
-      </section>
 
-      <SuccessPopup
-        isOpen={showSuccess && Boolean(outputUrl)}
-        title="Crop Completed"
-        message="Your cropped image is ready to download."
-        onClose={() => setShowSuccess(false)}
-        onDownload={onDownload}
-        downloadLabel="Download Cropped Image"
-      />
+          <div className="lg:col-span-4 flex flex-col gap-6">
+            <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 backdrop-blur-xl">
+              <h3 className="text-lg font-semibold text-white/90 mb-6 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-emerald-400" /> Options
+              </h3>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 block">
+                    Aspect Ratio
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {RATIO_PRESETS.map((p) => {
+                      const isActive = (p.w === 0 && aspect === undefined) || (p.w > 0 && aspect === p.w / p.h);
+                      return (
+                        <button
+                          key={p.label}
+                          onClick={() => applyPreset(p)}
+                          className={`px-3 py-2 text-xs font-medium rounded-lg transition-all border ${
+                            isActive
+                              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300"
+                              : "bg-white/[0.03] border-white/5 text-white/60 hover:bg-white/[0.08]"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                   <label className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 block">
+                     Export Width (px)
+                   </label>
+                   <input
+                     type="number"
+                     min={100}
+                     value={outputWidthTarget}
+                     onChange={(e) => setOutputWidthTarget(Number(e.target.value) || 1080)}
+                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-500/50 focus:bg-white/[0.05] transition-colors"
+                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 block">Format</label>
+                    <select
+                      value={outputFormat}
+                      onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
+                      className="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50 transition-colors appearance-none"
+                    >
+                      <option value="image/jpeg">JPEG</option>
+                      <option value="image/png">PNG</option>
+                      <option value="image/webp">WEBP</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-white/40 mb-3 block">
+                      Quality ({quality}%)
+                    </label>
+                    <input
+                      type="range"
+                      min={10}
+                      max={100}
+                      value={quality}
+                      onChange={(e) => setQuality(Number(e.target.value))}
+                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer mt-3 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={generateCrop}
+                  disabled={!imgSrc || !completedCrop || isProcessing}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white font-semibold py-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 mt-4"
+                >
+                  {isProcessing ? "Processing..." : (
+                    <>
+                      <CropIcon className="w-5 h-5" /> Crop Image
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showSuccess && outputUrl && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+           <div className="bg-[#111] border border-white/10 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative animate-in fade-in zoom-in duration-200">
+             <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-6">
+                <CheckCircle2 className="w-10 h-10" />
+             </div>
+             <h3 className="text-2xl font-bold text-white mb-2">Crop Complete</h3>
+             <p className="text-white/50 text-sm mb-6">Your image has been perfectly cropped.</p>
+             
+             <button
+                onClick={() => { onDownload(); setShowSuccess(false); }}
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 mb-3 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+             >
+                <Download className="w-5 h-5" /> Download Now
+             </button>
+             <button
+                onClick={() => setShowSuccess(false)}
+                className="w-full bg-transparent hover:bg-white/5 text-white/70 py-3 rounded-xl transition-all"
+             >
+                Close
+             </button>
+           </div>
+        </div>
+      )}
     </main>
   );
 }

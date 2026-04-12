@@ -31,30 +31,31 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
   const appLong  = fmtLong(leave.appDate);
 
   return (
-    <div className="flex flex-col gap-[14px]">
+    <div className="flex flex-col gap-5">
 
       {/* Card 1 — Addressee */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Addressed To — Select Officer</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">1</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Addressed To — Select Officer</span>
         </div>
-        <div className="p-4">
-          <div className="bg-[#fffaed] border border-[#e0c870] rounded-[7px] px-3 py-2 text-[12px] text-[#7a5800] mb-3">
+        <div className="p-5">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-amber-300 mb-5 flex gap-3 items-start">
+            <span className="text-amber-400 mt-0.5">ℹ️</span>
             Select the officer type, then enter area / division name. Previously entered values are saved and suggested automatically.
           </div>
 
           {/* Officer type buttons */}
-          <div className="flex gap-[6px] flex-wrap mb-3">
+          <div className="flex gap-2 flex-wrap mb-5">
             {OFFICER_TYPES.map(type => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setCL({ officerType: type })}
-                className={`px-[13px] py-[6px] text-[12px] font-bold border-[1.5px] rounded-[6px] transition-all cursor-pointer select-none ${
+                className={`px-4 py-2 text-sm font-semibold border rounded-xl transition-all cursor-pointer select-none ${
                   coverLetter.officerType === type
-                    ? 'border-[#1b2d4f] bg-[#eef1ff] text-[#1b2d4f]'
-                    : 'border-[#c5cede] bg-[#f5f7fc] text-[#607090]'
+                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+                    : 'border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06]'
                 }`}
               >
                 {type === 'manual' ? 'Manual' : type}
@@ -63,7 +64,7 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
           </div>
 
           {/* Area / manual input */}
-          <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1 mb-3">
+          <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1 mb-5">
             {coverLetter.officerType !== 'manual' && (
               <FormField label={OFFICER_MAP[coverLetter.officerType].label} htmlFor="cl-area">
                 <AutocompleteInput
@@ -93,13 +94,13 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
 
           {/* Resulting address line */}
           <FormField label="Addressing Line" auto>
-            <div className="w-full bg-[#eef1ff] border-[1.5px] border-[#c5cede] rounded-[7px] text-[#1b2d4f] font-semibold px-[11px] py-[8px] text-[13px]">
+            <div className="w-full bg-emerald-500/5 border border-emerald-500/20 rounded-xl text-emerald-400 font-semibold px-4 py-2.5 text-sm">
               {officerLine || '—'}
             </div>
           </FormField>
 
           {/* Subject + Remarks */}
-          <div className="grid grid-cols-2 gap-3 mt-3 max-sm:grid-cols-1">
+          <div className="grid grid-cols-2 gap-4 mt-5 max-sm:grid-cols-1">
             <FormField label="Subject Line" auto className="col-span-2 max-sm:col-span-1">
               <input
                 type="text"
@@ -114,7 +115,7 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
                 rows={3}
                 value={coverLetter.remarks}
                 onChange={e => setCL({ remarks: e.target.value })}
-                className={`${inputCls} resize-y min-h-[60px] leading-[1.5]`}
+                className={`${inputCls} resize-y min-h-[80px] leading-[1.6]`}
                 placeholder="Medical details, special circumstances, etc."
               />
             </FormField>
@@ -123,21 +124,21 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
       </div>
 
       {/* Card 2 — Letter Preview */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Letter Preview</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">2</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Letter Preview</span>
         </div>
-        <div className="p-4">
-          <div className="bg-[#fafbfe] border border-[#c5cede] rounded-[7px] p-[22px_28px] font-[Georgia,serif] text-[12.5px] leading-[1.9] text-[#111]">
+        <div className="p-5">
+          <div className="bg-white text-black border border-white/[0.2] rounded-xl p-8 font-[Georgia,serif] text-sm leading-[1.8] shadow-inner">
 
             {/* Date — right */}
-            <div className="text-right mb-[14px] text-[12px] leading-[1.5]">
+            <div className="text-right mb-4 text-xs leading-[1.5]">
               <div>Date: {appLong || '[Date]'}</div>
             </div>
 
             {/* Addressee */}
-            <div className="mb-[12px] leading-[1.6]">
+            <div className="mb-4 leading-[1.6]">
               <div>To,</div>
               <div><strong>{officerLine || 'Sub Divisional Inspector of Post Offices'}</strong></div>
               {applicant.div && <div>{applicant.div}</div>}
@@ -177,13 +178,13 @@ export function LetterTab({ data, onChange }: LetterTabProps) {
             </p>
 
             {/* Closing — right aligned */}
-            <div className="text-right mt-5">Yours faithfully,</div>
-            <div className="text-right mt-9"><strong>{applicant.name || '(Signature)'}</strong></div>
+            <div className="text-right mt-6">Yours faithfully,</div>
+            <div className="text-right mt-12"><strong>{applicant.name || '(Signature)'}</strong></div>
             <div className="text-right">{applicant.desig || 'GDS'}</div>
             {boLine && <div className="text-right">{boLine}</div>}
             {applicant.div && <div className="text-right">{applicant.div}</div>}
 
-            <div className="mt-[14px]"><strong>Encl:</strong></div>
+            <div className="mt-5"><strong>Encl:</strong></div>
             <div className="pl-4">1. Leave Application in prescribed format (4 copies)</div>
             <div className="pl-4">2. Medical Certificate (if applicable)</div>
           </div>

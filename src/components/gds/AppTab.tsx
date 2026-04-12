@@ -34,15 +34,15 @@ export function AppTab({ data, onChange }: AppTabProps) {
   }
 
   return (
-    <div className="flex flex-col gap-[14px]">
+    <div className="flex flex-col gap-5">
 
       {/* Card 1 — Applicant Details */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">1</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Applicant Details</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">1</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Applicant Details</span>
         </div>
-        <div className="p-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+        <div className="p-5 grid grid-cols-2 gap-4 max-sm:grid-cols-1">
           <FormField label="Full Name" htmlFor="name" required>
             <AutocompleteInput id="name" value={applicant.name} onChange={v => setApp({ name: v })} lsKey="names" icon="👤" placeholder="e.g. Ramesh Kumar Patil" />
           </FormField>
@@ -72,17 +72,20 @@ export function AppTab({ data, onChange }: AppTabProps) {
       </div>
 
       {/* Card 2 — Leave Details */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">2</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Leave Details</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">2</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Leave Details</span>
         </div>
-        <div className="p-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+        <div className="p-5 grid grid-cols-2 gap-4 max-sm:grid-cols-1">
           <FormField label="Type of Leave" required className="col-span-2 max-sm:col-span-1">
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-3 flex-wrap">
               {(['Paid Leave', 'Leave Without Allowances (LWA)'] as LeaveType[]).map(lt => (
-                <label key={lt} className={`flex items-center gap-[5px] text-[13px] cursor-pointer px-3 py-[7px] border-[1.5px] rounded-[7px] transition-all ${leave.leaveType === lt ? 'border-[#1b2d4f] bg-[#eef1ff] text-[#1b2d4f] font-semibold' : 'border-[#c5cede] text-[#111]'}`}>
-                  <input type="radio" name="lt" value={lt} checked={leave.leaveType === lt} onChange={() => setLeave({ leaveType: lt })} className="accent-[#1b2d4f]" />
+                <label key={lt} className={`flex items-center gap-2 text-sm cursor-pointer px-4 py-2 border rounded-xl transition-all ${leave.leaveType === lt ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'border-white/10 text-white/70 hover:bg-white/[0.05]'}`}>
+                  <input type="radio" name="lt" value={lt} checked={leave.leaveType === lt} onChange={() => setLeave({ leaveType: lt })} className="hidden" />
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${leave.leaveType === lt ? 'border-emerald-400' : 'border-white/30'}`}>
+                    {leave.leaveType === lt && <div className="w-2 h-2 bg-emerald-400 rounded-full" />}
+                  </div>
                   {lt}
                 </label>
               ))}
@@ -90,11 +93,11 @@ export function AppTab({ data, onChange }: AppTabProps) {
           </FormField>
 
           <FormField label="From Date" htmlFor="fromDate" required>
-            <input id="fromDate" type="date" value={leave.fromDate} onChange={e => setLeave({ fromDate: e.target.value })} className={inputCls} />
+            <input id="fromDate" type="date" value={leave.fromDate} onChange={e => setLeave({ fromDate: e.target.value })} className={`${inputCls} [color-scheme:dark]`} />
           </FormField>
 
           <FormField label="To Date" htmlFor="toDate" required>
-            <input id="toDate" type="date" value={leave.toDate} onChange={e => setLeave({ toDate: e.target.value })} className={inputCls} />
+            <input id="toDate" type="date" value={leave.toDate} onChange={e => setLeave({ toDate: e.target.value })} className={`${inputCls} [color-scheme:dark]`} />
           </FormField>
 
           <FormField label="No. of Days" auto>
@@ -102,7 +105,7 @@ export function AppTab({ data, onChange }: AppTabProps) {
           </FormField>
 
           <FormField label="Application Date" htmlFor="appDate">
-            <input id="appDate" type="date" value={leave.appDate} onChange={e => setLeave({ appDate: e.target.value })} className={inputCls} />
+            <input id="appDate" type="date" value={leave.appDate} onChange={e => setLeave({ appDate: e.target.value })} className={`${inputCls} [color-scheme:dark]`} />
           </FormField>
 
           <FormField label="Ground for Leave" htmlFor="ground" required className="col-span-2 max-sm:col-span-1">
@@ -118,23 +121,24 @@ export function AppTab({ data, onChange }: AppTabProps) {
               value={leave.address}
               onChange={e => setLeave({ address: e.target.value })}
               placeholder="House No., Street, Village/Town, Taluka, District – PIN (Enter for 2nd line)"
-              className={`${inputCls} resize-y min-h-[60px] leading-[1.5]`}
+              className={`${inputCls} resize-y min-h-[80px] leading-[1.6]`}
             />
           </FormField>
         </div>
       </div>
 
       {/* Card 3 — Substitute Details */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">3</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Substitute Details</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">3</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Substitute Details</span>
         </div>
-        <div className="p-4">
-          <div className="bg-[#fffaed] border border-[#e0c870] rounded-[7px] px-3 py-2 text-[12px] text-[#7a5800] mb-3">
+        <div className="p-5">
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-sm text-amber-300 mb-5 flex gap-3 items-start">
+            <span className="text-amber-400 mt-0.5">ℹ️</span>
             The substitute works in your place during leave. Their name appears in the application and sanction order.
           </div>
-          <div className="grid grid-cols-3 gap-3 max-sm:grid-cols-1">
+          <div className="grid grid-cols-3 gap-4 max-sm:grid-cols-1">
             <FormField label="Substitute Full Name" htmlFor="sname">
               <AutocompleteInput id="sname" value={substitute.name} onChange={v => setSub({ name: v })} lsKey="snames" icon="👥" placeholder="Full name" />
             </FormField>
@@ -152,12 +156,12 @@ export function AppTab({ data, onChange }: AppTabProps) {
       </div>
 
       {/* Card 4 — Sanction Fields */}
-      <div className="bg-white border border-[#c5cede] rounded-[10px] shadow-[0_3px_18px_rgba(27,45,79,.12)]">
-        <div className="px-4 py-[11px] border-b border-[#c5cede] flex items-center gap-2 bg-gradient-to-r from-[#f5f7fc] to-[#f9fafd] rounded-t-[10px]">
-          <span className="w-5 h-5 bg-[#1b2d4f] text-white rounded-full flex items-center justify-center text-[10px] font-bold">4</span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.9px] text-[#1b2d4f]">Sanction Fields (For Sanctioning Authority)</span>
+      <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.01]">
+          <span className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]">4</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-white/90">Sanction Fields (For Sanctioning Authority)</span>
         </div>
-        <div className="p-4 grid grid-cols-2 gap-3 max-sm:grid-cols-1">
+        <div className="p-5 grid grid-cols-2 gap-4 max-sm:grid-cols-1">
           <FormField label="Half Year Ending Date" htmlFor="halfyr">
             <input id="halfyr" type="text" value={sanction.halfYear} onChange={e => setSanction({ halfYear: e.target.value })} className={inputCls} placeholder="e.g. 31.12.2025" />
           </FormField>
@@ -168,8 +172,8 @@ export function AppTab({ data, onChange }: AppTabProps) {
             <AutocompleteInput id="pm" value={sanction.postmaster} onChange={v => setSanction({ postmaster: v })} lsKey="pm" icon="📮" placeholder="Name of Postmaster" />
           </FormField>
         </div>
-        <div className="mx-4 mb-4 bg-[#f5f7fc] border border-[#c5cede] rounded-[7px] p-3 text-[12px] text-[#607090] leading-[1.65]">
-          <strong>Auto-printed certification:</strong> "I hereby propose Shri/Smt/Kum. [Substitute] whose particulars are given above to work as my substitute during my leave on my responsibility according to the terms of the security bond executed by me. I am aware of provisions of Rule 7 of the Department of Posts GDS Rules, 2001..."
+        <div className="mx-5 mb-5 bg-white/[0.03] border border-white/5 rounded-xl p-4 text-sm text-white/50 leading-relaxed italic border-l-4 border-l-emerald-500/50">
+          <strong className="tracking-wide not-italic text-white/80 block mb-1">Auto-printed certification:</strong> "I hereby propose Shri/Smt/Kum. [Substitute] whose particulars are given above to work as my substitute during my leave on my responsibility according to the terms of the security bond executed by me. I am aware of provisions of Rule 7 of the Department of Posts GDS Rules, 2001..."
         </div>
       </div>
 

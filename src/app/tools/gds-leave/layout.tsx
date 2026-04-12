@@ -1,11 +1,14 @@
-import type { Metadata } from 'next'
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'GDS Leave Application Generator | SW Tools',
-  description: 'Generate official GDS Leave Applications in exact quadruplicate format. Streamlines leave requests for rural post office staff securely inside the browser.',
-  keywords: 'GDS leave application, India Post leave form, Gramin Dak Sevak, post office software, LWA application, paid leave form, postal forms',
-}
+  title: 'GDS Leave Application PDF Generator',
+  description: 'Auto-generate official GDS Leave Applications in 4-copy format. Complete paid leave and LWA form generator.',
+  keywords: ["GDS leave application","India Post GDS leave PDF","Gramin Dak Sevak leave form make online"],
+  alternates: {
+    canonical: '/tools/gds-leave'
+  }
+};
 
-export default function GdsLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return children;
 }
