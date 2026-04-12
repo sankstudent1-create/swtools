@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Outfit, Poppins, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import AdSlot from "@/components/AdSlot";
 import Navigation from "@/components/Navigation";
@@ -7,9 +7,16 @@ import Footer from "@/components/Footer";
 import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin", "devanagari"],
   display: "swap",
 });
 
@@ -85,7 +92,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable} font-sans antialiased text-white bg-[#07090f]`}>
         {adsEnabled && adClient ? (
           <Script
             id="adsense-script"

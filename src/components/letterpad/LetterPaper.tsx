@@ -15,10 +15,10 @@ interface LetterPaperProps {
 }
 
 const FONT_MAP: Record<string, string> = {
-  '':    "'Libre Baskerville', serif",
+  '':    "var(--font-outfit), sans-serif",
   fg:    "'EB Garamond', serif",
   fs:    "'Source Serif 4', serif",
-  fd2:   "'Noto Serif Devanagari', serif",
+  fd2:   "var(--font-poppins), 'Noto Serif Devanagari', serif",
   ft:    "'Tiro Devanagari Hindi', serif",
   fn:    "'DM Sans', sans-serif",
 };

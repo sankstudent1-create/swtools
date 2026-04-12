@@ -126,12 +126,12 @@ export const TEMPLATE_INFO: Record<TemplateType, { label: string; desc: string }
 };
 
 export const FONT_OPTIONS: Array<{ key: string; label: string; style: CSSProperties }> = [
-  { key: '',    label: 'Baskerville', style: { fontFamily: "'Libre Baskerville', serif" } },
-  { key: 'fg',  label: 'EB Garamond', style: { fontFamily: "'EB Garamond', serif" } },
-  { key: 'fs',  label: 'Source Serif', style: { fontFamily: "'Source Serif 4', serif" } },
-  { key: 'fd2', label: 'देवनागरी',    style: { fontFamily: "'Noto Serif Devanagari', serif" } },
-  { key: 'ft',  label: 'तिरो',        style: { fontFamily: "'Tiro Devanagari Hindi', serif" } },
-  { key: 'fn',  label: 'DM Sans',     style: { fontFamily: "'DM Sans', sans-serif" } },
+  { key: '',    label: 'Outfit (Default)', style: { fontFamily: "var(--font-outfit), sans-serif" } },
+  { key: 'fg',  label: 'EB Garamond',      style: { fontFamily: "'EB Garamond', serif" } },
+  { key: 'fs',  label: 'Source Serif',     style: { fontFamily: "'Source Serif 4', serif" } },
+  { key: 'fd2', label: 'पोप्पिंस (Poppins)',style: { fontFamily: "var(--font-poppins), sans-serif" } },
+  { key: 'ft',  label: 'तिरो',             style: { fontFamily: "'Tiro Devanagari Hindi', serif" } },
+  { key: 'fn',  label: 'DM Sans',          style: { fontFamily: "'DM Sans', sans-serif" } },
 ];
 
 export const SALUTATION_OPTIONS = ['Sir', 'Madam', 'Sir/Madam', 'Dear Sir', 'Dear Madam', 'Dear Shri'];
