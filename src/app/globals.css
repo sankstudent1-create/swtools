@@ -27,6 +27,7 @@
   --color-brand-pink: var(--brand-pink);
   --color-brand-sky: var(--brand-sky);
   --font-sans: var(--font-inter);
+  --font-outfit: var(--font-outfit);
 }
 
 body {
@@ -36,7 +37,7 @@ body {
     radial-gradient(circle at 50% 100%, color-mix(in oklab, var(--brand-pink) 16%, transparent), transparent 48%),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-outfit), var(--font-inter), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   letter-spacing: -0.008em;
 }
