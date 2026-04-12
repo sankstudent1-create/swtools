@@ -248,7 +248,7 @@ export default function ToolsPage() {
     });
   }, [searchQuery, activeCategory]);
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-fuchsia-500/30 relative overflow-x-hidden font-outfit">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-fuchsia-500/30 relative overflow-x-hidden font-sans">
       
       {/* GLASSMORPHISM BACKGROUND */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
