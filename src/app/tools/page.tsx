@@ -237,7 +237,6 @@ const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const filteredTools = useMemo(() => {
     return TOOLS_DATA.filter((tool) => {
@@ -248,68 +247,18 @@ export default function ToolsPage() {
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, activeCategory]);
-
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-fuchsia-500/30 relative overflow-x-hidden font-outfit">
       
-      {/* GLASSMORPHISM BACKGROUND
-        These blurred orbs create the colorful distortion effect through the frosted glass panels.
-      */}
+      {/* GLASSMORPHISM BACKGROUND */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-600/20 blur-[120px] mix-blend-screen animate-pulse duration-1000"></div>
         <div className="absolute top-[20%] right-[-5%] w-[35vw] h-[35vw] rounded-full bg-fuchsia-600/20 blur-[130px] mix-blend-screen"></div>
         <div className="absolute bottom-[-10%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-cyan-600/10 blur-[150px] mix-blend-screen"></div>
       </div>
 
-      {/* Frosted Glass Header */}
-      <header className="fixed top-0 inset-x-0 z-50 bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo */}
-            <Link href="/" className="flex-shrink-0 flex items-center gap-3 cursor-pointer group">
-              <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] backdrop-blur-md flex items-center justify-center group-hover:bg-white/[0.1] transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-                <Layers className="text-white w-5 h-5" />
-              </div>
-              <span className="font-semibold text-xl tracking-wide text-white">
-                SW<span className="text-white/40 font-light">Tools</span>
-              </span>
-            </Link>
-
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex space-x-1">
-              <Link href="/tools" className="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5">
-                Tools
-              </Link>
-              <Link href="/about" className="px-4 py-2 rounded-lg text-sm font-medium transition-all text-white/50 hover:text-white hover:bg-white/5">
-                About
-              </Link>
-            </nav>
-
-            {/* Mobile Menu Toggle */}
-            <div className="md:hidden">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:text-white transition-colors backdrop-blur-md"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-lg pt-20 md:hidden">
-            <nav className="flex flex-col p-6 space-y-4">
-              <Link href="/tools" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-medium text-white p-2">Tools</Link>
-              <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-medium text-white/50 p-2">About</Link>
-            </nav>
-        </div>
-      )}
-
       {/* Hero Section */}
-      <section className="relative pt-40 pb-20 z-10">
+      <section className="relative pt-32 pb-20 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-md mb-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             <Sparkles className="w-4 h-4 text-fuchsia-400" />
@@ -441,27 +390,8 @@ export default function ToolsPage() {
         )}
       </main>
 
-      {/* Glass Footer */}
-      <footer className="relative z-10 border-t border-white/[0.05] bg-white/[0.01] backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Layers className="text-white/30 w-5 h-5" />
-            <span className="text-sm font-medium text-white/50">SW Tools Directory</span>
-          </div>
-          <div className="text-sm font-light text-white/30">
-            &copy; {new Date().getFullYear()} SW Info Systems. Crafted with glass.
-          </div>
-        </div>
-      </footer>
-
-      {/* CSS Utilities & Font Injection */}
+      {/* CSS Utilities */}
       <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-        
-        .font-outfit {
-          font-family: 'Outfit', sans-serif;
-        }
-
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         

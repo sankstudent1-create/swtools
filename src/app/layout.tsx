@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Syne } from "next/font/google";
 import Script from "next/script";
 import AdSlot from "@/components/AdSlot";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
 
@@ -18,6 +19,12 @@ const syne = Syne({
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+});
+
+import { Outfit } from "next/font/google";
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -87,7 +94,7 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased`}>
         {adsEnabled && adClient ? (
           <Script
             id="adsense-script"
@@ -102,6 +109,7 @@ export default function RootLayout({
         {adsEnabled ? <AdSlot slotKey="global-top" label="Global Top Banner" /> : null}
         {children}
         {adsEnabled ? <AdSlot slotKey="global-bottom" label="Global Footer Banner" /> : null}
+        <Footer />
       </body>
     </html>
   );
