@@ -63,6 +63,8 @@ ${SPOKES_24}
 };
 
 export function svgToDataUri(key: string): string {
+  if (key === 'ip') return 'https://upload.wikimedia.org/wikipedia/commons/4/4b/India_Post_Logo.svg';
+  if (key === 'ashoka') return 'https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg';
   const svg = SVG_LOGOS[key];
   if (!svg) return '';
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -148,6 +150,9 @@ export const AI_LETTER_TYPES: Array<{ value: string; label: string }> = [
   { value: 'noc',           label: 'No Objection Certificate' },
   { value: 'appreciation',  label: 'Letter of Appreciation' },
   { value: 'tour',          label: 'Tour Programme' },
+  { value: 'notice',        label: 'Notice Announcement' },
+  { value: 'advisory',      label: 'Advisory / Guideline' },
+  { value: 'notification',  label: 'Public Notification' },
   { value: 'pm_do',         label: 'PM-style Personal DO Letter' },
   { value: 'mp_letter',     label: 'MP Constituency Letter' },
   { value: 'custom',        label: 'Custom' },

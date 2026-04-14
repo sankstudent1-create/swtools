@@ -63,6 +63,15 @@ div.editable { display: block; }
 .tc2 { flex: 1; background: #fff; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; }
 .tc3 { flex: 1; background: #138808; }
 
+@media print {
+  .editable:empty::before {
+    content: none !important;
+  }
+  .hideIfEmptyPrint:has(.editable:empty) {
+    display: none !important;
+  }
+}
+
 /* ── Draggable Logo ──────────────────────────── */
 .dlogo {
   position: absolute; cursor: move; user-select: none; z-index: 20;

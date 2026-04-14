@@ -250,8 +250,8 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
             {E('ofc', '', 'span', 'Office')}{', '}
             {E('city', '', 'span', 'City')}{' – '}
             {E('pin', '', 'span', 'PIN')}<br/>
-            {'Phone: '}{E('ph', '', 'span', 'Phone')}&emsp;
-            {E('em', '', 'span', 'email')}
+            <span className={styles.hideIfEmptyPrint}>{'Phone: '}{E('ph', '', 'span', 'Phone')}&emsp;</span>
+            <span className={styles.hideIfEmptyPrint}>{E('em', '', 'span', 'email')}</span>
           </div>
         </div>
       );
@@ -299,8 +299,8 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
               {E('dept', styles.hDEn, 'div', 'Department')}<br/>
               {E('ofc', '', 'div', 'Office')}<br/>
               {E('city', '', 'span', 'City')}{' – '}{E('pin', '', 'span', 'PIN')}<br/>
-              {E('ph', '', 'div', 'Phone')}<br/>
-              {E('em', '', 'div', 'email')}
+              <div className={styles.hideIfEmptyPrint}>{E('ph', '', 'div', 'Phone')}</div>
+              <div className={styles.hideIfEmptyPrint}>{E('em', '', 'div', 'email')}</div>
             </div>
           </div>
         </div>
