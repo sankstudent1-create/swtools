@@ -156,6 +156,7 @@ export default function LetterpadGeneratorPage() {
               onFormChange={handleFormChange}
               onCopyChange={val => updateForm('copyTo', val)}
               onLogoPos={handleLogoPos}
+              onLogoRemove={side => setLogo(side, null)}
             />
           </div>
         </main>

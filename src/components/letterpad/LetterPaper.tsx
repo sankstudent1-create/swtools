@@ -12,6 +12,7 @@ interface LetterPaperProps {
   onFormChange: (key: keyof LetterForm, value: string) => void;
   onCopyChange: (val: string[]) => void;
   onLogoPos: (side: LogoSide, pos: { x?: number; y?: number; w?: number; placed?: boolean }) => void;
+  onLogoRemove?: (side: LogoSide) => void;
 }
 
 const FONT_MAP: Record<string, string> = {
@@ -193,7 +194,7 @@ function Tricolor() {
 }
 
 // ── Main Paper ───────────────────────────────
-export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoPos }: LetterPaperProps) {
+export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoPos, onLogoRemove }: LetterPaperProps) {
   const { form, tpl, font, logoL, logoR, posL, posR, sigUrl, showEncl, showCopy, showEndorse } = state;
   const paperRef = useRef<HTMLDivElement>(null);
   const tick     = state.aiTick;
@@ -510,11 +511,11 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
       {/* Draggable Logos */}
       {logoL && (
         <DraggableLogo src={logoL} side="L" pos={posL} paperRef={paperRef}
-          onPos={onLogoPos} onRemove={() => {}} />
+          onPos={onLogoPos} onRemove={() => onLogoRemove?.('L')} />
       )}
       {logoR && (
         <DraggableLogo src={logoR} side="R" pos={posR} paperRef={paperRef}
-          onPos={onLogoPos} onRemove={() => {}} />
+          onPos={onLogoPos} onRemove={() => onLogoRemove?.('R')} />
       )}
     </div>
   );
