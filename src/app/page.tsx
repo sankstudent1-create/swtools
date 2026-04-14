@@ -132,6 +132,17 @@ const TOOLS_DATA = [
     href: "/tools/pdf-maker",
   },
   {
+    id: "pdf-editor",
+    name: "Pro PDF Editor",
+    description: "Edit, whiteout, annotate, and natively bake interactive text into any PDF without server uploads.",
+    category: "PDF Utility",
+    icon: FileText,
+    accent: "text-indigo-400",
+    bg: "bg-indigo-400/10",
+    border: "border-indigo-400/20",
+    href: "/tools/pdf-editor",
+  },
+  {
     id: "image-scanner",
     name: "Image Scanner",
     description: "Create scan outputs with black-and-white, grayscale, cleanup, invert, and export format modes",
