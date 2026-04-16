@@ -171,17 +171,21 @@ export default function PdfEditorPage() {
     if (activeTool === 'select' && target.tagName.toLowerCase() === 'span' && target.closest('.react-pdf__Page__textContent')) {
       e.stopPropagation();
       
-      const textContentLayer = target.closest('.react-pdf__Page__textContent');
+      const textContentLayer = target.closest('.react-pdf__Page__textContent') as HTMLElement;
       if (!textContentLayer) return;
       
       const allSpans = Array.from(textContentLayer.querySelectorAll('span'));
       const targetStyle = window.getComputedStyle(target);
       const targetRect = target.getBoundingClientRect();
+      const textLayerRect = textContentLayer.getBoundingClientRect();
       
       // Thresholds for merging fragments into a single line
       const Y_THRESHOLD = 4; 
       const group = allSpans.filter(span => {
-        if (span.hasAttribute('data-hidden-id')) return false;
+        // Skip already hidden spans
+        if (elements.some(el => el.pageIndex === pageIndex && el.originalSpanId && span.textContent && el.text.includes(span.textContent.trim()))) {
+           // We'll handle refined hiding via customTextRenderer
+        }
         const rect = span.getBoundingClientRect();
         const s = window.getComputedStyle(span);
         return Math.abs(rect.top - targetRect.top) < Y_THRESHOLD && 
@@ -191,8 +195,8 @@ export default function PdfEditorPage() {
 
       if (group.length === 0) return;
 
-      const firstRect = group[0].getBoundingClientRect();
-      const lastRect = group[group.length - 1].getBoundingClientRect();
+      const firstSpan = group[0];
+      const lastSpan = group[group.length - 1];
       const combinedText = group.map(s => s.textContent || '').join('');
       
       const transform = targetStyle.transform || 'none';
@@ -214,22 +218,15 @@ export default function PdfEditorPage() {
         hexColor = '#' + rgbMatch.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
       }
 
-      const pageWrapper = target.closest('.react-pdf__Page') as HTMLElement;
-      if (!pageWrapper) return;
-      const pageRect = pageWrapper.getBoundingClientRect();
+      // ─── PIXEL PERFECT COORDINATES ───
+      // Use offset relative to the textContentLayer which is already scaled
+      const x = (firstSpan.offsetLeft) / zoom;
+      const y = (firstSpan.offsetTop) / zoom;
+      const width = (lastSpan.offsetLeft + lastSpan.offsetWidth - firstSpan.offsetLeft) / zoom;
+      const height = (lastSpan.offsetHeight) / zoom;
 
-      // Precise positioning adjusted for zoom
-      const x = (firstRect.left - pageRect.left) / zoom;
-      const y = (firstRect.top - pageRect.top) / zoom;
-      const width = (lastRect.right - firstRect.left) / zoom;
-      const height = (lastRect.bottom - firstRect.top) / zoom;
-
-      const groupSpanId = generateId();
-      group.forEach(span => {
-        span.setAttribute('data-hidden-id', groupSpanId);
-        span.style.color = 'transparent';
-        span.style.pointerEvents = 'none';
-      });
+      // Stable grouping ID based on original text and position to persist hiding
+      const groupSpanId = `hide-${pageIndex}-${Math.round(x)}-${Math.round(y)}`;
 
       const newEl: PDFElement = {
         id: generateId(),
@@ -237,8 +234,8 @@ export default function PdfEditorPage() {
         type: 'text',
         x,
         y,
-        width: width + 20, 
-        height: Math.max(height, effectiveFontSize + 4),
+        width: width + 4, // Tighten up from +20
+        height: Math.max(height, effectiveFontSize),
         text: combinedText,
         fontFamily: targetStyle.fontFamily.includes('serif') ? 'TimesRoman' : 
                     targetStyle.fontFamily.includes('mono') ? 'Courier' : 'Helvetica',
@@ -247,7 +244,7 @@ export default function PdfEditorPage() {
         fontWeight: targetStyle.fontWeight,
         fontStyle: targetStyle.fontStyle,
         letterSpacing: letterSpacing,
-        lineHeight: 1.2,
+        lineHeight: 1.15,
         originalSpanId: groupSpanId,
         opacity: 1,
         fill: 'transparent',
@@ -417,8 +414,20 @@ export default function PdfEditorPage() {
                     return (
                       <div key={idx} className="relative shadow-2xl bg-white" onClick={e => handlePageInteraction(idx, e)}>
                         <Page 
-                          pageNumber={idx + 1} scale={zoom} rotate={transform.rotation} 
+                          pageNumber={idx + 1} 
+                          scale={zoom} 
+                          rotate={transform.rotation} 
                           onLoadSuccess={p => onPageLoadSuccess(idx, p)}
+                          customTextRenderer={(textItem) => {
+                            // Stable hiding by checking against originalSpanId components in current page
+                            const isHidden = elements.some(el => 
+                              el.pageIndex === idx && 
+                              el.originalSpanId && 
+                              textItem.str && 
+                              el.text.includes(textItem.str.trim())
+                            );
+                            return isHidden ? '' : textItem.str;
+                          }}
                         />
                         
                         <DrawingCanvas 
