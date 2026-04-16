@@ -335,11 +335,13 @@ export default function PdfEditorPage() {
 
     switch (el.type) {
       case 'text':
+        const isEmpty = !el.text || el.text.trim() === '';
         return (
           <textarea
             value={el.text}
             onChange={e => updateElement(el.id, { text: e.target.value })}
-            className="w-full h-full bg-transparent resize-none border-none outline-none p-0 scrollbar-hide"
+            placeholder={isEmpty && isSelected ? "Type to replace or leave empty to delete..." : ""}
+            className={`w-full h-full bg-transparent resize-none border-none outline-none p-0 scrollbar-hide ${isEmpty && isSelected ? 'placeholder:text-blue-400 placeholder:text-[10px]' : ''}`}
             spellCheck={false}
             autoFocus
             style={{

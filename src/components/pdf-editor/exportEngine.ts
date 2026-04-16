@@ -183,12 +183,12 @@ export async function exportPdf(
 
       case 'text': {
         // ─── Inline text editing with font-accurate matching ───
-        // First draw a white-out rectangle to cover original text
-        if (el.fill && el.fill !== 'transparent') {
-          const fillC = hexToRgb(el.fill);
+        // First draw a white-out rectangle to cover original text if this was an inline edit
+        if (el.originalSpanId || (el.fill && el.fill !== 'transparent')) {
+          const fillColor = el.fill && el.fill !== 'transparent' ? hexToRgb(el.fill) : { r: 1, g: 1, b: 1 };
           page.drawRectangle({
             x: pdfX, y: pdfY, width: pdfW, height: pdfH,
-            color: rgb(fillC.r, fillC.g, fillC.b),
+            color: rgb(fillColor.r, fillColor.g, fillColor.b),
           });
         }
 
