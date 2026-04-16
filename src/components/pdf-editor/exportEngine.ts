@@ -198,6 +198,7 @@ export async function exportPdf(
 
           // Calculate font size in PDF coordinates
           const adjustedFontSize = (el.fontSize || 14) * scaleY;
+          const pdfLetterSpacing = (el.letterSpacing || 0) * scaleX;
 
           // Position text with proper baseline
           const textY = pdfY + pdfH - adjustedFontSize * 1.1;
@@ -213,9 +214,23 @@ export async function exportPdf(
             let lineX = pdfX + 2 * scaleX; // small padding
             const lineY = textY - li * lineSpacing;
 
-            // Text alignment
+            // Safe text filtering
+            const safeText = lineText.split('').filter(ch => {
+              try { font.encodeText(ch); return true; } catch { return false; }
+            }).join('');
+
+            if (!safeText) continue;
+
+            // Text alignment (approximate for multi-char)
             if (el.textAlign === 'center' || el.textAlign === 'right') {
-              const textWidth = font.widthOfTextAtSize(lineText, adjustedFontSize);
+              let textWidth = 0;
+              if (pdfLetterSpacing === 0) {
+                textWidth = font.widthOfTextAtSize(safeText, adjustedFontSize);
+              } else {
+                for (const char of safeText) {
+                  textWidth += font.widthOfTextAtSize(char, adjustedFontSize) + pdfLetterSpacing;
+                }
+              }
               if (el.textAlign === 'center') {
                 lineX = pdfX + (pdfW - textWidth) / 2;
               } else {
@@ -223,20 +238,23 @@ export async function exportPdf(
               }
             }
 
-            // Filter out characters the font can't encode
-            const safeText = lineText.split('').filter(ch => {
-              try { font.encodeText(ch); return true; } catch { return false; }
-            }).join('');
-
-            if (safeText) {
+            // Drawing logic
+            if (pdfLetterSpacing === 0) {
+              // Standard drawing for performance
               page.drawText(safeText, {
-                x: lineX,
-                y: lineY,
-                size: adjustedFontSize,
-                font,
-                color: rgb(rgbC.r, rgbC.g, rgbC.b),
-                opacity,
+                x: lineX, y: lineY, size: adjustedFontSize, font,
+                color: rgb(rgbC.r, rgbC.g, rgbC.b), opacity,
               });
+            } else {
+              // High-fidelity character-by-character drawing
+              let currentX = lineX;
+              for (const char of safeText) {
+                page.drawText(char, {
+                  x: currentX, y: lineY, size: adjustedFontSize, font,
+                  color: rgb(rgbC.r, rgbC.g, rgbC.b), opacity,
+                });
+                currentX += font.widthOfTextAtSize(char, adjustedFontSize) + pdfLetterSpacing;
+              }
             }
           }
         }

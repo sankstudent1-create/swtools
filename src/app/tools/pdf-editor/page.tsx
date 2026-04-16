@@ -184,12 +184,34 @@ export default function PdfEditorPage() {
 
     if (activeTool === 'select' && target.tagName.toLowerCase() === 'span' && target.closest('.react-pdf__Page__textContent')) {
       e.stopPropagation();
-      const style = window.getComputedStyle(target);
-      const text = target.textContent || '';
-      if (!text.trim()) return;
+      
+      const textContentLayer = target.closest('.react-pdf__Page__textContent');
+      if (!textContentLayer) return;
+      
+      const allSpans = Array.from(textContentLayer.querySelectorAll('span'));
+      const targetStyle = window.getComputedStyle(target);
+      const targetRect = target.getBoundingClientRect();
+      
+      // Thresholds for merging fragments into a single line
+      const Y_THRESHOLD = 4; 
+      const group = allSpans.filter(span => {
+        if (span.hasAttribute('data-hidden-id')) return false;
+        const rect = span.getBoundingClientRect();
+        const s = window.getComputedStyle(span);
+        return Math.abs(rect.top - targetRect.top) < Y_THRESHOLD && 
+               s.fontSize === targetStyle.fontSize &&
+               s.fontFamily === targetStyle.fontFamily;
+      }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
 
-      const transform = style.transform || 'none';
-      const parsedFontSize = parseFloat(style.fontSize) || 14;
+      if (group.length === 0) return;
+
+      const firstRect = group[0].getBoundingClientRect();
+      const lastRect = group[group.length - 1].getBoundingClientRect();
+      const combinedText = group.map(s => s.textContent || '').join('');
+      
+      const transform = targetStyle.transform || 'none';
+      const parsedFontSize = parseFloat(targetStyle.fontSize) || 14;
+      const letterSpacing = parseFloat(targetStyle.letterSpacing) || 0;
       
       let effectiveFontSize = parsedFontSize;
       if (transform && transform !== 'none') {
@@ -200,11 +222,8 @@ export default function PdfEditorPage() {
         }
       }
 
-      const fontWeight = style.fontWeight;
-      const fontStyle = style.fontStyle;
-      
       let hexColor = '#000000';
-      const rgbMatch = style.color.match(/\d+/g);
+      const rgbMatch = targetStyle.color.match(/\d+/g);
       if (rgbMatch && rgbMatch.length >= 3) {
         hexColor = '#' + rgbMatch.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
       }
@@ -212,26 +231,44 @@ export default function PdfEditorPage() {
       const pageWrapper = target.closest('.react-pdf__Page') as HTMLElement;
       if (!pageWrapper) return;
       const pageRect = pageWrapper.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
 
-      const x = targetRect.left - pageRect.left;
-      const y = targetRect.top - pageRect.top;
+      // Precise positioning adjusted for zoom
+      const x = (firstRect.left - pageRect.left) / zoom;
+      const y = (firstRect.top - pageRect.top) / zoom;
+      const width = (lastRect.right - firstRect.left) / zoom;
+      const height = (lastRect.bottom - firstRect.top) / zoom;
 
-      const spanId = generateId();
-      target.setAttribute('data-hidden-id', spanId);
-      target.style.color = 'transparent';
-
-      addElement({
-        id: generateId(), pageIndex, type: 'text', x, y,
-        width: Math.max(targetRect.width + 20, 100),
-        height: Math.max(targetRect.height + 6, effectiveFontSize + 8),
-        text,
-        fontFamily: 'Helvetica', // Default mapping
-        fontSize: Math.round(effectiveFontSize * 10) / 10,
-        fontWeight, fontStyle, color: hexColor,
-        fill: '#ffffff', opacity: 1, textAlign: 'left',
-        originalSpanId: spanId, originalTransform: transform,
+      const groupSpanId = generateId();
+      group.forEach(span => {
+        span.setAttribute('data-hidden-id', groupSpanId);
+        span.style.color = 'transparent';
+        span.style.pointerEvents = 'none';
       });
+
+      const newEl: PDFElement = {
+        id: generateId(),
+        pageIndex,
+        type: 'text',
+        x,
+        y,
+        width: width + 20, 
+        height: Math.max(height, effectiveFontSize + 4),
+        text: combinedText,
+        fontFamily: targetStyle.fontFamily.includes('serif') ? 'TimesRoman' : 
+                    targetStyle.fontFamily.includes('mono') ? 'Courier' : 'Helvetica',
+        fontSize: Math.round(effectiveFontSize * 10) / 10,
+        color: hexColor,
+        fontWeight: targetStyle.fontWeight,
+        fontStyle: targetStyle.fontStyle,
+        letterSpacing: letterSpacing,
+        lineHeight: 1.2,
+        originalSpanId: groupSpanId,
+        opacity: 1,
+        fill: 'transparent',
+        textAlign: 'left',
+      };
+
+      addElement(newEl);
       return;
     }
 
@@ -302,10 +339,18 @@ export default function PdfEditorPage() {
           <textarea
             value={el.text}
             onChange={e => updateElement(el.id, { text: e.target.value })}
-            className="w-full h-full bg-transparent resize-none border-none outline-none p-0.5"
+            className="w-full h-full bg-transparent resize-none border-none outline-none p-0 scrollbar-hide"
+            spellCheck={false}
+            autoFocus
             style={{
-              fontFamily: el.fontFamily, fontSize: `${el.fontSize}px`, fontWeight: el.fontWeight, 
-              color: el.color, textAlign: el.textAlign, backgroundColor: el.fill === 'transparent' ? 'transparent' : '#fff'
+              fontFamily: el.fontFamily,
+              fontSize: `${el.fontSize}px`,
+              fontWeight: el.fontWeight,
+              color: el.color,
+              textAlign: el.textAlign,
+              letterSpacing: el.letterSpacing ? `${el.letterSpacing}px` : 'normal',
+              lineHeight: el.lineHeight || 1.2,
+              backgroundColor: el.fill === 'transparent' ? 'transparent' : '#ffffff',
             }}
           />
         );
