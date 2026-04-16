@@ -39,20 +39,6 @@ import { exportPdf } from '@/components/pdf-editor/exportEngine';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-// ─── CSS for inline text editing accuracy ───
-const INLINE_TEXT_STYLE = `
-  .react-pdf__Page__textContent span {
-    cursor: pointer !important;
-  }
-  .react-pdf__Page__textContent span:hover {
-    background: rgba(37, 99, 235, 0.08) !important;
-    border-radius: 2px;
-  }
-  .react-pdf__Page__textContent span[data-hidden-id] {
-    color: transparent !important;
-    background: transparent !important;
-  }
-`;
 
 export default function PdfEditorPage() {
   // ─── File state ───
@@ -374,8 +360,19 @@ export default function PdfEditorPage() {
   // MAIN RENDER
   // ════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-[#07090f] flex flex-col pt-16 font-sans">
-      <style>{INLINE_TEXT_STYLE}</style>
+    <div className="min-h-screen bg-[#07090f] flex flex-col pt-20 font-sans text-white">
+      <style>{`
+        .react-pdf__Page__textContent span {
+          cursor: pointer !important;
+        }
+        .react-pdf__Page__textContent span:hover {
+          background: rgba(37, 99, 235, 0.08) !important;
+          border-radius: 2px;
+        }
+        .react-pdf__Page__textContent span[data-hidden-id] {
+          visibility: hidden !important;
+        }
+      `}</style>
 
       {!file ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8">
@@ -432,10 +429,14 @@ export default function PdfEditorPage() {
                         <div className="absolute inset-0 pointer-events-none z-20">
                           {elements.filter(e => e.pageIndex === idx).map(el => (
                             <Rnd
-                              key={el.id} position={{ x: el.x, y: el.y }} size={{ width: el.width, height: el.height }}
+                              key={el.id} 
+                              position={{ x: el.x, y: el.y }} 
+                              size={{ width: el.width, height: el.height }}
+                              disableDragging={!!el.originalSpanId}
+                              enableResizing={!el.originalSpanId}
                               onDragStop={(_, d) => updateElement(el.id, { x: d.x, y: d.y })}
                               onResizeStop={(_, __, ref, ___, pos) => updateElement(el.id, { width: parseInt(ref.style.width), height: parseInt(ref.style.height), ...pos })}
-                              className={`!absolute pointer-events-auto ${selectedId === el.id ? 'ring-2 ring-[var(--brand-sky)]' : ''}`}
+                              className={`!absolute pointer-events-auto ${selectedId === el.id ? 'ring-2 ring-[var(--brand-sky)] shadow-2xl z-30' : 'z-20'}`}
                               onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedId(el.id); setActiveTool('select'); }}
                             >
                               {renderElement(el)}

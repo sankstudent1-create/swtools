@@ -187,7 +187,7 @@ export async function exportPdf(
         if (el.originalSpanId || (el.fill && el.fill !== 'transparent')) {
           const fillColor = el.fill && el.fill !== 'transparent' ? hexToRgb(el.fill) : { r: 1, g: 1, b: 1 };
           page.drawRectangle({
-            x: pdfX, y: pdfY, width: pdfW, height: pdfH,
+            x: pdfX - 1.5 * scaleX, y: pdfY - 1.5 * scaleY, width: pdfW + 3 * scaleX, height: pdfH + 3 * scaleY,
             color: rgb(fillColor.r, fillColor.g, fillColor.b),
           });
         }
