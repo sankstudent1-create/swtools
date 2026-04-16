@@ -1,353 +1,423 @@
 'use client';
-import React, { useState, useRef, useCallback } from 'react';
-import Head from 'next/head';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { Rnd } from 'react-rnd';
+// Polyfill for Promise.withResolvers (needed for Node < 22 and older browsers)
+if (typeof Promise.withResolvers === 'undefined') {
+  // @ts-ignore
+  Promise.withResolvers = function() {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
 
-// Essential CSS for react-pdf
+// ═══════════════════════════════════════════════════════════════════════
+// Pro PDF Editor — Sejda-Level Feature-Rich Client-Side PDF Editor
+// ═══════════════════════════════════════════════════════════════════════
+import React, { useState, useRef, useCallback, useEffect, useMemo, useReducer } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { Rnd } from 'react-rnd';
+import { Trash2, GripVertical, Plus } from 'lucide-react';
+
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
+import type { PDFElement, ToolType, PageTransform, WatermarkConfig, PathPoint, EditorState } from '@/components/pdf-editor/types';
+import { generateId, initialEditorState, editorReducer } from '@/components/pdf-editor/types';
+import { useHistory } from '@/components/pdf-editor/useHistory';
+import Toolbar from '@/components/pdf-editor/Toolbar';
+import PropertiesPanel from '@/components/pdf-editor/PropertiesPanel';
+import PageThumbnails from '@/components/pdf-editor/PageThumbnails';
+import SignatureModal from '@/components/pdf-editor/SignatureModal';
+import WatermarkModal from '@/components/pdf-editor/WatermarkModal';
+import TopBar from '@/components/pdf-editor/TopBar';
+import ZoomControls from '@/components/pdf-editor/ZoomControls';
+import DrawingCanvas from '@/components/pdf-editor/DrawingCanvas';
+import PageManager from '@/components/pdf-editor/PageManager';
+import { exportPdf } from '@/components/pdf-editor/exportEngine';
+
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-type ElementType = 'text' | 'rect';
-
-interface PDFElement {
-  id: string;
-  pageIndex: number;
-  type: ElementType;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  text?: string;
-  fontFamily?: string;
-  fontSize?: number;
-  color?: string;
-  fill?: string;
-}
+// ─── CSS for inline text editing accuracy ───
+const INLINE_TEXT_STYLE = `
+  .react-pdf__Page__textContent span {
+    cursor: pointer !important;
+  }
+  .react-pdf__Page__textContent span:hover {
+    background: rgba(37, 99, 235, 0.08) !important;
+    border-radius: 2px;
+  }
+  .react-pdf__Page__textContent span[data-hidden-id] {
+    color: transparent !important;
+    background: transparent !important;
+  }
+`;
 
 export default function PdfEditorPage() {
+  // ─── File state ───
   const [file, setFile] = useState<File | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-  const [elements, setElements] = useState<PDFElement[]>([]);
+  const [pageSizes, setPageSizes] = useState<Record<number, { width: number; height: number }>>({});
+  const [isExporting, setIsExporting] = useState(false);
+
+  // ─── Editor state (Managed by Reducer & History) ───
+  // We use useHistory to wrap our state and provide undo/redo
+  const history = useHistory([]);
+  const elements = history.elements;
+
+  // Local UI state (not in history)
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<ToolType>('select');
+  const [zoom, setZoom] = useState(1.2);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [showThumbnails, setShowThumbnails] = useState(false);
+  const [pageTransforms, setPageTransforms] = useState<Record<number, PageTransform>>({});
+  const [pageOrder, setPageOrder] = useState<number[]>([]);
+  const [watermark, setWatermark] = useState<WatermarkConfig | null>(null);
 
-  // Settings
-  const [activeTool, setActiveTool] = useState<ElementType | null>(null);
-  const [fontSize, setFontSize] = useState(14);
-  const [color, setColor] = useState('#000000');
-  const [fontFamily, setFontFamily] = useState('Helvetica');
+  // ─── Modals ───
+  const [showSignatureModal, setShowSignatureModal] = useState(false);
+  const [showWatermarkModal, setShowWatermarkModal] = useState(false);
+  const [showPageManager, setShowPageManager] = useState(false);
 
+  // ─── Drawing settings ───
+  const [drawColor, setDrawColor] = useState('#000000');
+  const [drawWidth, setDrawWidth] = useState(2);
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // ─── Computed ───
+  const selectedElement = useMemo(() =>
+    selectedId ? elements.find(e => e.id === selectedId) || null : null,
+    [selectedId, elements]
+  );
+
+  // ─── Handlers ───
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const f = e.target.files[0];
+      setFile(f);
+      history.reset([]);
+      setSelectedId(null);
+      setPageSizes({});
+      setPageTransforms({});
+      setPageOrder([]);
+      setWatermark(null);
+      setCurrentPage(0);
+      setActiveTool('select');
     }
   };
 
-  const addElement = (pageIndex: number, e: React.MouseEvent<HTMLDivElement>) => {
-    if (!activeTool) return;
+  const onPageLoadSuccess = (pageIndex: number, page: any) => {
+    setPageSizes(prev => ({
+      ...prev,
+      [pageIndex]: { width: page.view[2], height: page.view[3] },
+    }));
+    // Initialize page order if empty
+    setPageOrder(prev => {
+      if (prev.length > 0) return prev;
+      return Array.from({ length: numPages }, (_, i) => i);
+    });
+  };
+
+  // ─── Element CRUD ───
+  const addElement = useCallback((el: PDFElement) => {
+    history.push([...elements, el]);
+    setSelectedId(el.id);
+    setActiveTool('select');
+  }, [elements, history]);
+
+  const updateElement = useCallback((id: string, partial: Partial<PDFElement>) => {
+    history.push(elements.map(el => el.id === id ? { ...el, ...partial } : el));
+  }, [elements, history]);
+
+  const removeElement = useCallback((id: string) => {
+    const el = elements.find(e => e.id === id);
+    if (el?.originalSpanId) {
+      const span = document.querySelector(`span[data-hidden-id="${el.originalSpanId}"]`) as HTMLElement;
+      if (span) {
+        span.style.color = '';
+        span.removeAttribute('data-hidden-id');
+      }
+    }
+    history.push(elements.filter(e => e.id !== id));
+    if (selectedId === id) setSelectedId(null);
+  }, [elements, history, selectedId]);
+
+  const duplicateElement = useCallback((id: string) => {
+    const el = elements.find(e => e.id === id);
+    if (!el) return;
+    const newEl: PDFElement = { ...el, id: generateId(), x: el.x + 20, y: el.y + 20, originalSpanId: undefined };
+    history.push([...elements, newEl]);
+    setSelectedId(newEl.id);
+  }, [elements, history]);
+
+  // ─── Page Manipulation — Drag & Drop Reordering ───
+  const handlePageReorder = useCallback((from: number, to: number) => {
+    if (to < 0 || to >= pageOrder.length) return;
+    const newOrder = [...pageOrder];
+    const [removed] = newOrder.splice(from, 1);
+    newOrder.splice(to, 0, removed);
+    setPageOrder(newOrder);
+  }, [pageOrder]);
+
+  const handlePageRotate = useCallback((idx: number) => {
+    setPageTransforms(prev => {
+      const existing = prev[idx] || { rotation: 0, deleted: false, order: idx };
+      return { ...prev, [idx]: { ...existing, rotation: (existing.rotation + 90) % 360 } };
+    });
+  }, []);
+
+  const handlePageDelete = useCallback((idx: number) => {
+    setPageTransforms(prev => {
+      const existing = prev[idx] || { rotation: 0, deleted: false, order: idx };
+      return { ...prev, [idx]: { ...existing, deleted: !existing.deleted } };
+    });
+  }, []);
+
+  // ─── Inline Text Editor & Interaction ───
+  const handlePageInteraction = useCallback((pageIndex: number, e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+
+    if (activeTool === 'select' && target.tagName.toLowerCase() === 'span' && target.closest('.react-pdf__Page__textContent')) {
+      e.stopPropagation();
+      const style = window.getComputedStyle(target);
+      const text = target.textContent || '';
+      if (!text.trim()) return;
+
+      const transform = style.transform || 'none';
+      const parsedFontSize = parseFloat(style.fontSize) || 14;
+      
+      let effectiveFontSize = parsedFontSize;
+      if (transform && transform !== 'none') {
+        const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
+        if (matrixMatch) {
+          const vals = matrixMatch[1].split(',').map(v => parseFloat(v.trim()));
+          if (vals.length >= 4) effectiveFontSize = parsedFontSize * Math.abs(vals[3]);
+        }
+      }
+
+      const fontWeight = style.fontWeight;
+      const fontStyle = style.fontStyle;
+      
+      let hexColor = '#000000';
+      const rgbMatch = style.color.match(/\d+/g);
+      if (rgbMatch && rgbMatch.length >= 3) {
+        hexColor = '#' + rgbMatch.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+      }
+
+      const pageWrapper = target.closest('.react-pdf__Page') as HTMLElement;
+      if (!pageWrapper) return;
+      const pageRect = pageWrapper.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+
+      const x = targetRect.left - pageRect.left;
+      const y = targetRect.top - pageRect.top;
+
+      const spanId = generateId();
+      target.setAttribute('data-hidden-id', spanId);
+      target.style.color = 'transparent';
+
+      addElement({
+        id: generateId(), pageIndex, type: 'text', x, y,
+        width: Math.max(targetRect.width + 20, 100),
+        height: Math.max(targetRect.height + 6, effectiveFontSize + 8),
+        text,
+        fontFamily: 'Helvetica', // Default mapping
+        fontSize: Math.round(effectiveFontSize * 10) / 10,
+        fontWeight, fontStyle, color: hexColor,
+        fill: '#ffffff', opacity: 1, textAlign: 'left',
+        originalSpanId: spanId, originalTransform: transform,
+      });
+      return;
+    }
+
+    if (activeTool === 'select') return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const newEl: PDFElement = {
-      id: Math.random().toString(36).substring(7),
-      pageIndex,
-      type: activeTool,
-      x,
-      y,
-      width: activeTool === 'rect' ? 100 : 150,
-      height: activeTool === 'rect' ? 40 : 40,
-      text: activeTool === 'text' ? 'Double click to edit' : '',
-      fontFamily,
-      fontSize,
-      color,
-      fill: activeTool === 'rect' ? '#ffffff' : 'transparent',
-    };
-    
-    setElements([...elements, newEl]);
-    setSelectedId(newEl.id);
-    setActiveTool(null); // reset tool after placing
-  };
+    const common = { id: generateId(), pageIndex, x, y, opacity: 1 };
 
-  const updateElement = (id: string, partial: Partial<PDFElement>) => {
-    setElements(els => els.map(el => el.id === id ? { ...el, ...partial } : el));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      if (selectedId) {
-        // Prevent deletion if currently typing in an input
-        if (document.activeElement?.tagName.toLowerCase() !== 'textarea') {
-           setElements(els => els.filter(el => el.id !== selectedId));
-        }
-      }
+    switch (activeTool) {
+      case 'text': addElement({ ...common, type: 'text', width: 200, height: 40, text: 'New Text', fontFamily: 'Helvetica', fontSize: 14, color: '#000000', textAlign: 'left' }); break;
+      case 'rect': addElement({ ...common, type: 'rect', width: 140, height: 50, fill: '#ffffff', strokeColor: '#000000', strokeWidth: 1 }); break;
+      case 'circle': addElement({ ...common, type: 'circle', width: 80, height: 80, fill: 'transparent', strokeColor: '#2563eb', strokeWidth: 2 }); break;
+      case 'line': addElement({ ...common, type: 'line', width: 150, height: 2, strokeColor: '#000000', strokeWidth: 2 }); break;
+      case 'arrow': addElement({ ...common, type: 'arrow', width: 150, height: 60, strokeColor: '#000000', strokeWidth: 2 }); break;
+      case 'highlight': addElement({ ...common, type: 'highlight', width: 200, height: 22, fill: '#facc15', opacity: 0.35 }); break;
+      case 'image': imageInputRef.current?.click(); // Simplified — assumes page/x/y stored or handled better
+        break;
     }
-  };
+  }, [activeTool, addElement]);
 
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16) / 255,
-      g: parseInt(result[2], 16) / 255,
-      b: parseInt(result[3], 16) / 255
-    } : { r: 0, g: 0, b: 0 };
-  };
+  const handleDrawEnd = useCallback((pageIndex: number, points: PathPoint[]) => {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    const maxX = Math.max(...xs);
+    const maxY = Math.max(...ys);
 
-  const handleExport = async () => {
+    addElement({
+      id: generateId(), pageIndex, type: 'drawing',
+      x: minX, y: minY,
+      width: Math.max(maxX - minX, 10), height: Math.max(maxY - minY, 10),
+      points: points.map(p => ({ x: p.x - minX, y: p.y - minY })),
+      strokeColor: drawColor, strokeWidth: drawWidth, opacity: 1,
+    });
+  }, [addElement, drawColor, drawWidth]);
+
+  // ─── Export ───
+  const handleExport = useCallback(async () => {
     if (!file) return;
+    setIsExporting(true);
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      
-      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-      
-      const pages = pdfDoc.getPages();
-
-      for (const el of elements) {
-        const page = pages[el.pageIndex];
-        const { height: pageHeight } = page.getSize();
-        
-        // Convert screen coordinates to PDF points
-        // Assuming the react-pdf renders at scale={1} which usually maps 1 CSS px = 1 PDF point for default resolution
-        // The PDF coordinate system has (0,0) at the bottom left!
-        const pdfX = el.x;
-        const pdfY = pageHeight - el.y - (el.height); // Bottom left of bounding box
-        
-        if (el.type === 'rect') {
-           const fillColor = el.fill === '#ffffff' ? rgb(1,1,1) : rgb(0,0,0); // simplify
-           page.drawRectangle({
-             x: pdfX,
-             y: pdfY,
-             width: el.width,
-             height: el.height,
-             color: fillColor,
-           });
-        } else if (el.type === 'text' && el.text) {
-           const font = el.fontFamily === 'TimesRoman' ? timesRomanFont : helveticaFont;
-           const rgbC = hexToRgb(el.color || '#000000');
-           page.drawText(el.text, {
-             x: pdfX,
-             y: pdfY + el.height - (el.fontSize || 14), // Approx baseline offset
-             size: el.fontSize,
-             font: font,
-             color: rgb(rgbC.r, rgbC.g, rgbC.b),
-           });
-        }
-      }
-
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+      const blob = await exportPdf(file, elements, pageSizes, zoom, pageTransforms, watermark, pageOrder);
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `edited_${file.name}`;
+      link.download = `Edited_${file.name}`;
       link.click();
+      URL.revokeObjectURL(link.href);
     } catch (err) {
       console.error(err);
-      alert("Error exporting PDF. Check console.");
+      alert('Export failed.');
+    } finally {
+      setIsExporting(false);
     }
-  };
+  }, [file, elements, pageSizes, zoom, pageTransforms, watermark, pageOrder]);
 
+  // ─── Render Helper ───
+  const renderElement = useCallback((el: PDFElement) => {
+    const isSelected = selectedId === el.id;
+    const style: React.CSSProperties = { opacity: el.opacity ?? 1 };
+
+    switch (el.type) {
+      case 'text':
+        return (
+          <textarea
+            value={el.text}
+            onChange={e => updateElement(el.id, { text: e.target.value })}
+            className="w-full h-full bg-transparent resize-none border-none outline-none p-0.5"
+            style={{
+              fontFamily: el.fontFamily, fontSize: `${el.fontSize}px`, fontWeight: el.fontWeight, 
+              color: el.color, textAlign: el.textAlign, backgroundColor: el.fill === 'transparent' ? 'transparent' : '#fff'
+            }}
+          />
+        );
+      case 'drawing':
+        if (!el.points) return null;
+        const d = el.points.map((p, i) => i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`).join(' ');
+        return (
+          <svg className="w-full h-full">
+            <path d={d} fill="none" stroke={el.strokeColor} strokeWidth={el.strokeWidth} strokeLinecap="round" />
+          </svg>
+        );
+      case 'rect': return <div className="w-full h-full" style={{ backgroundColor: el.fill, border: `${el.strokeWidth}px solid ${el.strokeColor}` }} />;
+      case 'circle': return <div className="w-full h-full rounded-full" style={{ backgroundColor: el.fill, border: `${el.strokeWidth}px solid ${el.strokeColor}` }} />;
+      default: return el.imageData ? <img src={el.imageData} className="w-full h-full object-contain" /> : null;
+    }
+  }, [selectedId, updateElement]);
+
+  // ════════════════════════════════════════════════════════════════════
+  // MAIN RENDER
+  // ════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-8" onKeyDown={handleKeyDown} tabIndex={0}>
-      <Head>
-        <title>Pro PDF Editor - SWTools</title>
-      </Head>
-      
-      <div className="w-full max-w-6xl bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 flex flex-col" style={{ minHeight: '80vh' }}>
-        {/* Header */}
-        <header className="px-6 py-4 border-b border-gray-100 bg-white flex justify-between items-center z-20">
-          <div>
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-orange-600" style={{ fontFamily: 'var(--font-outfit)' }}>
-              Pro PDF Editor
-            </h1>
-            <p className="text-sm text-gray-500">Edit, Annotate, and Whiteout seamlessly</p>
-          </div>
-          <div className="flex gap-4 items-center">
-            {file && <span className="text-sm text-gray-500 font-medium">{file.name}</span>}
-            <button onClick={handleExport} disabled={!file} className="px-6 py-2 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition-colors shadow-md disabled:opacity-50">
-              Export PDF
-            </button>
-          </div>
-        </header>
+    <div className="min-h-screen bg-[#07090f] flex flex-col pt-16 font-sans">
+      <style>{INLINE_TEXT_STYLE}</style>
 
-        {/* Workspace */}
-        <div className="flex-1 flex pb-4 bg-gray-50 h-full overflow-hidden">
-          {!file ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-12">
-              <div className="w-24 h-24 mb-6 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-4xl shadow-inner">📄</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Upload a PDF to start editing</h2>
-              <p className="text-gray-500 mb-8 max-w-md text-center">Type directly over your PDF or whiteout existing text invisibly.</p>
-              <label className="px-8 py-4 bg-orange-500 text-white rounded-xl font-bold cursor-pointer hover:bg-orange-600 shadow-lg transition-transform transform hover:-translate-y-1">
-                Select PDF File
-                <input type="file" accept="application/pdf" className="hidden" onChange={handleUpload} />
-              </label>
+      {!file ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <div className="ui-upload-dropzone p-20 flex flex-col items-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+            <input type="file" accept="application/pdf" hidden ref={fileInputRef} onChange={handleUpload} />
+            <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+              <Plus className="w-10 h-10 text-[var(--brand-orange)]" />
             </div>
-          ) : (
-            <div className="flex-1 flex relative h-full">
-              {/* Toolbar */}
-              <div className="w-16 bg-white border-r border-gray-100 flex flex-col items-center py-4 gap-4 z-10 shadow-sm shrink-0">
-                <button 
-                  onClick={() => setActiveTool('text')}
-                  className={`w-10 h-10 rounded text-xl flex items-center justify-center transition-colors ${activeTool === 'text' ? 'bg-orange-100 text-orange-600 ring-2 ring-orange-500' : 'hover:bg-gray-100 text-gray-600'}`} 
-                  title="Add Text">T</button>
-                <button 
-                  onClick={() => setActiveTool('rect')}
-                  className={`w-10 h-10 rounded text-xl flex items-center justify-center transition-colors ${activeTool === 'rect' ? 'bg-orange-100 text-orange-600 ring-2 ring-orange-500' : 'hover:bg-gray-100 text-gray-600'}`} 
-                  title="Whiteout Box">🧽</button>
-              </div>
-              
-              {/* Canvas Area */}
-              <div className="flex-1 overflow-auto p-8 flex flex-col items-center gap-8 bg-gray-200/50">
-                <Document
-                  file={file}
-                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                  className="flex flex-col gap-8"
-                >
-                  {Array.from(new Array(numPages), (el, index) => (
-                    <div key={`page_${index}`} className="relative shadow-lg ring-1 ring-gray-900/5 bg-white mx-auto">
-                      <Page pageNumber={index + 1} renderTextLayer={false} renderAnnotationLayer={false} scale={1} />
-                      
-                      {/* Interaction Overlay */}
-                      <div 
-                        className={`absolute inset-0 z-10 ${activeTool ? 'cursor-crosshair' : ''}`}
-                        onClick={(e) => addElement(index, e)}
-                      >
-                        {elements.filter(e => e.pageIndex === index).map(el => (
-                          <Rnd
-                            key={el.id}
-                            position={{ x: el.x, y: el.y }}
-                            size={{ width: el.width, height: el.height }}
-                            onDragStop={(e, d) => updateElement(el.id, { x: d.x, y: d.y })}
-                            onResizeStop={(e, direction, ref, delta, position) => {
-                              updateElement(el.id, {
-                                width: parseInt(ref.style.width),
-                                height: parseInt(ref.style.height),
-                                ...position,
-                              });
-                            }}
-                            className={`border ${selectedId === el.id ? 'border-blue-500 border-dashed bg-blue-500/10' : 'border-transparent'} group`}
-                            onClick={(e: any) => { e.stopPropagation(); setSelectedId(el.id); }}
-                          >
-                            {el.type === 'rect' && (
-                              <div className="w-full h-full" style={{ backgroundColor: el.fill }}></div>
-                            )}
-                            {el.type === 'text' && (
-                              <textarea
-                                value={el.text}
-                                onChange={(e) => updateElement(el.id, { text: e.target.value })}
-                                className="w-full h-full bg-transparent resize-none outline-none leading-tight"
-                                style={{
-                                  fontFamily: el.fontFamily,
-                                  fontSize: `${el.fontSize}px`,
-                                  color: el.color
-                                }}
-                              />
-                            )}
-                            
-                            {/* Delete button (visible on hover) */}
-                            {selectedId === el.id && (
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); setElements(els => els.filter(x => x.id !== el.id)); }}
-                                className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold shadow opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                ✕
-                              </button>
-                            )}
-                          </Rnd>
-                        ))}
+            <h1 className="text-2xl font-bold text-white mb-2">Upload PDF to Edit</h1>
+            <p className="text-white/40 text-sm">Pixel-perfect text editing & pro tools</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <TopBar 
+            fileName={file.name} numPages={numPages} currentPage={currentPage} 
+            onClose={() => setFile(null)} onExport={handleExport} isExporting={isExporting} 
+          />
+          
+          <div className="flex-1 flex overflow-hidden">
+            <Toolbar 
+              activeTool={activeTool} onToolChange={setActiveTool} 
+              canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo}
+              onPageManager={() => setShowPageManager(true)} onWatermark={() => setShowWatermarkModal(true)} onSignature={() => setShowSignatureModal(true)}
+            />
+
+            {showThumbnails && (
+              <PageThumbnails 
+                file={file} numPages={numPages} currentPage={currentPage} 
+                pageTransforms={pageTransforms} onPageClick={setCurrentPage}
+                onRotatePage={handlePageRotate} onDeletePage={handlePageDelete}
+              />
+            )}
+
+            <div className="flex-1 overflow-auto bg-[#131722] relative p-8">
+              <div className="flex flex-col items-center gap-8">
+                <Document file={file} onLoadSuccess={({ numPages }) => setNumPages(numPages)}>
+                  {(pageOrder.length > 0 ? pageOrder : Array.from({ length: numPages }, (_, i) => i)).map((idx) => {
+                    const transform = pageTransforms[idx] || { rotation: 0, deleted: false };
+                    if (transform.deleted) return null;
+
+                    return (
+                      <div key={idx} className="relative shadow-2xl bg-white" onClick={e => handlePageInteraction(idx, e)}>
+                        <Page 
+                          pageNumber={idx + 1} scale={zoom} rotate={transform.rotation} 
+                          onLoadSuccess={p => onPageLoadSuccess(idx, p)}
+                        />
+                        
+                        <DrawingCanvas 
+                          isActive={activeTool === 'drawing'} color={drawColor} width={drawWidth} 
+                          onDrawEnd={pts => handleDrawEnd(idx, pts)} pageWidth={pageSizes[idx]?.width || 0} pageHeight={pageSizes[idx]?.height || 0}
+                        />
+
+                        <div className="absolute inset-0 pointer-events-none z-20">
+                          {elements.filter(e => e.pageIndex === idx).map(el => (
+                            <Rnd
+                              key={el.id} position={{ x: el.x, y: el.y }} size={{ width: el.width, height: el.height }}
+                              onDragStop={(_, d) => updateElement(el.id, { x: d.x, y: d.y })}
+                              onResizeStop={(_, __, ref, ___, pos) => updateElement(el.id, { width: parseInt(ref.style.width), height: parseInt(ref.style.height), ...pos })}
+                              className={`!absolute pointer-events-auto ${selectedId === el.id ? 'ring-2 ring-[var(--brand-sky)]' : ''}`}
+                              onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedId(el.id); setActiveTool('select'); }}
+                            >
+                              {renderElement(el)}
+                            </Rnd>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </Document>
               </div>
-
-              {/* Properties Panel */}
-              <div className="w-64 bg-white border-l border-gray-100 p-6 shadow-sm shrink-0 overflow-y-auto">
-                 <h3 className="font-bold text-gray-800 mb-6 pb-2 border-b">Properties</h3>
-                 
-                 {selectedId ? (() => {
-                   const el = elements.find(e => e.id === selectedId);
-                   if (!el) return null;
-                   return (
-                     <div className="space-y-6">
-                       {el.type === 'text' && (
-                         <>
-                           <div>
-                             <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">FONT FAMILY</label>
-                             <select 
-                               className="w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                               value={el.fontFamily}
-                               onChange={(e) => updateElement(el.id, { fontFamily: e.target.value })}
-                             >
-                               <option value="Helvetica">Arial / Helvetica</option>
-                               <option value="TimesRoman">Times New Roman</option>
-                             </select>
-                           </div>
-                           
-                           <div>
-                             <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">FONT SIZE (px)</label>
-                             <input 
-                               type="number" 
-                               className="w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                               value={el.fontSize}
-                               onChange={(e) => updateElement(el.id, { fontSize: parseInt(e.target.value) || 14 })}
-                             />
-                           </div>
-
-                           <div>
-                             <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">TEXT COLOR</label>
-                             <div className="flex gap-2">
-                               {['#000000', '#2563eb', '#dc2626'].map(c => (
-                                 <button
-                                   key={c}
-                                   onClick={() => updateElement(el.id, { color: c })}
-                                   className={`w-8 h-8 rounded-full shadow-sm ring-offset-2 ${el.color === c ? 'ring-2 ring-gray-400' : ''}`}
-                                   style={{ backgroundColor: c }}
-                                 />
-                               ))}
-                             </div>
-                           </div>
-                         </>
-                       )}
-                       
-                       {el.type === 'rect' && (
-                         <div>
-                           <label className="block text-xs font-bold text-gray-500 mb-2 tracking-wider">FILL COLOR</label>
-                           <div className="flex gap-2">
-                             <button
-                               onClick={() => updateElement(el.id, { fill: '#ffffff' })}
-                               className={`w-8 h-8 rounded-full border shadow-sm ring-offset-2 bg-white ${el.fill === '#ffffff' ? 'ring-2 ring-gray-400' : ''}`}
-                               title="Whiteout"
-                             />
-                             <button
-                               onClick={() => updateElement(el.id, { fill: '#000000' })}
-                               className={`w-8 h-8 rounded-full border shadow-sm ring-offset-2 bg-black ${el.fill === '#000000' ? 'ring-2 ring-gray-400' : ''}`}
-                               title="Blackout"
-                             />
-                           </div>
-                         </div>
-                       )}
-
-                       <button 
-                         onClick={() => setElements(els => els.filter(x => x.id !== selectedId))}
-                         className="w-full mt-4 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-50 transition-colors"
-                       >
-                         Delete Selected
-                       </button>
-                     </div>
-                   );
-                 })() : (
-                   <p className="text-sm text-gray-400 italic text-center mt-8">Select an element on the canvas to see its properties.</p>
-                 )}
-              </div>
             </div>
-          )}
+
+            <PropertiesPanel 
+              element={selectedElement} onUpdate={updateElement} 
+              onRemove={removeElement} onDuplicate={duplicateElement} 
+            />
+          </div>
+
+          <ZoomControls zoom={zoom} onZoomIn={() => setZoom(z => z + 0.1)} onZoomOut={() => setZoom(z => z - 0.1)} onReset={() => setZoom(1.2)} />
         </div>
-      </div>
+      )}
+
+      <SignatureModal isOpen={showSignatureModal} onClose={() => setShowSignatureModal(false)} onInsert={url => addElement({ id: generateId(), pageIndex: currentPage, type: 'signature', x: 100, y: 100, width: 200, height: 60, imageData: url, opacity: 1 })} />
+      <WatermarkModal isOpen={showWatermarkModal} current={watermark} onApply={setWatermark} onClose={() => setShowWatermarkModal(false)} />
+      <PageManager 
+        isOpen={showPageManager} onClose={() => setShowPageManager(false)} file={file!} numPages={numPages} 
+        pageTransforms={pageTransforms} onRotate={handlePageRotate} onDelete={handlePageDelete} onReorder={handlePageReorder}
+      />
     </div>
   );
 }

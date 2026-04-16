@@ -1,3 +1,16 @@
+// Polyfill for Promise.withResolvers (needed for Node < 22 and older browsers)
+if (typeof Promise.withResolvers === 'undefined') {
+  // @ts-ignore
+  Promise.withResolvers = function() {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 import type { Metadata } from "next";
 import { Outfit, Poppins, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
