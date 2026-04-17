@@ -23,9 +23,9 @@ import { Trash2, GripVertical, Plus } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-import type { PDFElement, ToolType, PageTransform, WatermarkConfig, PathPoint, EditorState } from '@/components/pdf-editor/types';
 import { generateId, initialEditorState, editorReducer } from '@/components/pdf-editor/types';
 import { useHistory } from '@/components/pdf-editor/useHistory';
+import { analyzePage, findTextAt, PageAnalysis } from '@/components/pdf-editor/analysisEngine';
 import Toolbar from '@/components/pdf-editor/Toolbar';
 import PropertiesPanel from '@/components/pdf-editor/PropertiesPanel';
 import PageThumbnails from '@/components/pdf-editor/PageThumbnails';
@@ -45,6 +45,7 @@ export default function PdfEditorPage() {
   const [file, setFile] = useState<File | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageSizes, setPageSizes] = useState<Record<number, { width: number; height: number }>>({});
+  const [pageAnalysis, setPageAnalysis] = useState<Record<number, PageAnalysis>>({});
   const [isExporting, setIsExporting] = useState(false);
 
   // ─── Editor state (Managed by Reducer & History) ───
@@ -97,11 +98,20 @@ export default function PdfEditorPage() {
     }
   };
 
-  const onPageLoadSuccess = (pageIndex: number, page: any) => {
+  const onPageLoadSuccess = async (pageIndex: number, page: any) => {
     setPageSizes(prev => ({
       ...prev,
       [pageIndex]: { width: page.view[2], height: page.view[3] },
     }));
+
+    // Deep Analysis for pixel-perfect interaction
+    try {
+      const analysis = await analyzePage(page);
+      setPageAnalysis(prev => ({ ...prev, [pageIndex]: analysis }));
+    } catch (err) {
+      console.error('Analysis failed', err);
+    }
+
     // Initialize page order if empty
     setPageOrder(prev => {
       if (prev.length > 0) return prev;
@@ -166,102 +176,55 @@ export default function PdfEditorPage() {
 
   // ─── Inline Text Editor & Interaction ───
   const handlePageInteraction = useCallback((pageIndex: number, e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
+    const analysis = pageAnalysis[pageIndex];
+    
+    // If we have deep analysis, use it for intelligent mapping
+    if (activeTool === 'select' && analysis) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) / zoom;
+      const clickY = (e.clientY - rect.top) / zoom;
+      
+      const group = findTextAt(analysis, clickX, clickY);
+      
+      if (group.length > 0) {
+        e.stopPropagation();
+        
+        const combinedText = group.map(item => item.str).join('');
+        const target = group[0];
+        const lastItem = group[group.length - 1];
+        
+        // Calculate grouping box in PDF space (points)
+        const minX = Math.min(...group.map(i => i.x));
+        const maxX = Math.max(...group.map(i => i.x + i.width));
+        const minY = Math.min(...group.map(i => i.y));
+        const maxY = Math.max(...group.map(i => i.y + i.height));
 
-    if (activeTool === 'select' && target.tagName.toLowerCase() === 'span' && target.closest('.react-pdf__Page__textContent')) {
-      e.stopPropagation();
-      
-      const textContentLayer = target.closest('.react-pdf__Page__textContent') as HTMLElement;
-      if (!textContentLayer) return;
-      
-      const allSpans = Array.from(textContentLayer.querySelectorAll('span'));
-      const targetStyle = window.getComputedStyle(target);
-      const targetRect = target.getBoundingClientRect();
-      const textLayerRect = textContentLayer.getBoundingClientRect();
-      
-      // Thresholds for merging fragments into a single line
-      const Y_THRESHOLD = 4; 
-      const group = allSpans.filter(span => {
-        // Skip already hidden spans
-        if (elements.some(el => el.pageIndex === pageIndex && el.originalSpanId && span.textContent && el.text?.includes(span.textContent.trim()))) {
-           // We'll handle refined hiding via customTextRenderer
-        }
-        const rect = span.getBoundingClientRect();
-        const s = window.getComputedStyle(span);
-        return Math.abs(rect.top - targetRect.top) < Y_THRESHOLD && 
-               s.fontSize === targetStyle.fontSize &&
-               s.fontFamily === targetStyle.fontFamily;
-      }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+        const groupSpanId = `intel-${pageIndex}-${Math.round(minX)}-${Math.round(minY)}`;
 
-      if (group.length === 0) return;
+        const newEl: PDFElement = {
+          id: generateId(),
+          pageIndex,
+          type: 'text',
+          x: minX,
+          y: minY - 1.5, // Global baseline refinement (-1.5px is a stable heuristic for PDF.js baseline alignment)
+          width: (maxX - minX) + 4,
+          height: (maxY - minY),
+          text: combinedText,
+          fontFamily: target.isSerif ? 'TimesRoman' : target.isMono ? 'Courier' : 'Helvetica',
+          fontSize: target.fontSize,
+          fontWeight: target.isBold ? 'bold' : 'normal',
+          color: '#000000', 
+          lineHeight: 1,
+          originalSpanId: groupSpanId,
+          originalText: combinedText,
+          opacity: 1,
+          fill: 'transparent',
+          textAlign: 'left',
+        };
 
-      const firstSpan = group[0];
-      const lastSpan = group[group.length - 1];
-      const combinedText = group.map(s => s.textContent || '').join('');
-      
-      const transform = targetStyle.transform || 'none';
-      const parsedFontSize = parseFloat(targetStyle.fontSize) || 14;
-      const letterSpacing = parseFloat(targetStyle.letterSpacing) || 0;
-      
-      let effectiveFontSize = parsedFontSize;
-      if (transform && transform !== 'none') {
-        const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
-        if (matrixMatch) {
-          const vals = matrixMatch[1].split(',').map(v => parseFloat(v.trim()));
-          if (vals.length >= 4) effectiveFontSize = parsedFontSize * Math.abs(vals[3]);
-        }
+        addElement(newEl);
+        return;
       }
-
-      let hexColor = '#000000';
-      const rgbMatch = targetStyle.color.match(/\d+/g);
-      if (rgbMatch && rgbMatch.length >= 3) {
-        hexColor = '#' + rgbMatch.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
-      }
-
-      // ─── PIXEL PERFECT COORDINATES ───
-      // Use getBoundingClientRect for absolute precision relative to the layer
-      // Added -1.5px baseline refinement to match PDF text baseline
-      const x = (targetRect.left - textLayerRect.left) / zoom;
-      const y = (targetRect.top - textLayerRect.top - 1.5) / zoom;
-      const width = (targetRect.width) / zoom;
-      const height = (targetRect.height) / zoom;
-
-      // Stable grouping ID based on original text and position to persist hiding
-      const groupSpanId = `hide-${pageIndex}-${Math.round(x)}-${Math.round(y)}`;
-
-      const weight = parseInt(targetStyle.fontWeight);
-      const isBold = weight >= 600 || targetStyle.fontWeight === 'bold';
-      const isSerif = targetStyle.fontFamily.toLowerCase().includes('serif') || 
-                      targetStyle.fontFamily.toLowerCase().includes('times') ||
-                      targetStyle.fontFamily.toLowerCase().includes('minion');
-      const isMono = targetStyle.fontFamily.toLowerCase().includes('mono') || 
-                     targetStyle.fontFamily.toLowerCase().includes('courier');
-
-      const newEl: PDFElement = {
-        id: generateId(),
-        pageIndex,
-        type: 'text',
-        x,
-        y,
-        width: width + 4, // Tighten up from +20
-        height: Math.max(height, effectiveFontSize),
-        text: combinedText,
-        fontFamily: isSerif ? 'TimesRoman' : isMono ? 'Courier' : 'Helvetica',
-        fontSize: Math.round(effectiveFontSize * 10) / 10,
-        color: hexColor,
-        fontWeight: isBold ? 'bold' : 'normal',
-        fontStyle: targetStyle.fontStyle,
-        letterSpacing: letterSpacing,
-        lineHeight: 1, // Strict line height to match PDF layer
-        originalSpanId: groupSpanId,
-        originalText: combinedText, // Capture original text for reliable hiding
-        opacity: 1,
-        fill: 'transparent', // Purely inline transparency for better blending
-        textAlign: 'left',
-      };
-
-      addElement(newEl);
-      return;
     }
 
     if (activeTool === 'select') return;
@@ -428,13 +391,16 @@ export default function PdfEditorPage() {
                           rotate={transform.rotation} 
                           onLoadSuccess={p => onPageLoadSuccess(idx, p)}
                           customTextRenderer={(textItem) => {
-                            // Normalize strings to ignore whitespace differences when hiding original text
+                            // Professional-grade string normalization and proximity hiding
                             const normalize = (s: string) => s.replace(/\s+/g, '').trim();
                             const isHidden = elements.some(el => {
                               if (el.pageIndex !== idx || !el.originalText) return false;
                               const normOriginal = normalize(el.originalText);
                               const normCurrent = normalize(textItem.str || '');
-                              return normOriginal === normCurrent || normOriginal.includes(normCurrent);
+                              
+                              // We use bidirection matching: if the fragment is part of the original grouped line
+                              // or if the fragment completely contains the grouped line.
+                              return normOriginal.includes(normCurrent) || normCurrent.includes(normOriginal);
                             });
                             return isHidden ? '' : textItem.str;
                           }}

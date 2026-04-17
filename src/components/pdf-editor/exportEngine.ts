@@ -186,11 +186,14 @@ export async function exportPdf(
         // First draw a white-out rectangle to cover original text if this was an inline edit
         if (el.originalSpanId || el.originalText || (el.fill && el.fill !== 'transparent')) {
           const fillColor = el.fill && el.fill !== 'transparent' ? hexToRgb(el.fill) : { r: 1, g: 1, b: 1 };
+          
+          // Tight but complete mask: -2px offset, +4px size covers the original glyphs reliably
+          // without bleeding too much into adjacent lines.
           page.drawRectangle({
-            x: pdfX - 4 * scaleX, 
-            y: pdfY - 4 * scaleY, 
-            width: pdfW + 8 * scaleX, 
-            height: pdfH + 8 * scaleY,
+            x: pdfX - 1 * scaleX, 
+            y: pdfY - 2 * scaleY, 
+            width: pdfW + 2 * scaleX, 
+            height: pdfH + 4 * scaleY,
             color: rgb(fillColor.r, fillColor.g, fillColor.b),
           });
         }
@@ -203,8 +206,9 @@ export async function exportPdf(
           const adjustedFontSize = (el.fontSize || 14) * scaleY;
           const pdfLetterSpacing = (el.letterSpacing || 0) * scaleX;
 
-          // Position text with proper baseline
-          const textY = pdfY + pdfH - adjustedFontSize * 1.1;
+          // Position text with proper baseline alignment
+          // PDF.js uses a 0.88-0.9 descent ratio for standard fonts
+          const textY = pdfY + (pdfH * 0.12); 
 
           // Handle multi-line text
           const lines = el.text.split('\n');
