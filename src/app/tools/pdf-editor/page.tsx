@@ -23,6 +23,7 @@ import { Trash2, GripVertical, Plus } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
+import type { PDFElement, ToolType, PageTransform, WatermarkConfig } from '@/components/pdf-editor/types';
 import { generateId, initialEditorState, editorReducer } from '@/components/pdf-editor/types';
 import { useHistory } from '@/components/pdf-editor/useHistory';
 import { analyzePage, findTextAt, PageAnalysis } from '@/components/pdf-editor/analysisEngine';
