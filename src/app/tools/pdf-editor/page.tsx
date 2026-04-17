@@ -183,7 +183,7 @@ export default function PdfEditorPage() {
       const Y_THRESHOLD = 4; 
       const group = allSpans.filter(span => {
         // Skip already hidden spans
-        if (elements.some(el => el.pageIndex === pageIndex && el.originalSpanId && span.textContent && el.text.includes(span.textContent.trim()))) {
+        if (elements.some(el => el.pageIndex === pageIndex && el.originalSpanId && span.textContent && el.text?.includes(span.textContent.trim()))) {
            // We'll handle refined hiding via customTextRenderer
         }
         const rect = span.getBoundingClientRect();
@@ -322,7 +322,7 @@ export default function PdfEditorPage() {
         const isEmpty = !el.text || el.text.trim() === '';
         return (
           <textarea
-            value={el.text}
+            value={el.text || ''}
             onChange={e => updateElement(el.id, { text: e.target.value })}
             placeholder={isEmpty && isSelected ? "Type to replace or leave empty to delete..." : ""}
             className={`w-full h-full bg-transparent resize-none border-none outline-none p-0 scrollbar-hide ${isEmpty && isSelected ? 'placeholder:text-blue-400 placeholder:text-[10px]' : ''}`}
