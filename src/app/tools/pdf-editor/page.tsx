@@ -219,11 +219,12 @@ export default function PdfEditorPage() {
       }
 
       // ─── PIXEL PERFECT COORDINATES ───
-      // Use offset relative to the textContentLayer which is already scaled
-      const x = (firstSpan.offsetLeft) / zoom;
-      const y = (firstSpan.offsetTop) / zoom;
-      const width = (lastSpan.offsetLeft + lastSpan.offsetWidth - firstSpan.offsetLeft) / zoom;
-      const height = (lastSpan.offsetHeight) / zoom;
+      // Use getBoundingClientRect for absolute precision relative to the layer
+      // This bypasses issues with relative offsetParent offsets
+      const x = (targetRect.left - textLayerRect.left) / zoom;
+      const y = (targetRect.top - textLayerRect.top) / zoom;
+      const width = (targetRect.width) / zoom;
+      const height = (targetRect.height) / zoom;
 
       // Stable grouping ID based on original text and position to persist hiding
       const groupSpanId = `hide-${pageIndex}-${Math.round(x)}-${Math.round(y)}`;
@@ -244,11 +245,11 @@ export default function PdfEditorPage() {
         fontWeight: targetStyle.fontWeight,
         fontStyle: targetStyle.fontStyle,
         letterSpacing: letterSpacing,
-        lineHeight: 1.15,
+        lineHeight: 1, // Strict line height to match PDF layer
         originalSpanId: groupSpanId,
         originalText: combinedText, // Capture original text for reliable hiding
         opacity: 1,
-        fill: 'transparent',
+        fill: '#ffffff', // Set white background to cover original text immediately
         textAlign: 'left',
       };
 
@@ -325,7 +326,7 @@ export default function PdfEditorPage() {
             value={el.text || ''}
             onChange={e => updateElement(el.id, { text: e.target.value })}
             placeholder={isEmpty && isSelected ? "Type to replace or leave empty to delete..." : ""}
-            className={`w-full h-full bg-transparent resize-none border-none outline-none p-0 scrollbar-hide ${isEmpty && isSelected ? 'placeholder:text-blue-400 placeholder:text-[10px]' : ''}`}
+            className={`w-full h-full bg-transparent resize-none border-none outline-none p-0 m-0 scrollbar-hide block ${isEmpty && isSelected ? 'placeholder:text-blue-400 placeholder:text-[10px]' : ''}`}
             spellCheck={false}
             autoFocus
             style={{
