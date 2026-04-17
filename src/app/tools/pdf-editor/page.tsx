@@ -220,14 +220,22 @@ export default function PdfEditorPage() {
 
       // ─── PIXEL PERFECT COORDINATES ───
       // Use getBoundingClientRect for absolute precision relative to the layer
-      // This bypasses issues with relative offsetParent offsets
+      // Added -1.5px baseline refinement to match PDF text baseline
       const x = (targetRect.left - textLayerRect.left) / zoom;
-      const y = (targetRect.top - textLayerRect.top) / zoom;
+      const y = (targetRect.top - textLayerRect.top - 1.5) / zoom;
       const width = (targetRect.width) / zoom;
       const height = (targetRect.height) / zoom;
 
       // Stable grouping ID based on original text and position to persist hiding
       const groupSpanId = `hide-${pageIndex}-${Math.round(x)}-${Math.round(y)}`;
+
+      const weight = parseInt(targetStyle.fontWeight);
+      const isBold = weight >= 600 || targetStyle.fontWeight === 'bold';
+      const isSerif = targetStyle.fontFamily.toLowerCase().includes('serif') || 
+                      targetStyle.fontFamily.toLowerCase().includes('times') ||
+                      targetStyle.fontFamily.toLowerCase().includes('minion');
+      const isMono = targetStyle.fontFamily.toLowerCase().includes('mono') || 
+                     targetStyle.fontFamily.toLowerCase().includes('courier');
 
       const newEl: PDFElement = {
         id: generateId(),
@@ -238,11 +246,10 @@ export default function PdfEditorPage() {
         width: width + 4, // Tighten up from +20
         height: Math.max(height, effectiveFontSize),
         text: combinedText,
-        fontFamily: targetStyle.fontFamily.includes('serif') ? 'TimesRoman' : 
-                    targetStyle.fontFamily.includes('mono') ? 'Courier' : 'Helvetica',
+        fontFamily: isSerif ? 'TimesRoman' : isMono ? 'Courier' : 'Helvetica',
         fontSize: Math.round(effectiveFontSize * 10) / 10,
         color: hexColor,
-        fontWeight: targetStyle.fontWeight,
+        fontWeight: isBold ? 'bold' : 'normal',
         fontStyle: targetStyle.fontStyle,
         letterSpacing: letterSpacing,
         lineHeight: 1, // Strict line height to match PDF layer
