@@ -45,17 +45,30 @@ export async function analyzePage(pageProxy: any): Promise<PageAnalysis> {
     const width = item.width;
     const height = item.height || fontSize;
 
-    // Font detection logic
-    const fontId = item.fontName;
-    const fontInfo = commonObjs.get(fontId);
-    
-    // PDF fonts often include subsets (e.g., "ABCDEF+TimesNewRoman")
-    const rawFontName = (fontInfo?.name || '').toLowerCase();
-    const fontName = rawFontName.includes('+') ? rawFontName.split('+')[1] : rawFontName;
-    
-    const isSerif = fontName.includes('serif') || fontName.includes('times') || fontName.includes('minion') || fontName.includes('georgia');
-    const isBold = fontName.includes('bold') || fontName.includes('black') || fontName.includes('heavy');
-    const isMono = fontName.includes('mono') || fontName.includes('courier') || fontName.includes('consolas');
+    // ─── Robust Font Detection ───
+    let isSerif = false;
+    let isBold = false;
+    let isMono = false;
+    let fontName = '';
+
+    try {
+      const fontId = item.fontName;
+      // commonObjs.get can throw "Requesting object that isn't resolved yet"
+      const fontInfo = commonObjs.get(fontId);
+      
+      if (fontInfo && fontInfo.name) {
+        const rawName = fontInfo.name.toLowerCase();
+        // PDF fonts often include subsets (e.g., "ABCDEF+TimesNewRoman")
+        fontName = rawName.includes('+') ? rawName.split('+')[1] : rawName;
+        
+        isSerif = fontName.includes('serif') || fontName.includes('times') || fontName.includes('minion') || fontName.includes('georgia');
+        isBold = fontName.includes('bold') || fontName.includes('black') || fontName.includes('heavy');
+        isMono = fontName.includes('mono') || fontName.includes('courier') || fontName.includes('consolas');
+      }
+    } catch (err) {
+      // If font resolution fails, we fall back to generic detection or defaults
+      // console.warn('Font resolution delayed for:', item.fontName);
+    }
 
     return {
       str: item.str,
