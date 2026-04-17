@@ -47,6 +47,7 @@ export interface PDFElement {
 
   // Inline editing — original text capture for pixel-perfect replacement
   originalSpanId?: string;
+  originalText?: string; // stores original text to hide it reliably during edits
   originalTransform?: string;  // CSS transform matrix from react-pdf text layer
   originalFontName?: string;   // Font name as encoded in the PDF
   originalPdfFontSize?: number; // Font size in PDF coordinate space (before scaling)

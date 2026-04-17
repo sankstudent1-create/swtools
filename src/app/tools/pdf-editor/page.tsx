@@ -246,6 +246,7 @@ export default function PdfEditorPage() {
         letterSpacing: letterSpacing,
         lineHeight: 1.15,
         originalSpanId: groupSpanId,
+        originalText: combinedText, // Capture original text for reliable hiding
         opacity: 1,
         fill: 'transparent',
         textAlign: 'left',
@@ -357,7 +358,7 @@ export default function PdfEditorPage() {
   // MAIN RENDER
   // ════════════════════════════════════════════════════════════════════
   return (
-    <div className="min-h-screen bg-[#07090f] flex flex-col pt-20 font-sans text-white">
+    <div className="h-screen bg-[#07090f] flex flex-col pt-[72px] font-sans text-white overflow-hidden">
       <style>{`
         .react-pdf__Page__textContent span {
           cursor: pointer !important;
@@ -419,12 +420,11 @@ export default function PdfEditorPage() {
                           rotate={transform.rotation} 
                           onLoadSuccess={p => onPageLoadSuccess(idx, p)}
                           customTextRenderer={(textItem) => {
-                            // Stable hiding by checking against originalSpanId components in current page
+                            // Stable hiding by checking against originalText of elements on this page
                             const isHidden = elements.some(el => 
                               el.pageIndex === idx && 
-                              el.originalSpanId && 
-                              textItem.str && 
-                              el.text.includes(textItem.str.trim())
+                              el.originalText && 
+                              (textItem.str === el.originalText || el.originalText.includes(textItem.str.trim()))
                             );
                             return isHidden ? '' : textItem.str;
                           }}
@@ -439,12 +439,13 @@ export default function PdfEditorPage() {
                           {elements.filter(e => e.pageIndex === idx).map(el => (
                             <Rnd
                               key={el.id} 
-                              position={{ x: el.x, y: el.y }} 
-                              size={{ width: el.width, height: el.height }}
+                              position={{ x: el.x * zoom, y: el.y * zoom }} 
+                              size={{ width: el.width * zoom, height: el.height * zoom }}
+                              scale={zoom}
                               disableDragging={!!el.originalSpanId}
                               enableResizing={!el.originalSpanId}
-                              onDragStop={(_, d) => updateElement(el.id, { x: d.x, y: d.y })}
-                              onResizeStop={(_, __, ref, ___, pos) => updateElement(el.id, { width: parseInt(ref.style.width), height: parseInt(ref.style.height), ...pos })}
+                              onDragStop={(_, d) => updateElement(el.id, { x: d.x / zoom, y: d.y / zoom })}
+                              onResizeStop={(_, __, ref, ___, pos) => updateElement(el.id, { width: parseInt(ref.style.width) / zoom, height: parseInt(ref.style.height) / zoom, x: pos.x / zoom, y: pos.y / zoom })}
                               className={`!absolute pointer-events-auto ${selectedId === el.id ? 'ring-2 ring-[var(--brand-sky)] shadow-2xl z-30' : 'z-20'}`}
                               onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedId(el.id); setActiveTool('select'); }}
                             >
