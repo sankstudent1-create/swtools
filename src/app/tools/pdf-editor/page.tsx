@@ -249,7 +249,7 @@ export default function PdfEditorPage() {
         originalSpanId: groupSpanId,
         originalText: combinedText, // Capture original text for reliable hiding
         opacity: 1,
-        fill: '#ffffff', // Set white background to cover original text immediately
+        fill: 'transparent', // Purely inline transparency for better blending
         textAlign: 'left',
       };
 
@@ -337,7 +337,7 @@ export default function PdfEditorPage() {
               textAlign: el.textAlign,
               letterSpacing: el.letterSpacing ? `${el.letterSpacing}px` : 'normal',
               lineHeight: el.lineHeight || 1.2,
-              backgroundColor: el.fill === 'transparent' ? 'transparent' : '#ffffff',
+              backgroundColor: 'transparent',
             }}
           />
         );
@@ -421,12 +421,14 @@ export default function PdfEditorPage() {
                           rotate={transform.rotation} 
                           onLoadSuccess={p => onPageLoadSuccess(idx, p)}
                           customTextRenderer={(textItem) => {
-                            // Stable hiding by checking against originalText of elements on this page
-                            const isHidden = elements.some(el => 
-                              el.pageIndex === idx && 
-                              el.originalText && 
-                              (textItem.str === el.originalText || el.originalText.includes(textItem.str.trim()))
-                            );
+                            // Normalize strings to ignore whitespace differences when hiding original text
+                            const normalize = (s: string) => s.replace(/\s+/g, '').trim();
+                            const isHidden = elements.some(el => {
+                              if (el.pageIndex !== idx || !el.originalText) return false;
+                              const normOriginal = normalize(el.originalText);
+                              const normCurrent = normalize(textItem.str || '');
+                              return normOriginal === normCurrent || normOriginal.includes(normCurrent);
+                            });
                             return isHidden ? '' : textItem.str;
                           }}
                         />
@@ -447,7 +449,7 @@ export default function PdfEditorPage() {
                               enableResizing={!el.originalSpanId}
                               onDragStop={(_, d) => updateElement(el.id, { x: d.x / zoom, y: d.y / zoom })}
                               onResizeStop={(_, __, ref, ___, pos) => updateElement(el.id, { width: parseInt(ref.style.width) / zoom, height: parseInt(ref.style.height) / zoom, x: pos.x / zoom, y: pos.y / zoom })}
-                              className={`!absolute pointer-events-auto ${selectedId === el.id ? 'ring-2 ring-[var(--brand-sky)] shadow-2xl z-30' : 'z-20'}`}
+                              className={`!absolute pointer-events-auto ${selectedId === el.id ? (el.originalSpanId ? 'outline-1 outline-dashed outline-[var(--brand-sky)]/50 z-30' : 'ring-2 ring-[var(--brand-sky)] shadow-2xl z-30') : 'z-20'}`}
                               onClick={(e: React.MouseEvent) => { e.stopPropagation(); setSelectedId(el.id); setActiveTool('select'); }}
                             >
                               {renderElement(el)}
