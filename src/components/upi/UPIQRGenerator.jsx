@@ -114,8 +114,6 @@ const UPIQRGenerator = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
             <div className="flex items-center gap-1">
               <img src="/icon-192.png" alt="SWTools" className="h-7 w-7 object-contain" />
               <span className="text-xs font-black text-gray-900 tracking-tighter">SW<span className="text-gray-400 font-light">Tools</span></span>
@@ -165,6 +163,7 @@ const UPIQRGenerator = ({
             <img src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" alt="PhonePe" className="h-5 object-contain" />
             <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-5 object-contain" />
             <img src="https://cdn.brandfetch.io/idRNBjXRVq/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1700163042274" alt="Paytm" className="h-4 object-contain" />
+            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
           </div>
           <div className="flex items-center gap-1.5">
