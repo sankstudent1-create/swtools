@@ -1,23 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './UPIQRGenerator.module.css';
+import { Download, Share2, ExternalLink } from 'lucide-react';
 
 /**
  * UPIQRGenerator component renders a QR code for UPI payment.
- * It accepts various UPI related fields and constructs a UPI URI.
- * The QR code is generated using the lightweight QRCode.js library.
- *
- * Props:
- * - upiId (string): UPI ID (e.g., "example@upi")
- * - name (string): Payee name
- * - amount (string|number): Amount to be paid (optional)
- * - transactionRef (string): Transaction reference ID (optional)
- * - currency (string): Currency code, default "INR"
- * - note (string): Payment note/description (optional)
- * - mode (string): "vpa", "bank", "mobile", "aadhar"
- * - accountNo (string): Bank account number (for bank mode)
- * - ifsc (string): IFSC code (for bank mode)
- * - mobileNo (string): Mobile number (for mobile mode)
- * - aadharNo (string): Aadhar number (for aadhar mode)
  */
 const UPIQRGenerator = ({
   upiId,
@@ -26,36 +12,15 @@ const UPIQRGenerator = ({
   transactionRef,
   currency = 'INR',
   note,
-  mode = 'vpa',
-  accountNo,
-  ifsc,
-  mobileNo,
-  aadharNo,
 }) => {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // Build the UPI URI according to UPI specification
   const buildUPIUri = () => {
+    if (!upiId) return '';
     const params = new URLSearchParams();
-    
-    let pa = upiId;
-    if (mode === 'bank' && accountNo && ifsc) {
-      pa = `${accountNo}@${ifsc.toUpperCase()}.ifsc.npci`;
-    } else if (mode === 'mobile' && mobileNo) {
-      pa = `${mobileNo}@mobile.npci`;
-    } else if (mode === 'aadhar' && aadharNo) {
-      pa = `${aadharNo}@aadhar.npci`;
-    }
-
-    params.append('pa', pa);
+    params.append('pa', upiId);
     if (name) params.append('pn', name);
-    // For account/ifsc/mobile/aadhar, merchant parameters or signatures are often 
-    // required for security. Without them, apps may block it.
-    // However, including 'mc' and 'mode' might help some apps treat it differently.
-    if (mode !== 'vpa') {
-      params.append('mc', '0000'); // Default merchant category code
-      params.append('mode', '02'); // Secure mode for some apps
-    }
     if (amount) params.append('am', amount);
     if (currency) params.append('cu', currency);
     if (transactionRef) params.append('tr', transactionRef);
@@ -65,7 +30,11 @@ const UPIQRGenerator = ({
 
   useEffect(() => {
     const uri = buildUPIUri();
-    // Dynamically load QRCode library if not already present
+    if (!uri) {
+      if (canvasRef.current) canvasRef.current.innerHTML = '<div class="flex items-center justify-center h-full text-gray-400 text-sm italic">Enter UPI ID to generate QR</div>';
+      return;
+    }
+
     const loadQRCode = () => {
       if (window.QRCode) {
         renderQR();
@@ -79,27 +48,119 @@ const UPIQRGenerator = ({
 
     const renderQR = () => {
       const container = canvasRef.current;
-      // Clear previous QR if any
+      if (!container) return;
       container.innerHTML = '';
-      // eslint-disable-next-line no-new
       new window.QRCode(container, {
         text: uri,
         width: 256,
         height: 256,
-        colorDark: '#0d0d0d',
+        colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.H,
       });
     };
 
     loadQRCode();
-  }, [upiId, name, amount, transactionRef, currency, note, mode, accountNo, ifsc, mobileNo, aadharNo]);
+  }, [upiId, name, amount, transactionRef, currency, note]);
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current.querySelector('canvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = `upi-qr-${upiId}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const handleShare = async () => {
+    const uri = buildUPIUri();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'UPI Payment',
+          text: `Pay ${name || upiId} ₹${amount || ''} using UPI`,
+          url: uri,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    }
+  };
+
+  const handlePayNow = () => {
+    const uri = buildUPIUri();
+    window.location.href = uri;
+  };
 
   return (
-    <div className={styles.wrapper}>
-      <h3 className={styles.title}>UPI Payment QR</h3>
-      <div ref={canvasRef} className={styles.qrCanvas} />
-      <p className={styles.caption}>Scan to pay {amount ? `₹${amount}` : ''}</p>
+    <div className="w-full max-w-sm flex flex-col gap-6" ref={containerRef}>
+      {/* Branded QR Card */}
+      <div className="bg-white rounded-[2rem] p-6 shadow-2xl flex flex-col items-center relative overflow-hidden border border-gray-100">
+        {/* Branding Header */}
+        <div className="w-full flex justify-between items-center mb-6">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">SW Info Systems</span>
+            <span className="text-sm font-black text-gray-800 tracking-tight leading-none italic">TRUSTED PAY</span>
+          </div>
+          <div className="flex gap-1">
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <div className="w-2 h-2 rounded-full bg-white border border-blue-500"></div>
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          </div>
+        </div>
+
+        {/* QR Canvas */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-tr from-blue-600 to-teal-400 rounded-2xl blur-sm opacity-20 group-hover:opacity-40 transition duration-500"></div>
+          <div ref={canvasRef} className="relative bg-white p-3 rounded-2xl border border-gray-100 shadow-sm min-h-[256px] min-w-[256px]" />
+        </div>
+
+        {/* Payee Details */}
+        <div className="mt-6 text-center w-full">
+          <p className="text-gray-900 font-bold text-lg truncate px-4">{name || 'Scan to Pay'}</p>
+          <p className="text-gray-400 text-xs font-medium mt-0.5 tracking-wide">{upiId}</p>
+          {amount && (
+            <div className="mt-3 bg-blue-50 py-1.5 px-4 rounded-full inline-block">
+              <span className="text-blue-700 font-black text-xl italic">₹{amount}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Branding Footer */}
+        <div className="mt-8 pt-6 border-t border-gray-50 w-full flex items-center justify-around opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/BHIM_Logo.svg/100px-BHIM_Logo.svg.png" alt="BHIM" className="h-4 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/100px-PhonePe_Logo.svg.png" alt="PhonePe" className="h-4 object-contain" />
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <button 
+          onClick={handleDownload}
+          disabled={!upiId}
+          className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white rounded-2xl py-4 font-semibold transition-all backdrop-blur-md border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <Download className="w-5 h-5 text-blue-400" />
+          Save QR
+        </button>
+        <button 
+          onClick={handleShare}
+          disabled={!upiId}
+          className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white rounded-2xl py-4 font-semibold transition-all backdrop-blur-md border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <Share2 className="w-5 h-5 text-teal-400" />
+          Share
+        </button>
+        <button 
+          onClick={handlePayNow}
+          disabled={!upiId}
+          className="col-span-2 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white rounded-2xl py-4 font-bold shadow-xl shadow-blue-900/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ExternalLink className="w-5 h-5" />
+          Open UPI App
+        </button>
+      </div>
     </div>
   );
 };
