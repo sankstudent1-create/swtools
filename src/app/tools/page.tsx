@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Search, Image as ImageIcon, FileText, Settings, ChevronRight, Menu, X, 
   Maximize, Sparkles, Layers, PenTool, Edit3, Fingerprint, RefreshCw, 
-  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator
+  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator, Smartphone
 } from 'lucide-react';
 
 // Unified Tools Data mapped to the new Crystalline design system
@@ -132,6 +132,17 @@ const TOOLS_DATA = [
     href: "/tools/pdf-maker",
   },
   {
+    id: "pdf-editor",
+    name: "Pro PDF Editor",
+    description: "Edit, whiteout, annotate, and natively bake interactive text into any PDF without server uploads.",
+    category: "PDF Utility",
+    icon: FileText,
+    accent: "text-indigo-400",
+    bg: "bg-indigo-400/10",
+    border: "border-indigo-400/20",
+    href: "/tools/pdf-editor",
+  },
+  {
     id: "image-scanner",
     name: "Image Scanner",
     description: "Create scan outputs with black-and-white, grayscale, cleanup, invert, and export format modes",
@@ -233,9 +244,9 @@ const TOOLS_DATA = [
   {
     id: "upi-qr",
     name: "UPI QR Generator",
-    description: "Generate premium glass‑morphic UPI QR codes for payments (supports UPI ID, name, amount, ref, note).",
+    description: "Generate premium glassmorphic UPI QR codes for payments with SW Info Systems branding.",
     category: "Payments",
-    icon: Mail,
+    icon: Smartphone,
     accent: "text-green-400",
     bg: "bg-green-400/10",
     border: "border-green-400/20",
@@ -243,7 +254,7 @@ const TOOLS_DATA = [
   }
 ];
 
-const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators'];
+const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments'];
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');

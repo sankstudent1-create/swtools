@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
   Search, Image as ImageIcon, FileText, Settings, ChevronRight, Menu, X, 
   Maximize, Sparkles, Layers, PenTool, Edit3, Fingerprint, RefreshCw, 
-  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator
+  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator, Smartphone
 } from 'lucide-react';
 
 // Unified Tools Data mapped to the new Crystalline design system
@@ -231,19 +231,30 @@ const TOOLS_DATA = [
     href: "/tools/gds-leave",
   },
   {
-    id: "td-commission",
-    name: "TD Commission / BPM",
-    description: "Generate official BPM Incentive Bills for Time Deposit (TD) commissions with auto-calculating rates, amounts, and PDF exports",
-    category: "India Post",
-    icon: Calculator,
-    accent: "text-emerald-400",
-    bg: "bg-emerald-400/10",
-    border: "border-emerald-400/20",
-    href: "/tools/td-commission",
+    id: "pdf-editor",
+    name: "Pro PDF Editor",
+    description: "Edit, whiteout, annotate, and natively bake interactive text into any PDF without server uploads.",
+    category: "PDF Utility",
+    icon: FileText,
+    accent: "text-indigo-400",
+    bg: "bg-indigo-400/10",
+    border: "border-indigo-400/20",
+    href: "/tools/pdf-editor",
+  },
+  {
+    id: "upi-qr",
+    name: "UPI QR Generator",
+    description: "Generate premium glassmorphic UPI QR codes for payments with SW Info Systems branding.",
+    category: "Payments",
+    icon: Smartphone,
+    accent: "text-green-400",
+    bg: "bg-green-400/10",
+    border: "border-green-400/20",
+    href: "/tools/upi-qr",
   },
 ];
 
-const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators'];
+const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments'];
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
