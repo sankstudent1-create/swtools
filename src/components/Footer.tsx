@@ -1,7 +1,6 @@
 "use client";
+import Link from 'next/link';
 import { Layers } from 'lucide-react';
-import { ArrowLeft } from 'lucide-react';
-
 export default function Footer() {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission'];
