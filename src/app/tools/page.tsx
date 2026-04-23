@@ -230,6 +230,17 @@ const TOOLS_DATA = [
     border: "border-emerald-400/20",
     href: "/tools/td-commission",
   },
+  {
+    id: "upi-qr",
+    name: "UPI QR Generator",
+    description: "Generate premium glass‑morphic UPI QR codes for payments (supports UPI ID, name, amount, ref, note).",
+    category: "Payments",
+    icon: Mail,
+    accent: "text-green-400",
+    bg: "bg-green-400/10",
+    border: "border-green-400/20",
+    href: "/tools/upi-qr",
+  }
 ];
 
 const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators'];
