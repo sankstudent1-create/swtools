@@ -27,7 +27,7 @@ export default function UPIQRPage() {
     { id: 'vpa', label: 'UPI ID', icon: User },
     { id: 'bank', label: 'Bank A/c', icon: Landmark },
     { id: 'mobile', label: 'Mobile', icon: Smartphone },
-    { id: 'aadhar', label: 'Aadhar', icon: CreditCard },
+    { id: 'aadhar', label: 'Aadhar', icon: CreditCard, disabled: true },
   ];
 
   return (
@@ -51,24 +51,36 @@ export default function UPIQRPage() {
           {modes.map((m) => (
             <button
               key={m.id}
+              disabled={m.disabled}
               onClick={() => setMode(m.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 text-sm font-medium ${
                 mode === m.id
                   ? 'bg-gradient-to-r from-blue-500 to-teal-500 text-white shadow-lg shadow-blue-500/20'
-                  : 'text-white/60 hover:text-white hover:bg-white/10'
+                  : m.disabled 
+                    ? 'opacity-40 cursor-not-allowed text-white/40'
+                    : 'text-white/60 hover:text-white hover:bg-white/10'
               }`}
             >
               <m.icon className="w-4 h-4" />
               {m.label}
+              {m.disabled && <span className="text-[8px] uppercase font-bold ml-1 opacity-60">Soon</span>}
             </button>
           ))}
         </div>
 
         <div className="grid grid-cols-1 gap-4 mb-10">
-          {mode !== 'vpa' && (
+          {mode === 'mobile' && (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-2 text-center">
+              <p className="text-blue-200/80 text-xs leading-relaxed">
+                <strong>Pro Tip:</strong> Most apps allow paying to a mobile number using <code className="bg-white/10 px-1 rounded text-blue-300">number@upi</code>.
+                Try this in <strong>UPI ID</strong> mode if the direct mobile QR doesn't work.
+              </p>
+            </div>
+          )}
+          {mode === 'bank' && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-2">
               <p className="text-amber-200/80 text-xs leading-relaxed">
-                <strong>Note:</strong> QR codes for Bank Accounts, Mobile, and Aadhar numbers are supported by NPCI but may be restricted by some UPI apps (like GPay or PhonePe) for security reasons if you are not a verified merchant. If it fails, please use the <strong>UPI ID</strong> mode.
+                <strong>Note:</strong> QR codes for Bank Accounts are supported by NPCI but may be restricted by some UPI apps (like GPay or PhonePe) for security reasons if you are not a verified merchant. If it fails, please use the <strong>UPI ID</strong> mode.
               </p>
             </div>
           )}
