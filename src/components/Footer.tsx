@@ -1,4 +1,5 @@
-import Link from 'next/link';
+"use client";
+import { Layers } from 'lucide-react';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Footer() {
