@@ -13,6 +13,11 @@ import styles from './UPIQRGenerator.module.css';
  * - transactionRef (string): Transaction reference ID (optional)
  * - currency (string): Currency code, default "INR"
  * - note (string): Payment note/description (optional)
+ * - mode (string): "vpa", "bank", "mobile", "aadhar"
+ * - accountNo (string): Bank account number (for bank mode)
+ * - ifsc (string): IFSC code (for bank mode)
+ * - mobileNo (string): Mobile number (for mobile mode)
+ * - aadharNo (string): Aadhar number (for aadhar mode)
  */
 const UPIQRGenerator = ({
   upiId,
@@ -21,13 +26,28 @@ const UPIQRGenerator = ({
   transactionRef,
   currency = 'INR',
   note,
+  mode = 'vpa',
+  accountNo,
+  ifsc,
+  mobileNo,
+  aadharNo,
 }) => {
   const canvasRef = useRef(null);
 
   // Build the UPI URI according to UPI specification
   const buildUPIUri = () => {
     const params = new URLSearchParams();
-    params.append('pa', upiId);
+    
+    let pa = upiId;
+    if (mode === 'bank' && accountNo && ifsc) {
+      pa = `${accountNo}@${ifsc}.ifsc.npci`;
+    } else if (mode === 'mobile' && mobileNo) {
+      pa = `${mobileNo}@mobile.npci`;
+    } else if (mode === 'aadhar' && aadharNo) {
+      pa = `${aadharNo}@aadhar.npci`;
+    }
+
+    params.append('pa', pa);
     if (name) params.append('pn', name);
     if (amount) params.append('am', amount);
     if (currency) params.append('cu', currency);
@@ -66,7 +86,7 @@ const UPIQRGenerator = ({
     };
 
     loadQRCode();
-  }, [upiId, name, amount, transactionRef, currency, note]);
+  }, [upiId, name, amount, transactionRef, currency, note, mode, accountNo, ifsc, mobileNo, aadharNo]);
 
   return (
     <div className={styles.wrapper}>
