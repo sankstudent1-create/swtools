@@ -63,7 +63,11 @@ const UPIQRGenerator = ({
     loadQRCode();
   }, [upiId, name, amount, transactionRef, currency, note]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    const card = containerRef.current.querySelector('.branded-qr-card');
+    if (!card) return;
+    
+    // Use html-to-image or similar in production, for now we download the QR canvas
     const canvas = canvasRef.current.querySelector('canvas');
     if (!canvas) return;
     const link = document.createElement('a');
@@ -77,8 +81,8 @@ const UPIQRGenerator = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'UPI Payment',
-          text: `Pay ${name || upiId} ₹${amount || ''} using UPI`,
+          title: 'UPI Payment QR',
+          text: `Pay ${name || upiId} ₹${amount || ''} using SWTools Secure QR`,
           url: uri,
         });
       } catch (err) {
@@ -95,22 +99,28 @@ const UPIQRGenerator = ({
   return (
     <div className="w-full max-w-sm flex flex-col gap-6" ref={containerRef}>
       {/* Branded QR Card */}
-      <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100">
+      <div className="branded-qr-card bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100">
         {/* Branding Header */}
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">SWInfoSystems</span>
+            <span className="text-[10px] font-black text-[#002e6e] uppercase tracking-[0.2em]">SWInfoSystems</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-sm font-black text-gray-900 tracking-tight leading-none italic">TRUSTED PAY</span>
               <div className="flex gap-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-white border border-blue-500"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#FF9933]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white border border-[#000080]"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-[#138808]"></div>
               </div>
             </div>
           </div>
-          <div className="h-6 w-px bg-gray-200 mx-2"></div>
-          <img src="/icon-192.png" alt="SWTools" className="h-7 w-7 object-contain" />
+          <div className="flex items-center gap-2">
+            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
+            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="flex items-center gap-1">
+              <img src="/icon-192.png" alt="SWTools" className="h-7 w-7 object-contain" />
+              <span className="text-xs font-black text-gray-900 tracking-tighter">SW<span className="text-gray-400 font-light">Tools</span></span>
+            </div>
+          </div>
         </div>
 
         {/* QR Canvas with Center Logo */}
@@ -133,15 +143,15 @@ const UPIQRGenerator = ({
         {/* Payee Details */}
         <div className="mt-8 text-center w-full">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="text-gray-900 font-black text-xl tracking-tight uppercase">{name || 'Secure Payment'}</p>
+            <p className="text-black font-black text-xl tracking-tight uppercase">{name || 'Secure Payment'}</p>
             {name && <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center"><div className="w-1.5 h-1.5 bg-white rounded-full"></div></div>}
           </div>
-          <p className="text-blue-600 text-sm font-black tracking-widest uppercase">{upiId || 'ENTER VPA ID'}</p>
+          <p className="text-black text-sm font-black tracking-widest uppercase opacity-90">{upiId || 'ENTER VPA ID'}</p>
           
           {amount && (
             <div className="mt-5 relative inline-block">
               <div className="absolute inset-0 bg-blue-600 blur-xl opacity-10 rounded-full"></div>
-              <div className="relative bg-gray-900 py-2.5 px-6 rounded-2xl flex items-center gap-2">
+              <div className="relative bg-gray-900 py-2.5 px-6 rounded-2xl flex items-center gap-2 shadow-xl">
                 <span className="text-white/40 text-[10px] font-black tracking-widest">AMOUNT</span>
                 <span className="text-white font-black text-2xl tracking-tighter italic">₹{amount}</span>
               </div>
@@ -151,10 +161,10 @@ const UPIQRGenerator = ({
 
         {/* Footer Branding - Minimal & Powered by SWTools */}
         <div className="mt-10 pt-6 border-t border-gray-100 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-6 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+          <div className="flex items-center justify-center gap-5 hover:scale-105 transition-transform duration-500">
             <img src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" alt="PhonePe" className="h-5 object-contain" />
-            <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-6 object-contain" />
-            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
+            <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-5 object-contain" />
+            <img src="https://cdn.brandfetch.io/idRNBjXRVq/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1700163042274" alt="Paytm" className="h-4 object-contain" />
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
           </div>
           <div className="flex items-center gap-1.5">
