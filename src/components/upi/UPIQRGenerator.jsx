@@ -99,7 +99,7 @@ const UPIQRGenerator = ({
         {/* Branding Header */}
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">SW Info Systems</span>
+            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">SWInfoSystems</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-sm font-black text-gray-900 tracking-tight leading-none italic">TRUSTED PAY</span>
               <div className="flex gap-0.5">
@@ -110,7 +110,7 @@ const UPIQRGenerator = ({
             </div>
           </div>
           <div className="h-6 w-px bg-gray-200 mx-2"></div>
-          <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-5 object-contain grayscale brightness-0 opacity-80" />
+          <img src="/icon-192.png" alt="SWTools" className="h-7 w-7 object-contain" />
         </div>
 
         {/* QR Canvas with Center Logo */}
@@ -119,11 +119,11 @@ const UPIQRGenerator = ({
           <div className="relative bg-white p-4 rounded-[1.8rem] border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center">
             <div ref={canvasRef} className="qrcode-container" />
             
-            {/* PhonePe Center Logo (Visual only, placed over QR) */}
+            {/* SWTools Center Logo */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border border-gray-100 p-1 flex items-center justify-center z-10">
               <img 
-                src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" 
-                alt="PhonePe" 
+                src="/icon-192.png" 
+                alt="SWTools" 
                 className="w-full h-full object-contain p-0.5" 
               />
             </div>
@@ -133,16 +133,16 @@ const UPIQRGenerator = ({
         {/* Payee Details */}
         <div className="mt-8 text-center w-full">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="text-gray-900 font-black text-xl tracking-tight">{name || 'Secure Payment'}</p>
+            <p className="text-gray-900 font-black text-xl tracking-tight uppercase">{name || 'Secure Payment'}</p>
             {name && <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center"><div className="w-1.5 h-1.5 bg-white rounded-full"></div></div>}
           </div>
-          <p className="text-blue-600 text-xs font-bold tracking-widest uppercase opacity-60">{upiId || 'Enter VPA ID'}</p>
+          <p className="text-blue-600 text-sm font-black tracking-widest uppercase">{upiId || 'ENTER VPA ID'}</p>
           
           {amount && (
             <div className="mt-5 relative inline-block">
               <div className="absolute inset-0 bg-blue-600 blur-xl opacity-10 rounded-full"></div>
               <div className="relative bg-gray-900 py-2.5 px-6 rounded-2xl flex items-center gap-2">
-                <span className="text-white/40 text-sm font-medium">AMOUNT</span>
+                <span className="text-white/40 text-[10px] font-black tracking-widest">AMOUNT</span>
                 <span className="text-white font-black text-2xl tracking-tighter italic">₹{amount}</span>
               </div>
             </div>
@@ -151,10 +151,11 @@ const UPIQRGenerator = ({
 
         {/* Footer Branding - Minimal & Powered by SWTools */}
         <div className="mt-10 pt-6 border-t border-gray-100 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-6 grayscale opacity-40 hover:opacity-80 hover:grayscale-0 transition-all duration-500">
+          <div className="flex items-center justify-center gap-6 grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all duration-500">
+            <img src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" alt="PhonePe" className="h-5 object-contain" />
             <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-6 object-contain" />
+            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/BHIM_Logo.svg/100px-BHIM_Logo.svg.png" alt="BHIM" className="h-4 object-contain" />
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[9px] font-bold text-gray-400 tracking-[0.3em] uppercase">Powered by SWTools</span>
