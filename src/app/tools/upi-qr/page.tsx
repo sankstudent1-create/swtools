@@ -65,6 +65,13 @@ export default function UPIQRPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 mb-10">
+          {mode !== 'vpa' && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-2">
+              <p className="text-amber-200/80 text-xs leading-relaxed">
+                <strong>Note:</strong> QR codes for Bank Accounts, Mobile, and Aadhar numbers are supported by NPCI but may be restricted by some UPI apps (like GPay or PhonePe) for security reasons if you are not a verified merchant. If it fails, please use the <strong>UPI ID</strong> mode.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {mode === 'vpa' && (
               <div className="md:col-span-2">

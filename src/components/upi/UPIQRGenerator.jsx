@@ -40,7 +40,7 @@ const UPIQRGenerator = ({
     
     let pa = upiId;
     if (mode === 'bank' && accountNo && ifsc) {
-      pa = `${accountNo}@${ifsc}.ifsc.npci`;
+      pa = `${accountNo}@${ifsc.toUpperCase()}.ifsc.npci`;
     } else if (mode === 'mobile' && mobileNo) {
       pa = `${mobileNo}@mobile.npci`;
     } else if (mode === 'aadhar' && aadharNo) {
@@ -49,6 +49,13 @@ const UPIQRGenerator = ({
 
     params.append('pa', pa);
     if (name) params.append('pn', name);
+    // For account/ifsc/mobile/aadhar, merchant parameters or signatures are often 
+    // required for security. Without them, apps may block it.
+    // However, including 'mc' and 'mode' might help some apps treat it differently.
+    if (mode !== 'vpa') {
+      params.append('mc', '0000'); // Default merchant category code
+      params.append('mode', '02'); // Secure mode for some apps
+    }
     if (amount) params.append('am', amount);
     if (currency) params.append('cu', currency);
     if (transactionRef) params.append('tr', transactionRef);
