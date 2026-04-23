@@ -159,14 +159,14 @@ const UPIQRGenerator = ({
 
         {/* Footer Branding - Minimal & Powered by SWTools */}
         <div className="mt-10 pt-6 border-t border-gray-100 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-5 hover:scale-105 transition-transform duration-500">
-            <img src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" alt="PhonePe" className="h-5 object-contain" />
-            <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-5 object-contain" />
-            <img src="https://cdn.brandfetch.io/idRNBjXRVq/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1700163042274" alt="Paytm" className="h-4 object-contain" />
-            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-4 object-contain" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
+          <div className="flex items-center justify-center gap-5 w-full px-2">
+            <img src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" alt="PhonePe" className="h-4 sm:h-5 w-auto object-contain shrink-0" />
+            <img src="https://cdn.brandfetch.io/idWNFFMbfp/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1769621615289" alt="GPay" className="h-4 sm:h-5 w-auto object-contain shrink-0" />
+            <img src="https://cdn.brandfetch.io/idRNBjXRVq/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1700163042274" alt="Paytm" className="h-3 sm:h-4 w-auto object-contain shrink-0" />
+            <img src="https://cdn.brandfetch.io/idVg87ij2H/w/517/h/73/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1773151735396" alt="IPPB" className="h-3 sm:h-4 w-auto object-contain shrink-0" />
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-3 sm:h-4 w-auto object-contain shrink-0" />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 mt-2">
             <span className="text-[9px] font-bold text-gray-400 tracking-[0.3em] uppercase">Powered by SWTools</span>
           </div>
         </div>
