@@ -2,9 +2,11 @@
 //  hooks/useLetterState.ts  –  Central state for the letterpad
 // ─────────────────────────────────────────────
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { AppState, LetterForm, TemplateType, FontClass, LogoSide, SigMode, AILetterData } from '@/types/letterpad';
 import { DEFAULT_FORM, DEFAULT_LOGO_POS, OFFICE_PRESETS, svgToDataUri } from '@/lib/letterpad/constants';
+
+import { supabase } from '@/lib/supabase';
 
 const INITIAL_STATE: AppState = {
   tpl: 'A',
@@ -28,6 +30,40 @@ export function useLetterState() {
     return { ...INITIAL_STATE, form: { ...DEFAULT_FORM, dt } };
   });
   const [lastModel, setLastModel] = useState<string | undefined>(undefined);
+
+  const [aiTick, setAiTick] = useState(0);
+
+  // ── Sync credits with Supabase ────────────────────────
+  useEffect(() => {
+    async function syncCredits() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Deduct 5 credits for AI fill
+      if (aiTick > 0) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('wallet_balance')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && profile.wallet_balance >= 5) {
+          await supabase
+            .from('profiles')
+            .update({ wallet_balance: profile.wallet_balance - 5 })
+            .eq('id', user.id);
+          
+          await supabase.from('usage_logs').insert({
+            user_id: user.id,
+            tool_id: 'letterpad-generator',
+            credits_spent: 5,
+            metadata: { type: 'ai_fill', model: lastModel }
+          });
+        }
+      }
+    }
+    syncCredits();
+  }, [aiTick]);
 
   // ── Form field update ────────────────────────────────
   const updateForm = useCallback(<K extends keyof LetterForm>(key: K, value: LetterForm[K]) => {
@@ -100,7 +136,26 @@ export function useLetterState() {
   const toggleEndorse = useCallback(() => setState(s => ({ ...s, showEndorse: !s.showEndorse })), []);
 
   // ── AI fill — populates fields from AI response ───
-  const fillFromAI = useCallback((data: AILetterData, isFull: boolean = false, model?: string) => {
+  const fillFromAI = useCallback(async (data: AILetterData, isFull: boolean = false, model?: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please login to use AI features.");
+      window.location.href = '/auth';
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.wallet_balance < 5) {
+      alert("Insufficient credits. 5 CR required for AI generation.");
+      window.location.href = '/dashboard/wallet';
+      return;
+    }
+
     if (model) setLastModel(model);
 
     setState(s => {
@@ -164,7 +219,8 @@ export function useLetterState() {
       aiTick: (s.aiTick || 0) + 1,
     };
   });
-  }, []);
+  setAiTick(t => t + 1);
+  }, [lastModel]);
 
   return {
     state,
