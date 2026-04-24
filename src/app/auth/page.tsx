@@ -20,11 +20,25 @@ export default function AuthPage() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        window.location.href = '/dashboard';
+        console.log('Attempting login for:', email);
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          console.error('Login error:', error);
+          throw error;
+        }
+        console.log('Login successful:', data);
+        
+        // Wait for session to be established before redirecting
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log('Session verified, redirecting...');
+          window.location.href = '/dashboard';
+        } else {
+          throw new Error('Session could not be established. Please check if cookies are enabled.');
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
+        console.log('Attempting signup for:', email);
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -32,11 +46,16 @@ export default function AuthPage() {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
-        if (error) throw error;
+        if (error) {
+          console.error('Signup error:', error);
+          throw error;
+        }
+        console.log('Signup success:', data);
         setMessage({ type: 'success', text: 'Check your email for the confirmation link!' });
       }
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+      console.error('Auth caught error:', error);
+      setMessage({ type: 'error', text: error.message || 'An unexpected error occurred.' });
     } finally {
       setLoading(false);
     }
