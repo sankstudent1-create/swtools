@@ -82,6 +82,14 @@ export default function LetterpadGeneratorPage() {
     updateForm(key, value);
   }, [updateForm]);
 
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="w-12 h-12 border-2 border-white/5 border-t-purple-500 rounded-full animate-spin"></div>
+    </div>
+  );
+
+  if (!user) return null;
+
   return (
     <div className={styles.letterpadRoot}>
       {/* Google Fonts */}

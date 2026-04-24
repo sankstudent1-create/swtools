@@ -217,9 +217,16 @@ export default function TDCommissionPage() {
     setOffice(prev => ({ ...prev, bo: '', so: '', ho: '' }))
   }
 
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="w-12 h-12 border-2 border-white/5 border-t-emerald-500 rounded-full animate-spin"></div>
+    </div>
+  );
+
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30 relative overflow-x-hidden font-sans">
-
       {/* GLASSMORPHISM BACKGROUND */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-emerald-600/10 blur-[130px] mix-blend-screen animate-pulse duration-1000"></div>
