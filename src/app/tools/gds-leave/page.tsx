@@ -87,7 +87,7 @@ export default function GDSLeavePage() {
     await supabase.from('user_files').insert({
       user_id: user.id,
       tool_id: 'gds-leave',
-      file_name: `GDS_Leave_${data.application.name}.pdf`,
+      file_name: `GDS_Leave_${data.applicant.name}.pdf`,
       storage_path: 'inline_metadata',
       metadata: { data }
     });
