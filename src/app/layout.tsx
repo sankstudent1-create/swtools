@@ -19,6 +19,7 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
+import { AuthProvider } from "@/context/AuthContext";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -106,21 +107,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable} font-sans antialiased text-white bg-[#07090f]`}>
-        {adsEnabled && adClient ? (
-          <Script
-            id="adsense-script"
-            async
-            strategy="afterInteractive"
-            crossOrigin="anonymous"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
-          />
-        ) : null}
-        <PwaRegister />
-        <Navigation />
-        {adsEnabled ? <AdSlot slotKey="global-top" label="Global Top Banner" /> : null}
-        {children}
-        {adsEnabled ? <AdSlot slotKey="global-bottom" label="Global Footer Banner" /> : null}
-        <Footer />
+        <AuthProvider>
+          {adsEnabled && adClient ? (
+            <Script
+              id="adsense-script"
+              async
+              strategy="afterInteractive"
+              crossOrigin="anonymous"
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
+            />
+          ) : null}
+          <PwaRegister />
+          <Navigation />
+          {adsEnabled ? <AdSlot slotKey="global-top" label="Global Top Banner" /> : null}
+          {children}
+          {adsEnabled ? <AdSlot slotKey="global-bottom" label="Global Footer Banner" /> : null}
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
