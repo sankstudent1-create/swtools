@@ -171,6 +171,30 @@ export default function DashboardPage() {
           </div>
         </header>
 
+        {/* Auth Debug Section (Hidden by default, visible for troubleshooting) */}
+        <div className="mb-8 p-4 bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
+          <details className="cursor-pointer group">
+            <summary className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] flex items-center gap-2 group-open:mb-4">
+              <ShieldCheck className="w-3 h-3" />
+              Diagnostic Info (Auth State)
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] font-mono p-2">
+              <div className="space-y-1">
+                <div className="text-white/40 uppercase font-black tracking-widest border-b border-white/5 pb-1 mb-2">User Details</div>
+                <div><span className="text-blue-500">ID:</span> {user?.id || 'null'}</div>
+                <div><span className="text-blue-500">Email:</span> {user?.email || 'null'}</div>
+                <div><span className="text-blue-500">Auth Loading:</span> {authLoading ? 'true' : 'false'}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-emerald-500 uppercase font-black tracking-widest border-b border-white/5 pb-1 mb-2">Profile Details</div>
+                <div><span className="text-emerald-500">ID:</span> {profile?.id || 'null'}</div>
+                <div><span className="text-emerald-500">Balance:</span> {profile?.wallet_balance ?? 'null'}</div>
+                <div><span className="text-emerald-500">Full Name:</span> {profile?.full_name || 'null'}</div>
+              </div>
+            </div>
+          </details>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div className="bg-blue-600 rounded-[2.5rem] p-8 relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer shadow-2xl shadow-blue-600/20">
             <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform duration-700">
