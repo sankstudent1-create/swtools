@@ -16,40 +16,57 @@ export default function DashboardPage() {
   const [recentUsage, setRecentUsage] = useState<any[]>([]);
   const [userFiles, setUserFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDashboardData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        
-        // 1. Fetch Profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(profile);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+          
+          // 1. Fetch Profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profileError) throw new Error(`Profile fetch failed: ${profileError.message}`);
+          setProfile(profile);
 
-        // 2. Fetch Recent Usage Logs
-        const { data: usage } = await supabase
-          .from('usage_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
-        setRecentUsage(usage || []);
+          // 2. Fetch Recent Usage Logs
+          const { data: usage, error: usageError } = await supabase
+            .from('usage_logs')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          
+          if (usageError && usageError.code !== 'PGRST116') { // Ignore if table doesn't exist
+            console.warn('Usage logs table might be missing:', usageError.message);
+          }
+          setRecentUsage(usage || []);
 
-        // 3. Fetch Generated Files
-        const { data: files } = await supabase
-          .from('user_files')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(3);
-        setUserFiles(files || []);
+          // 3. Fetch Generated Files
+          const { data: files, error: filesError } = await supabase
+            .from('user_files')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(3);
+          
+          if (filesError && filesError.code !== 'PGRST116') {
+            console.warn('User files table might be missing:', filesError.message);
+          }
+          setUserFiles(files || []);
+        }
+      } catch (err: any) {
+        console.error('Dashboard load error:', err);
+        setError(err.message || 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadDashboardData();
   }, []);
@@ -65,6 +82,32 @@ export default function DashboardPage() {
         <div className="w-12 h-12 border-2 border-white/5 border-t-blue-500 rounded-full animate-spin"></div>
         <div className="absolute inset-0 flex items-center justify-center">
           <img src="/icon-192.png" alt="Loading" className="w-4 h-4 opacity-50" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-rose-500/10 border border-rose-500/20 rounded-3xl p-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/20 flex items-center justify-center mx-auto mb-6">
+          <span className="text-3xl">⚠️</span>
+        </div>
+        <h2 className="text-2xl font-black text-rose-400 mb-4">Dashboard Error</h2>
+        <p className="text-white/60 text-sm mb-6">{error}</p>
+        <div className="space-y-3">
+          <button 
+            onClick={() => window.location.reload()} 
+            className="w-full py-3 rounded-xl bg-rose-500 text-white font-black uppercase tracking-widest hover:bg-rose-400 transition-all"
+          >
+            Retry
+          </button>
+          <button 
+            onClick={handleSignOut}
+            className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>
