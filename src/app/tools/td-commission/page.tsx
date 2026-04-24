@@ -130,7 +130,7 @@ export default function TDCommissionPage() {
     }
 
     const cost = costs.td_commission_download || 10
-    const currentCredits = profile?.credits || 0
+    const currentCredits = profile?.wallet_balance || 0
 
     if (currentCredits < cost) {
       alert(`Insufficient credits. ${cost} CR required to download.`)
@@ -141,7 +141,7 @@ export default function TDCommissionPage() {
     // Deduct Credits
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ credits: currentCredits - cost })
+      .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id)
 
     if (updateError) {
@@ -181,7 +181,7 @@ export default function TDCommissionPage() {
     }
 
     const cost = costs.td_commission_download || 10
-    const currentCredits = profile?.credits || 0
+    const currentCredits = profile?.wallet_balance || 0
 
     if (currentCredits < cost) {
       alert(`Insufficient credits. ${cost} CR required to print.`)
@@ -192,7 +192,7 @@ export default function TDCommissionPage() {
     // Deduct & Log
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ credits: currentCredits - cost })
+      .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id)
 
     if (updateError) {

@@ -67,7 +67,7 @@ export default function GDSLeavePage() {
     }
 
     const cost = costs.gds_leave_download || 10;
-    const currentCredits = profile?.credits || 0;
+    const currentCredits = profile?.wallet_balance || 0;
 
     if (currentCredits < cost) {
       alert(`Insufficient credits. ${cost} CR required to print/download.`);
@@ -78,7 +78,7 @@ export default function GDSLeavePage() {
     // Deduct Credits
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ credits: currentCredits - cost })
+      .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id);
 
     if (updateError) {
