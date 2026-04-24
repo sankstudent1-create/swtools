@@ -27,12 +27,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(currentUser);
       
       if (currentUser) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', currentUser.id)
           .single();
-        setProfile(data);
+        
+        if (error && error.code === 'PGRST116') {
+          // Create profile if it doesn't exist
+          const newProfile = {
+            id: currentUser.id,
+            full_name: currentUser.user_metadata?.full_name || 'User',
+            wallet_balance: 0
+          };
+          await supabase.from('profiles').insert(newProfile);
+          setProfile(newProfile);
+        } else {
+          setProfile(data);
+        }
       }
       setLoading(false);
     };
