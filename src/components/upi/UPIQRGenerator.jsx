@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './UPIQRGenerator.module.css';
 import { Download, Share2, ExternalLink } from 'lucide-react';
+import { toPng } from 'html-to-image';
 
 /**
  * UPIQRGenerator component renders a QR code for UPI payment.
@@ -67,27 +68,57 @@ const UPIQRGenerator = ({
     const card = containerRef.current.querySelector('.branded-qr-card');
     if (!card) return;
     
-    // Use html-to-image or similar in production, for now we download the QR canvas
-    const canvas = canvasRef.current.querySelector('canvas');
-    if (!canvas) return;
-    const link = document.createElement('a');
-    link.download = `upi-qr-${upiId}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    try {
+      const dataUrl = await toPng(card, { 
+        quality: 1, 
+        pixelRatio: 3, // Higher resolution
+        backgroundColor: '#ffffff' 
+      });
+      const link = document.createElement('a');
+      link.download = `swtools-upi-qr-${upiId}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Error generating image:', err);
+      // Fallback to just QR canvas if full card fails
+      const canvas = canvasRef.current.querySelector('canvas');
+      if (canvas) {
+        const link = document.createElement('a');
+        link.download = `upi-qr-${upiId}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+    }
   };
 
   const handleShare = async () => {
-    const uri = buildUPIUri();
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'UPI Payment QR',
-          text: `Pay ${name || upiId} ₹${amount || ''} using SWTools Secure QR`,
-          url: uri,
-        });
-      } catch (err) {
-        console.error('Error sharing:', err);
+    const card = containerRef.current.querySelector('.branded-qr-card');
+    if (!card) return;
+
+    try {
+      if (navigator.share && navigator.canShare) {
+        const dataUrl = await toPng(card, { quality: 1, pixelRatio: 2 });
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], `upi-payment-qr.png`, { type: 'image/png' });
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'UPI Payment QR',
+            text: `Pay ${name || upiId} ₹${amount || ''} using SWTools Secure QR`,
+            files: [file],
+          });
+        } else {
+          // Fallback to URI share
+          const uri = buildUPIUri();
+          await navigator.share({
+            title: 'UPI Payment QR',
+            text: `Pay ${name || upiId} ₹${amount || ''} using SWTools Secure QR`,
+            url: uri,
+          });
+        }
       }
+    } catch (err) {
+      console.error('Error sharing:', err);
     }
   };
 
