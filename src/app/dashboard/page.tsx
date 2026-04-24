@@ -7,7 +7,7 @@ import {
   User, Wallet, History, CreditCard, ArrowUpRight, 
   ArrowDownLeft, FileText, Settings, LogOut, ShieldCheck,
   ChevronRight, Sparkles, LayoutDashboard, Search, Filter,
-  ExternalLink, Download, Clock, Zap
+  ExternalLink, Download, Clock, Zap, Calculator
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
