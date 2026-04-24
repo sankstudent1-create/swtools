@@ -44,8 +44,32 @@ CREATE TABLE user_files (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Row Level Security (RLS) Configuration
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+-- 5. System Configuration (Dynamic Pricing & Costs)
+CREATE TABLE system_config (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Initial Config Data
+INSERT INTO system_config (key, value) VALUES 
+('credit_packages', '[
+  {"credits": 50, "price": 49, "popular": false, "bonus": 0},
+  {"credits": 120, "price": 99, "popular": true, "bonus": 20},
+  {"credits": 300, "price": 199, "popular": false, "bonus": 50},
+  {"credits": 1000, "price": 499, "popular": false, "bonus": 200}
+]'),
+('tool_costs', '{
+  "letterpad_ai_fill": 5,
+  "td_commission_download": 10,
+  "gds_leave_download": 10,
+  "pdf_editor_pro": 2
+}');
+
+-- Row Level Security (RLS) for Config
+ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view config" ON system_config FOR SELECT USING (true);
+CREATE POLICY "Only admins can update config" ON system_config FOR UPDATE USING (auth.jwt() ->> 'email' = 'your_admin_email@example.com');
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usage_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_files ENABLE ROW LEVEL SECURITY;

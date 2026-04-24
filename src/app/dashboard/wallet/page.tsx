@@ -17,30 +17,40 @@ import {
 export default function WalletPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [topupAmount, setTopupAmount] = useState<number>(50);
+  const [topupAmount, setTopupAmount] = useState<number>(49);
+  const [creditPackages, setCreditPackages] = useState<any[]>([]);
 
   useEffect(() => {
-    async function getProfile() {
+    async function loadData() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Fetch Profile
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
         setProfile(profile);
+
+        // Fetch Dynamic Packages from System Config
+        const { data: config } = await supabase
+          .from('system_config')
+          .select('value')
+          .eq('key', 'credit_packages')
+          .single();
+        
+        if (config?.value) {
+          setCreditPackages(config.value);
+          // Set initial topup amount to the first package's price
+          if (config.value.length > 0) {
+            setTopupAmount(config.value[0].price);
+          }
+        }
       }
       setLoading(false);
     }
-    getProfile();
+    loadData();
   }, []);
-
-  const creditPackages = [
-    { credits: 50, price: 49, popular: false, bonus: 0 },
-    { credits: 120, price: 99, popular: true, bonus: 20 },
-    { credits: 300, price: 199, popular: false, bonus: 50 },
-    { credits: 1000, price: 499, popular: false, bonus: 200 },
-  ];
 
   if (loading) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">

@@ -32,6 +32,20 @@ export function useLetterState() {
   const [lastModel, setLastModel] = useState<string | undefined>(undefined);
 
   const [aiTick, setAiTick] = useState(0);
+  const [costs, setCosts] = useState<Record<string, number>>({ letterpad_ai_fill: 5 });
+
+  // ── Fetch Tool Costs ──────────────────────────────────
+  useEffect(() => {
+    async function fetchCosts() {
+      const { data } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'tool_costs')
+        .single();
+      if (data?.value) setCosts(data.value);
+    }
+    fetchCosts();
+  }, []);
 
   // ── Sync credits with Supabase ────────────────────────
   useEffect(() => {
@@ -39,7 +53,9 @@ export function useLetterState() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Deduct 5 credits for AI fill
+      const cost = costs.letterpad_ai_fill || 5;
+
+      // Deduct credits for AI fill
       if (aiTick > 0) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -47,23 +63,23 @@ export function useLetterState() {
           .eq('id', user.id)
           .single();
 
-        if (profile && profile.wallet_balance >= 5) {
+        if (profile && profile.wallet_balance >= cost) {
           await supabase
             .from('profiles')
-            .update({ wallet_balance: profile.wallet_balance - 5 })
+            .update({ wallet_balance: profile.wallet_balance - cost })
             .eq('id', user.id);
           
           await supabase.from('usage_logs').insert({
             user_id: user.id,
             tool_id: 'letterpad-generator',
-            credits_spent: 5,
+            credits_spent: cost,
             metadata: { type: 'ai_fill', model: lastModel }
           });
         }
       }
     }
     syncCredits();
-  }, [aiTick]);
+  }, [aiTick, costs]);
 
   // ── Form field update ────────────────────────────────
   const updateForm = useCallback(<K extends keyof LetterForm>(key: K, value: LetterForm[K]) => {
@@ -150,8 +166,10 @@ export function useLetterState() {
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.wallet_balance < 5) {
-      alert("Insufficient credits. 5 CR required for AI generation.");
+    const cost = costs.letterpad_ai_fill || 5;
+
+    if (!profile || profile.wallet_balance < cost) {
+      alert(`Insufficient credits. ${cost} CR required for AI generation.`);
       window.location.href = '/dashboard/wallet';
       return;
     }

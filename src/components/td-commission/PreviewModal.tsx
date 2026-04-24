@@ -38,7 +38,25 @@ export default function PreviewModal({ blobUrl, onClose }: Props) {
             ✕
           </button>
         </div>
-        <iframe src={blobUrl} className="flex-1 border-0 bg-white" title="PDF Preview" />
+        <div className="relative flex-1 bg-white overflow-hidden">
+          <iframe src={blobUrl} className="w-full h-full border-0" title="PDF Preview" />
+          
+          {/* Watermark Overlay */}
+          <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center opacity-[0.07] select-none overflow-hidden">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="flex gap-20 whitespace-nowrap -rotate-12 mb-20 translate-x-10 translate-y-10">
+                {Array.from({ length: 6 }).map((_, j) => (
+                  <span key={j} className="text-4xl font-black tracking-[0.2em] text-black">SWTOOLS PREVIEW</span>
+                ))}
+              </div>
+            ))}
+          </div>
+          
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-3">
+             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+             <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest">Watermarked Preview · Unlock for High Quality</p>
+          </div>
+        </div>
       </div>
     </div>
   )

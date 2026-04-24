@@ -10,6 +10,8 @@ import EntryRowComponent from '@/components/td-commission/EntryRow'
 import PreviewModal from '@/components/td-commission/PreviewModal'
 import { Calculator, Download, Eye, Printer, Plus, Save, Building2, MapPin, Building, RotateCcw } from 'lucide-react'
 
+import { supabase } from '@/lib/supabase'
+
 const MAX_ROWS = 19
 
 function nowYM() {
@@ -33,6 +35,20 @@ export default function TDCommissionPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const [costs, setCosts] = useState<Record<string, number>>({ td_commission_download: 10 })
+
+  useEffect(() => {
+    async function fetchCosts() {
+      const { data } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'tool_costs')
+        .single();
+      if (data?.value) setCosts(data.value);
+    }
+    fetchCosts();
+  }, []);
 
   useEffect(() => {
     setOffice(prev => ({
@@ -99,6 +115,49 @@ export default function TDCommissionPage() {
   }
 
   const handleDownload = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please login to download.");
+      window.location.href = '/auth';
+      return;
+    }
+
+    const cost = costs.td_commission_download || 10;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.wallet_balance < cost) {
+      alert(`Insufficient credits. ${cost} CR required to download.`);
+      window.location.href = '/dashboard/wallet';
+      return;
+    }
+
+    // Deduct Credits
+    await supabase
+      .from('profiles')
+      .update({ wallet_balance: profile.wallet_balance - cost })
+      .eq('id', user.id);
+
+    // Log Usage
+    await supabase.from('usage_logs').insert({
+      user_id: user.id,
+      tool_id: 'td-commission',
+      credits_spent: cost,
+      metadata: { action: 'download', office: office.bo }
+    });
+
+    // Save File Reference (Simplified for now, saving metadata)
+    await supabase.from('user_files').insert({
+      user_id: user.id,
+      tool_id: 'td-commission',
+      file_name: `TD_Commission_${office.bo}_${office.month}.pdf`,
+      storage_path: 'inline_metadata',
+      metadata: { office, rows }
+    });
+
     const doc = await getPDF()
     const mDisp = office.month
       ? new Date(office.month + '-01').toLocaleString('en-IN', { month: 'long', year: 'numeric' })
@@ -107,6 +166,30 @@ export default function TDCommissionPage() {
   }
 
   const handlePrint = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please login to print.");
+      window.location.href = '/auth';
+      return;
+    }
+
+    const cost = costs.td_commission_download || 10;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.wallet_balance < cost) {
+      alert(`Insufficient credits. ${cost} CR required to print.`);
+      window.location.href = '/dashboard/wallet';
+      return;
+    }
+
+    // Deduct & Log
+    await supabase.from('profiles').update({ wallet_balance: profile.wallet_balance - cost }).eq('id', user.id);
+    await supabase.from('usage_logs').insert({ user_id: user.id, tool_id: 'td-commission', credits_spent: cost, metadata: { action: 'print' } });
+
     const doc = await getPDF()
     const url = URL.createObjectURL(doc.output('blob'))
     const w = window.open(url, '_blank')

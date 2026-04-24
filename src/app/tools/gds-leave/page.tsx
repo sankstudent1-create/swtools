@@ -9,6 +9,7 @@ import type { FormData } from '@/types/gds';
 import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
 import { openPrintWindow, openPreviewWindow } from '@/lib/gds/printBuilder';
+import { supabase } from '@/lib/supabase';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
@@ -19,6 +20,20 @@ export default function GDSLeavePage() {
   const [toast, setToast]           = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
   const prevUrlRef                  = useRef<string>('');
+
+  const [costs, setCosts] = useState<Record<string, number>>({ gds_leave_download: 10 });
+
+  useEffect(() => {
+    async function fetchCosts() {
+      const { data } = await supabase
+        .from('system_config')
+        .select('value')
+        .eq('key', 'tool_costs')
+        .single();
+      if (data?.value) setCosts(data.value);
+    }
+    fetchCosts();
+  }, []);
 
   function handleChange(updated: FormData) {
     const autoSubj       = buildSubject(updated);
@@ -36,7 +51,47 @@ export default function GDSLeavePage() {
     setTimeout(() => setToast(''), 3500);
   }
 
-  function handlePrint() {
+  async function handlePrint() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert("Please login to print.");
+      window.location.href = '/auth';
+      return;
+    }
+
+    const cost = costs.gds_leave_download || 10;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.wallet_balance < cost) {
+      alert(`Insufficient credits. ${cost} CR required to print/download.`);
+      window.location.href = '/dashboard/wallet';
+      return;
+    }
+
+    // Deduct Credits
+    await supabase.from('profiles').update({ wallet_balance: profile.wallet_balance - cost }).eq('id', user.id);
+    
+    // Log Usage
+    await supabase.from('usage_logs').insert({
+      user_id: user.id,
+      tool_id: 'gds-leave',
+      credits_spent: cost,
+      metadata: { action: 'print' }
+    });
+
+    // Save Record
+    await supabase.from('user_files').insert({
+      user_id: user.id,
+      tool_id: 'gds-leave',
+      file_name: `GDS_Leave_${data.application.name}.pdf`,
+      storage_path: 'inline_metadata',
+      metadata: { data }
+    });
+
     openPrintWindow(data);
     showToast('✓ Print dialog opening… choose "Save as PDF" to download');
   }
@@ -140,7 +195,25 @@ export default function GDSLeavePage() {
               <span className={styles.modalTitle}>Preview — 4 leave copies + cover letter</span>
               <button onClick={closePreview} className={styles.modalClose}>✕</button>
             </div>
-            <iframe src={previewUrl} className={styles.modalFrame} title="PDF Preview" />
+            <div className="relative flex-1 bg-white overflow-hidden min-h-[500px]">
+              <iframe src={previewUrl} className="w-full h-full border-0 absolute inset-0" title="PDF Preview" />
+              
+              {/* Watermark Overlay */}
+              <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center opacity-[0.06] select-none overflow-hidden">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <div key={i} className="flex gap-20 whitespace-nowrap -rotate-12 mb-24 translate-x-10 translate-y-10">
+                    {Array.from({ length: 8 }).map((_, j) => (
+                      <span key={j} className="text-5xl font-black tracking-[0.2em] text-black">SWTOOLS PREVIEW</span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-3 z-10">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <p className="text-[10px] font-black text-white/90 uppercase tracking-[0.2em]">Watermarked Preview · Unlock to Download</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
