@@ -21,46 +21,56 @@ export default function DashboardPage() {
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          
-          // 1. Fetch Profile
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          if (profileError) throw new Error(`Profile fetch failed: ${profileError.message}`);
-          setProfile(profile);
-
-          // 2. Fetch Recent Usage Logs
-          const { data: usage, error: usageError } = await supabase
-            .from('usage_logs')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(5);
-          
-          if (usageError && usageError.code !== 'PGRST116') { // Ignore if table doesn't exist
-            console.warn('Usage logs table might be missing:', usageError.message);
-          }
-          setRecentUsage(usage || []);
-
-          // 3. Fetch Generated Files
-          const { data: files, error: filesError } = await supabase
-            .from('user_files')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(3);
-          
-          if (filesError && filesError.code !== 'PGRST116') {
-            console.warn('User files table might be missing:', filesError.message);
-          }
-          setUserFiles(files || []);
+        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !authUser) {
+          setError("Session expired or not found. Please log in again.");
+          return;
         }
+
+        setUser(authUser);
+        
+        // 1. Fetch Profile (or create if missing)
+        let { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        
+        if (profileError) {
+          console.warn('Profile not found, user might be new:', profileError.message);
+          // If profile is missing, we still want to show the dashboard with default 0 credits
+          setProfile({ id: authUser.id, credits: 0, full_name: authUser.user_metadata?.full_name || 'User' });
+        } else {
+          setProfile(profileData);
+        }
+
+        // 2. Fetch Recent Usage Logs
+        const { data: usage, error: usageError } = await supabase
+          .from('usage_logs')
+          .select('*')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (usageError && usageError.code !== 'PGRST116') {
+          console.error('Usage logs fetch error:', usageError.message);
+        }
+        setRecentUsage(usage || []);
+
+        // 3. Fetch Generated Files
+        const { data: files, error: filesError } = await supabase
+          .from('user_files')
+          .select('*')
+          .eq('user_id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        
+        if (filesError && filesError.code !== 'PGRST116') {
+          console.error('User files fetch error:', filesError.message);
+        }
+        setUserFiles(files || []);
+
       } catch (err: any) {
         console.error('Dashboard load error:', err);
         setError(err.message || 'Failed to load dashboard data');
