@@ -1,9 +1,8 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
@@ -23,11 +22,6 @@ export async function middleware(request: NextRequest) {
             value,
             ...options,
           })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
           response.cookies.set({
             name,
             value,
@@ -39,11 +33,6 @@ export async function middleware(request: NextRequest) {
             name,
             value: '',
             ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
           })
           response.cookies.set({
             name,
@@ -75,6 +64,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - all static assets (fonts, svg, png, jpg, jpeg, gif, webp, css, js)
+     *
+     * This ensures the middleware does not interfere with static asset preloading.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js)$).*)',
   ],
 }
