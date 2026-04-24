@@ -16,6 +16,8 @@ import styles from './gds-leave.module.css';
 type Tab = 'app' | 'letter';
 
 export default function GDSLeavePage() {
+  console.log('=== GDS Leave Page: Component Mounting ===');
+  
   const { user, profile, loading: authLoading } = useAuth();
   const [tab, setTab]               = useState<Tab>('app');
   const [data, setData]             = useState<FormData>(defaultFormData);
@@ -25,20 +27,40 @@ export default function GDSLeavePage() {
 
   const [costs, setCosts] = useState<Record<string, number>>({ gds_leave_download: 10 });
 
+  console.log('GDS Leave: Auth state:', { 
+    hasUser: !!user, 
+    userId: user?.id,
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    walletBalance: profile?.wallet_balance,
+    authLoading 
+  });
+
   useEffect(() => {
+    console.log('GDS Leave: Auth state changed:', { authLoading, hasUser: !!user });
     if (!authLoading && !user) {
+      console.log('GDS Leave: No user found, redirecting to /auth');
       window.location.href = '/auth';
+    } else if (!authLoading && user) {
+      console.log('GDS Leave: User authenticated, page will render');
     }
   }, [user, authLoading]);
 
   useEffect(() => {
+    console.log('GDS Leave: Fetching tool costs...');
     async function fetchCosts() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'tool_costs')
         .single();
-      if (data?.value) setCosts(data.value);
+      
+      console.log('GDS Leave: Tool costs response:', { data, error });
+      
+      if (data?.value) {
+        setCosts(data.value);
+        console.log('GDS Leave: Costs set:', data.value);
+      }
     }
     fetchCosts();
   }, []);
@@ -60,7 +82,10 @@ export default function GDSLeavePage() {
   }
 
   async function handlePrint() {
+    console.log('=== GDS Leave: Print Button Clicked ===');
+    
     if (!user) {
+      console.log('GDS Leave: No user found, alerting and redirecting');
       alert("Please login to print.");
       window.location.href = '/auth';
       return;
@@ -69,42 +94,98 @@ export default function GDSLeavePage() {
     const cost = costs.gds_leave_download || 10;
     const currentCredits = profile?.wallet_balance || 0;
 
+    console.log('GDS Leave: Credit check:', { 
+      cost, 
+      currentCredits, 
+      hasProfile: !!profile,
+      profileId: profile?.id,
+      sufficient: currentCredits >= cost 
+    });
+
     if (currentCredits < cost) {
+      console.log('GDS Leave: Insufficient credits, redirecting to wallet');
       alert(`Insufficient credits. ${cost} CR required to print/download.`);
       window.location.href = '/dashboard/wallet';
       return;
     }
 
+    console.log('GDS Leave: Attempting to deduct credits...');
+    console.log('GDS Leave: Update query:', {
+      table: 'profiles',
+      userId: user.id,
+      currentBalance: currentCredits,
+      newBalance: currentCredits - cost,
+      deduction: cost
+    });
+
     // Deduct Credits
-    const { error: updateError } = await supabase
+    const { error: updateError, data: updateData } = await supabase
       .from('profiles')
       .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id);
 
+    console.log('GDS Leave: Credit deduction response:', { 
+      error: updateError, 
+      data: updateData 
+    });
+
     if (updateError) {
+      console.error('GDS Leave: Credit deduction failed:', updateError);
+      console.error('GDS Leave: Error details:', {
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint
+      });
       alert('Error deducting credits. Please try again.');
       return;
     }
     
     // Log Usage
-    await supabase.from('usage_logs').insert({
+    console.log('GDS Leave: Logging usage...');
+    const usageLogData = {
       user_id: user.id,
       tool_id: 'gds-leave',
       credits_spent: cost,
       metadata: { action: 'print' }
-    });
+    };
+    console.log('GDS Leave: Usage log data:', usageLogData);
+    
+    const { error: usageError } = await supabase
+      .from('usage_logs')
+      .insert(usageLogData);
+    
+    console.log('GDS Leave: Usage log response:', { error: usageError });
+
+    if (usageError) {
+      console.error('GDS Leave: Usage log failed:', usageError);
+    }
 
     // Save Record
-    await supabase.from('user_files').insert({
+    console.log('GDS Leave: Saving file reference...');
+    const fileData = {
       user_id: user.id,
       tool_id: 'gds-leave',
       file_name: `GDS_Leave_${data.applicant.name}.pdf`,
       storage_path: 'inline_metadata',
       metadata: { data }
-    });
+    };
+    console.log('GDS Leave: File data:', fileData);
+    
+    const { error: fileError } = await supabase
+      .from('user_files')
+      .insert(fileData);
+    
+    console.log('GDS Leave: File reference response:', { error: fileError });
 
+    if (fileError) {
+      console.error('GDS Leave: File reference failed:', fileError);
+    }
+
+    console.log('GDS Leave: Opening print window...');
     openPrintWindow(data);
     showToast('✓ Print dialog opening… choose "Save as PDF" to download');
+    console.log('GDS Leave: Print complete');
   }
 
   function handlePreview() {

@@ -24,8 +24,19 @@ function nowDate() { return new Date().toISOString().split('T')[0] }
 let idSeq = 0
 
 export default function TDCommissionPage() {
+  console.log('=== TD Commission Page: Component Mounting ===');
+  
   const { user, profile, loading: authLoading } = useAuth()
   const { add, getFirst } = useLS()
+
+  console.log('TD Commission: Auth state:', { 
+    hasUser: !!user, 
+    userId: user?.id,
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    walletBalance: profile?.wallet_balance,
+    authLoading 
+  });
 
   const [office, setOffice] = useState<OfficeDetails>({
     bo: '', so: '', ho: '',
@@ -41,20 +52,31 @@ export default function TDCommissionPage() {
   const [costs, setCosts] = useState<Record<string, number>>({ td_commission_download: 10 })
 
   useEffect(() => {
+    console.log('TD Commission: Fetching tool costs...');
     async function fetchCosts() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('system_config')
         .select('value')
         .eq('key', 'tool_costs')
         .single();
-      if (data?.value) setCosts(data.value);
+      
+      console.log('TD Commission: Tool costs response:', { data, error });
+      
+      if (data?.value) {
+        setCosts(data.value);
+        console.log('TD Commission: Costs set:', data.value);
+      }
     }
     fetchCosts();
   }, []);
 
   useEffect(() => {
+    console.log('TD Commission: Auth state changed:', { authLoading, hasUser: !!user });
     if (!authLoading && !user) {
+      console.log('TD Commission: No user found, redirecting to /auth');
       window.location.href = '/auth'
+    } else if (!authLoading && user) {
+      console.log('TD Commission: User authenticated, page will render');
     }
   }, [user, authLoading])
 
@@ -123,7 +145,10 @@ export default function TDCommissionPage() {
   }
 
   const handleDownload = async () => {
+    console.log('=== TD Commission: Download Button Clicked ===');
+    
     if (!user) {
+      console.log('TD Commission: No user found, alerting and redirecting');
       alert("Please login to download.")
       window.location.href = '/auth'
       return
@@ -132,45 +157,108 @@ export default function TDCommissionPage() {
     const cost = costs.td_commission_download || 10
     const currentCredits = profile?.wallet_balance || 0
 
+    console.log('TD Commission: Credit check:', { 
+      cost, 
+      currentCredits, 
+      hasProfile: !!profile,
+      profileId: profile?.id,
+      sufficient: currentCredits >= cost 
+    });
+
     if (currentCredits < cost) {
+      console.log('TD Commission: Insufficient credits, redirecting to wallet');
       alert(`Insufficient credits. ${cost} CR required to download.`)
       window.location.href = '/dashboard/wallet'
       return
     }
 
+    console.log('TD Commission: Attempting to deduct credits...');
+    console.log('TD Commission: Update query:', {
+      table: 'profiles',
+      userId: user.id,
+      currentBalance: currentCredits,
+      newBalance: currentCredits - cost,
+      deduction: cost
+    });
+
     // Deduct Credits
-    const { error: updateError } = await supabase
+    const { error: updateError, data: updateData } = await supabase
       .from('profiles')
       .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id)
+      .select()
+
+    console.log('TD Commission: Credit deduction response:', { 
+      error: updateError, 
+      data: updateData 
+    });
 
     if (updateError) {
+      console.error('TD Commission: Credit deduction failed:', updateError);
+      console.error('TD Commission: Error details:', {
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint
+      });
       alert('Error deducting credits. Please try again.')
       return
     }
 
     // Log Usage
-    await supabase.from('usage_logs').insert({
+    console.log('TD Commission: Logging usage...');
+    const usageLogData = {
       user_id: user.id,
       tool_id: 'td-commission',
       credits_spent: cost,
       metadata: { action: 'download', office: office.bo }
-    });
+    };
+    console.log('TD Commission: Usage log data:', usageLogData);
+    
+    const { error: usageError } = await supabase
+      .from('usage_logs')
+      .insert(usageLogData);
+    
+    console.log('TD Commission: Usage log response:', { error: usageError });
+
+    if (usageError) {
+      console.error('TD Commission: Usage log failed:', usageError);
+    }
+
+    console.log('TD Commission: Generating PDF...');
+    const doc = await getPDF()
+    console.log('TD Commission: PDF generated successfully');
 
     // Save File Reference (Simplified for now, saving metadata)
-    await supabase.from('user_files').insert({
+    console.log('TD Commission: Saving file reference...');
+    const fileData = {
       user_id: user.id,
       tool_id: 'td-commission',
       file_name: `TD_Commission_${office.bo}_${office.month}.pdf`,
       storage_path: 'inline_metadata',
       metadata: { office, rows }
-    });
+    };
+    console.log('TD Commission: File data:', fileData);
+    
+    const { error: fileError } = await supabase
+      .from('user_files')
+      .insert(fileData);
+    
+    console.log('TD Commission: File reference response:', { error: fileError });
 
+    if (fileError) {
+      console.error('TD Commission: File reference failed:', fileError);
+    }
+
+    console.log('TD Commission: Saving PDF to disk...');
     const doc = await getPDF()
     const mDisp = office.month
       ? new Date(office.month + '-01').toLocaleString('en-IN', { month: 'long', year: 'numeric' })
       : ''
-    doc.save(`TD_Commission_${(office.bo || 'BO').replace(/\s+/g, '_')}_${mDisp.replace(/\s+/g, '_')}.pdf`)
+    const fileName = `TD_Commission_${(office.bo || 'BO').replace(/\s+/g, '_')}_${mDisp.replace(/\s+/g, '_')}.pdf`
+    console.log('TD Commission: Saving file:', fileName);
+    doc.save(fileName)
+    console.log('TD Commission: Download complete');
   }
 
   const handlePrint = async () => {
