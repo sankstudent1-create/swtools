@@ -7,7 +7,7 @@ import {
   Users, Wallet, History, CreditCard, ShieldCheck, 
   Settings, LogOut, LayoutDashboard, Search, 
   BarChart3, Database, Lock, AlertTriangle, ChevronRight,
-  TrendingUp, Activity, UserPlus
+  TrendingUp, Activity, UserPlus, Zap
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
