@@ -37,12 +37,9 @@ export default function GDSLeavePage() {
   });
 
   useEffect(() => {
-    console.log('GDS Leave: Auth state changed:', { authLoading, hasUser: !!user });
     if (!authLoading && !user) {
-      console.log('GDS Leave: No user found, redirecting to /auth');
+      console.log('GDS Leave: Redirecting to auth because user is null');
       window.location.href = '/auth';
-    } else if (!authLoading && user) {
-      console.log('GDS Leave: User authenticated, page will render');
     }
   }, [user, authLoading]);
 
@@ -91,53 +88,40 @@ export default function GDSLeavePage() {
       return;
     }
 
+    // Always fetch latest profile to be sure
+    const { data: latestProfile } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+
     const cost = costs.gds_leave_download || 10;
-    const currentCredits = profile?.wallet_balance || 0;
+    const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
 
     console.log('GDS Leave: Credit check:', { 
       cost, 
       currentCredits, 
-      hasProfile: !!profile,
-      profileId: profile?.id,
       sufficient: currentCredits >= cost 
     });
 
     if (currentCredits < cost) {
-      console.log('GDS Leave: Insufficient credits, redirecting to wallet');
-      alert(`Insufficient credits. ${cost} CR required to print/download.`);
+      console.log('GDS Leave: Insufficient credits');
+      alert(`Insufficient credits. ${cost} CR required to download. Current: ${currentCredits} CR`)
       window.location.href = '/dashboard/wallet';
       return;
     }
 
     console.log('GDS Leave: Attempting to deduct credits...');
-    console.log('GDS Leave: Update query:', {
-      table: 'profiles',
-      userId: user.id,
-      currentBalance: currentCredits,
-      newBalance: currentCredits - cost,
-      deduction: cost
-    });
-
+    
     // Deduct Credits
-    const { error: updateError, data: updateData } = await supabase
+    const { error: updateError } = await supabase
       .from('profiles')
       .update({ wallet_balance: currentCredits - cost })
       .eq('id', user.id);
 
-    console.log('GDS Leave: Credit deduction response:', { 
-      error: updateError, 
-      data: updateData 
-    });
-
     if (updateError) {
       console.error('GDS Leave: Credit deduction failed:', updateError);
-      console.error('GDS Leave: Error details:', {
-        message: updateError.message,
-        code: updateError.code,
-        details: updateError.details,
-        hint: updateError.hint
-      });
-      alert('Error deducting credits. Please try again.');
+      alert(`Error deducting credits: ${updateError.message}`);
       return;
     }
     

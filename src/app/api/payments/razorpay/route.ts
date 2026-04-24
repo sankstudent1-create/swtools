@@ -1,11 +1,30 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
   console.log('=== Razorpay POST handler started ===');
   
   try {
     console.log('Step 1: Parsing request body...');
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('TD Commission: No user found, redirecting to login');
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Refresh latest profile to get up‑to‑date credits
+    const { data: latestProfile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('wallet_balance')
+      .eq('id', user.id)
+      .single();
+    if (profileErr) {
+      console.error('Failed to fetch latest profile:', profileErr);
+    }
+
     const body = await req.json();
     console.log('Step 2: Request received:', body);
     
@@ -50,10 +69,15 @@ export async function POST(req: Request) {
     };
 
     console.log('Step 6: Creating Razorpay order with options:', options);
-    const order = await razorpay.orders.create(options);
-    console.log('Step 7: Order created successfully:', order.id);
-    return NextResponse.json(order);
-  } catch (error: any) {
+    try {
+      const order = await razorpay.orders.create(options);
+      console.log('Step 7: Order created successfully:', order.id);
+      // Return only necessary fields to client
+      return NextResponse.json({ id: order.id, amount: order.amount, currency: order.currency });
+    } catch (orderErr) {
+      console.error('Razorpay order creation failed:', orderErr);
+      return NextResponse.json({ error: 'Failed to create Razorpay order', details: orderErr?.message || '' }, { status: 500 });
+    }  } catch (error: any) {
     console.error('=== Razorpay order error ===');
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
