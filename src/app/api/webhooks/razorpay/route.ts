@@ -5,10 +5,13 @@ import { createClient } from '@/lib/supabase-server';
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get('x-razorpay-signature');
-  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  
+  // Use Razorpay Secret as fallback if WEBHOOK_SECRET is not explicitly set
+  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_SECRET;
 
   if (!webhookSecret || !signature) {
-    return NextResponse.json({ error: 'Webhook secret or signature missing' }, { status: 400 });
+    console.error('Razorpay webhook verification failed: Secret or signature missing');
+    return NextResponse.json({ error: 'Configuration missing' }, { status: 400 });
   }
 
   // 1. Verify Webhook Signature
