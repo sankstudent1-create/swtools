@@ -11,6 +11,7 @@ import PreviewModal from '@/components/td-commission/PreviewModal'
 import { Calculator, Download, Eye, Printer, Plus, Save, Building2, MapPin, Building, RotateCcw } from 'lucide-react'
 
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
 
 const MAX_ROWS = 19
 
@@ -23,6 +24,7 @@ function nowDate() { return new Date().toISOString().split('T')[0] }
 let idSeq = 0
 
 export default function TDCommissionPage() {
+  const { user, profile, loading: authLoading } = useAuth()
   const { add, getFirst } = useLS()
 
   const [office, setOffice] = useState<OfficeDetails>({
@@ -49,6 +51,12 @@ export default function TDCommissionPage() {
     }
     fetchCosts();
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/auth'
+    }
+  }, [user, authLoading])
 
   useEffect(() => {
     setOffice(prev => ({
@@ -115,31 +123,31 @@ export default function TDCommissionPage() {
   }
 
   const handleDownload = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("Please login to download.");
-      window.location.href = '/auth';
-      return;
+      alert("Please login to download.")
+      window.location.href = '/auth'
+      return
     }
 
-    const cost = costs.td_commission_download || 10;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
+    const cost = costs.td_commission_download || 10
+    const currentCredits = profile?.credits || 0
 
-    if (!profile || profile.wallet_balance < cost) {
-      alert(`Insufficient credits. ${cost} CR required to download.`);
-      window.location.href = '/dashboard/wallet';
-      return;
+    if (currentCredits < cost) {
+      alert(`Insufficient credits. ${cost} CR required to download.`)
+      window.location.href = '/dashboard/wallet'
+      return
     }
 
     // Deduct Credits
-    await supabase
+    const { error: updateError } = await supabase
       .from('profiles')
-      .update({ wallet_balance: profile.wallet_balance - cost })
-      .eq('id', user.id);
+      .update({ credits: currentCredits - cost })
+      .eq('id', user.id)
+
+    if (updateError) {
+      alert('Error deducting credits. Please try again.')
+      return
+    }
 
     // Log Usage
     await supabase.from('usage_logs').insert({
@@ -166,28 +174,32 @@ export default function TDCommissionPage() {
   }
 
   const handlePrint = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("Please login to print.");
-      window.location.href = '/auth';
-      return;
+      alert("Please login to print.")
+      window.location.href = '/auth'
+      return
     }
 
-    const cost = costs.td_commission_download || 10;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
+    const cost = costs.td_commission_download || 10
+    const currentCredits = profile?.credits || 0
 
-    if (!profile || profile.wallet_balance < cost) {
-      alert(`Insufficient credits. ${cost} CR required to print.`);
-      window.location.href = '/dashboard/wallet';
-      return;
+    if (currentCredits < cost) {
+      alert(`Insufficient credits. ${cost} CR required to print.`)
+      window.location.href = '/dashboard/wallet'
+      return
     }
 
     // Deduct & Log
-    await supabase.from('profiles').update({ wallet_balance: profile.wallet_balance - cost }).eq('id', user.id);
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ credits: currentCredits - cost })
+      .eq('id', user.id)
+
+    if (updateError) {
+      alert('Error deducting credits. Please try again.')
+      return
+    }
+
     await supabase.from('usage_logs').insert({ user_id: user.id, tool_id: 'td-commission', credits_spent: cost, metadata: { action: 'print' } });
 
     const doc = await getPDF()

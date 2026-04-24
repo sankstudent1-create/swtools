@@ -10,11 +10,13 @@ import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
 import { openPrintWindow, openPreviewWindow } from '@/lib/gds/printBuilder';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
 
 export default function GDSLeavePage() {
+  const { user, profile, loading: authLoading } = useAuth();
   const [tab, setTab]               = useState<Tab>('app');
   const [data, setData]             = useState<FormData>(defaultFormData);
   const [toast, setToast]           = useState('');
@@ -22,6 +24,12 @@ export default function GDSLeavePage() {
   const prevUrlRef                  = useRef<string>('');
 
   const [costs, setCosts] = useState<Record<string, number>>({ gds_leave_download: 10 });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/auth';
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
     async function fetchCosts() {
@@ -52,7 +60,6 @@ export default function GDSLeavePage() {
   }
 
   async function handlePrint() {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       alert("Please login to print.");
       window.location.href = '/auth';
@@ -60,20 +67,24 @@ export default function GDSLeavePage() {
     }
 
     const cost = costs.gds_leave_download || 10;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
+    const currentCredits = profile?.credits || 0;
 
-    if (!profile || profile.wallet_balance < cost) {
+    if (currentCredits < cost) {
       alert(`Insufficient credits. ${cost} CR required to print/download.`);
       window.location.href = '/dashboard/wallet';
       return;
     }
 
     // Deduct Credits
-    await supabase.from('profiles').update({ wallet_balance: profile.wallet_balance - cost }).eq('id', user.id);
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ credits: currentCredits - cost })
+      .eq('id', user.id);
+
+    if (updateError) {
+      alert('Error deducting credits. Please try again.');
+      return;
+    }
     
     // Log Usage
     await supabase.from('usage_logs').insert({

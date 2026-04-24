@@ -22,14 +22,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // 1. Initial Check
     const initialize = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { session }, error } = await supabase.auth.getSession();
+      const currentUser = session?.user || null;
+      setUser(currentUser);
       
-      if (user) {
+      if (currentUser) {
         const { data } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', currentUser.id)
           .single();
         setProfile(data);
       }
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(currentUser);
       
       if (currentUser) {
+        // Fetch fresh profile data whenever auth state changes (login, token refresh)
         const { data } = await supabase
           .from('profiles')
           .select('*')
