@@ -10,9 +10,10 @@ import {
   ExternalLink, Download, Clock, Zap
 } from 'lucide-react';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const { user, profile, loading: authLoading } = useAuth();
   const [recentUsage, setRecentUsage] = useState<any[]>([]);
   const [userFiles, setUserFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,36 +21,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadDashboardData() {
+      if (!user) return;
       try {
-        const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !authUser) {
-          setError("Session expired or not found. Please log in again.");
-          return;
-        }
-
-        setUser(authUser);
-        
-        // 1. Fetch Profile (or create if missing)
-        let { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-        
-        if (profileError) {
-          console.warn('Profile not found, user might be new:', profileError.message);
-          // If profile is missing, we still want to show the dashboard with default 0 credits
-          setProfile({ id: authUser.id, credits: 0, full_name: authUser.user_metadata?.full_name || 'User' });
-        } else {
-          setProfile(profileData);
-        }
-
-        // 2. Fetch Recent Usage Logs
+        // 1. Fetch Recent Usage Logs
         const { data: usage, error: usageError } = await supabase
           .from('usage_logs')
           .select('*')
-          .eq('user_id', authUser.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(5);
         
@@ -58,11 +36,11 @@ export default function DashboardPage() {
         }
         setRecentUsage(usage || []);
 
-        // 3. Fetch Generated Files
+        // 2. Fetch Generated Files
         const { data: files, error: filesError } = await supabase
           .from('user_files')
           .select('*')
-          .eq('user_id', authUser.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(3);
         
@@ -78,8 +56,14 @@ export default function DashboardPage() {
         setLoading(false);
       }
     }
-    loadDashboardData();
-  }, []);
+    if (!authLoading) {
+      if (!user) {
+        window.location.href = '/auth';
+      } else {
+        loadDashboardData();
+      }
+    }
+  }, [user, authLoading]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -124,142 +108,107 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
-      {/* Dynamic Glow Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/10 blur-[120px] mix-blend-screen animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-600/10 blur-[100px] mix-blend-screen animate-pulse delay-1000"></div>
-      </div>
-
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30 flex">
       {/* Sidebar - Pro Design */}
       <aside className="fixed left-0 top-0 h-full w-72 bg-[#07090f]/80 backdrop-blur-2xl border-r border-white/[0.05] p-8 hidden lg:flex flex-col z-20">
-        <Link href="/" className="flex items-center gap-3.5 mb-14 px-2 group">
-          <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center group-hover:border-blue-500/50 transition-all duration-500 shadow-2xl">
-            <img src="/icon-192.png" alt="SWTools" className="w-6 h-6 object-contain" />
+        <div className="flex items-center gap-4 mb-12">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+            <img src="/icon-192.png" alt="Logo" className="w-7 h-7" />
           </div>
-          <span className="text-2xl font-black tracking-tighter">SW<span className="text-white/40 font-light">Tools</span></span>
-        </Link>
+          <div>
+            <div className="font-black text-xl tracking-tighter">SW<span className="text-blue-500">TOOLS</span></div>
+            <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Dashboard</div>
+          </div>
+        </div>
 
-        <nav className="flex-grow space-y-1.5">
-          <Link href="/dashboard" className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-lg shadow-blue-500/5">
+        <nav className="flex-1 space-y-2">
+          <Link href="/dashboard" className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-lg shadow-blue-500/5">
             <LayoutDashboard className="w-5 h-5" />
-            <span className="text-sm font-bold">Overview</span>
+            <span className="font-bold text-sm">Overview</span>
           </Link>
-          <Link href="/dashboard/wallet" className="flex items-center gap-3.5 px-5 py-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/[0.03] transition-all border border-transparent hover:border-white/5">
+          <Link href="/dashboard/wallet" className="flex items-center gap-3 px-5 py-3.5 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all">
             <Wallet className="w-5 h-5" />
-            <span className="text-sm font-bold">Wallet & Top-up</span>
+            <span className="font-bold text-sm">Wallet & Billing</span>
           </Link>
-          <Link href="/dashboard/files" className="flex items-center gap-3.5 px-5 py-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/[0.03] transition-all border border-transparent hover:border-white/5">
-            <FileText className="w-5 h-5" />
-            <span className="text-sm font-bold">My Documents</span>
+          <Link href="/dashboard/files" className="flex items-center gap-3 px-5 py-3.5 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all">
+            <Clock className="w-5 h-5" />
+            <span className="font-bold text-sm">My Files</span>
           </Link>
-          <Link href="/dashboard/history" className="flex items-center gap-3.5 px-5 py-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/[0.03] transition-all border border-transparent hover:border-white/5">
-            <History className="w-5 h-5" />
-            <span className="text-sm font-bold">Billing History</span>
+          <div className="pt-8 pb-4 px-5">
+            <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Premium Tools</div>
+          </div>
+          <Link href="/tools/letterpad-generator" className="flex items-center gap-3 px-5 py-3.5 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all">
+            <Sparkles className="w-5 h-5 text-purple-400" />
+            <span className="font-bold text-sm">Letterpad Gen</span>
           </Link>
         </nav>
 
-        <div className="pt-8 border-t border-white/[0.05] space-y-6">
-          <div className="px-4 py-4 rounded-2xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/[0.05]">
-             <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                    <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Support ID</p>
-                    <p className="text-[11px] font-bold text-white/60">#SW-{profile?.id?.slice(0, 6)}</p>
-                </div>
-             </div>
-             <button className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all">Get Help</button>
-          </div>
-          <button 
-            onClick={handleSignOut}
-            className="flex items-center gap-3.5 px-5 py-4 rounded-2xl text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/10 transition-all w-full border border-transparent hover:border-rose-500/20"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm font-bold">Secure Logout</span>
-          </button>
-        </div>
+        <button 
+          onClick={handleSignOut}
+          className="mt-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20"
+        >
+          <Zap className="w-5 h-5 rotate-180" />
+          <span className="font-bold text-sm">Sign Out</span>
+        </button>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="lg:ml-72 p-4 md:p-10 lg:p-16 relative z-10">
-        {/* Top Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
+      <main className="flex-1 lg:ml-72 p-6 lg:p-12 relative z-10">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-black tracking-tight italic">Control Center</h1>
-                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest">Live</div>
-            </div>
-            <p className="text-white/30 text-sm font-medium tracking-wide">Manage your assets, track tool usage, and monitor transactions.</p>
+            <h1 className="text-4xl font-black tracking-tight mb-2">Welcome back, <span className="text-blue-500">{profile?.full_name?.split(' ')[0] || 'User'}</span>!</h1>
+            <p className="text-white/40 font-medium">Here's what's happening with your tools today.</p>
           </div>
-          
-          <div className="flex items-center gap-4 bg-white/[0.03] p-1.5 rounded-2xl border border-white/[0.08]">
-             <Link href="/dashboard/wallet" className="flex items-center gap-3 px-6 py-3 rounded-xl bg-white text-black hover:bg-white/90 transition-all shadow-2xl">
-                <Wallet className="w-4 h-4" />
-                <span className="text-sm font-black tracking-tight">{profile?.wallet_balance || 0} <span className="text-[10px] opacity-40 uppercase ml-0.5">Credits</span></span>
-             </Link>
-             <Link href="/dashboard" className="w-11 h-11 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center hover:bg-white/[0.1] transition-all">
-                <User className="w-5 h-5 text-white/50" />
-             </Link>
+          <div className="flex gap-4">
+            <div className="bg-white/[0.03] border border-white/10 rounded-[2rem] p-4 pr-8 flex items-center gap-4 hover:bg-white/[0.05] transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <div className="text-2xl font-black italic leading-none text-emerald-400">{profile?.wallet_balance || 0}</div>
+                <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1">Credits Available</div>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Action Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-16">
-          {/* Credit Card */}
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl shadow-blue-500/20 group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <CreditCard className="w-24 h-24" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="bg-blue-600 rounded-[2.5rem] p-8 relative overflow-hidden group hover:scale-[1.02] transition-all duration-500 cursor-pointer shadow-2xl shadow-blue-600/20">
+            <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform duration-700">
+              <Zap className="w-24 h-24 fill-white" />
             </div>
-            <div className="relative z-10 h-full flex flex-col justify-between">
-                <div>
-                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Total Balance</p>
-                    <div className="flex items-baseline gap-2">
-                        <h2 className="text-6xl font-black italic tracking-tighter">{profile?.wallet_balance || 0}</h2>
-                        <span className="text-white/40 text-sm font-black uppercase tracking-widest">Credits</span>
-                    </div>
-                </div>
-                <Link href="/dashboard/wallet" className="mt-12 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-4 rounded-2xl text-sm font-black uppercase tracking-widest text-center hover:bg-white/20 transition-all flex items-center justify-center gap-3">
-                    Refill Wallet <ArrowUpRight className="w-4 h-4" />
-                </Link>
-            </div>
+            <h3 className="text-white/70 font-bold uppercase tracking-widest text-[10px] mb-4">Quick Action</h3>
+            <h2 className="text-3xl font-black text-white leading-tight mb-8">Generate official<br/>Letterpad now</h2>
+            <Link href="/tools/letterpad-generator" className="inline-flex items-center gap-3 bg-white text-blue-600 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl">
+              Launch Tool <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          {/* Usage Stats */}
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2.5rem] p-10 flex flex-col justify-between relative overflow-hidden group">
-            <div className="absolute -bottom-10 -right-10 opacity-5 group-hover:opacity-10 transition-all duration-700">
-                <Sparkles className="w-64 h-64" />
+          <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 hover:bg-white/[0.05] transition-all flex flex-col">
+            <div className="flex justify-between items-start mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <Sparkles className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-black px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full uppercase tracking-widest">Premium</span>
             </div>
-            <div>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em] mb-10">Usage Overview</p>
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-white/60">Documents Generated</span>
-                        <span className="text-xl font-black italic">{userFiles.length}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div className="w-2/3 h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-white/60">AI Tokens Used</span>
-                        <span className="text-xl font-black italic">840K</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div className="w-1/2 h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
-                    </div>
-                </div>
-            </div>
+            <h3 className="text-xl font-black mb-2 italic text-white/90">GDS Leave App</h3>
+            <p className="text-white/40 text-sm font-medium mb-8 leading-relaxed">Official quadruplicate format for BPM/ABPM leave requests.</p>
+            <Link href="/tools/gds-leave" className="mt-auto text-sm font-black text-white hover:text-blue-400 transition-colors flex items-center gap-2 group">
+              Open Tool <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
 
-          {/* Pro Badge Card */}
-          <div className="bg-white/[0.02] border border-white/[0.05] rounded-[2.5rem] p-10 flex flex-col items-center justify-center text-center relative overflow-hidden group">
-             <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-tr from-blue-500 to-teal-400 flex items-center justify-center shadow-2xl mb-6 relative z-10 group-hover:scale-110 transition-transform duration-500">
-                <ShieldCheck className="w-10 h-10 text-white" />
-             </div>
-             <h3 className="text-2xl font-black italic mb-2 tracking-tight">Enterprise Access</h3>
-             <p className="text-white/30 text-[11px] font-bold uppercase tracking-widest mb-8">Verified Premium User</p>
-             <button className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 hover:text-blue-300 transition-colors border-b border-blue-500/20 pb-1">Account Details</button>
+          <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 hover:bg-white/[0.05] transition-all flex flex-col">
+            <div className="flex justify-between items-start mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <Calculator className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-black px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full uppercase tracking-widest">India Post</span>
+            </div>
+            <h3 className="text-xl font-black mb-2 italic text-white/90">TD Commission</h3>
+            <p className="text-white/40 text-sm font-medium mb-8 leading-relaxed">Auto-calculate BPM incentive bills for TD accounts.</p>
+            <Link href="/tools/td-commission" className="mt-auto text-sm font-black text-white hover:text-blue-400 transition-colors flex items-center gap-2 group">
+              Open Tool <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
 

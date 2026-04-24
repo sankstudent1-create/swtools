@@ -56,7 +56,7 @@ export default function Navigation() {
                 <div className="flex items-center gap-3">
                   <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                     <Wallet className="w-4 h-4" />
-                    <span className="text-sm font-bold tracking-tight">{profile?.credits || 0} <span className="text-[10px] opacity-60 uppercase ml-0.5 font-black tracking-widest">CR</span></span>
+                    <span className="text-sm font-bold tracking-tight">{profile?.wallet_balance || 0} <span className="text-[10px] opacity-60 uppercase ml-0.5 font-black tracking-widest">CR</span></span>
                   </Link>
                   <Link href="/dashboard" className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-center hover:bg-white/[0.1] transition-all shadow-lg group">
                     <UserIcon className="w-5 h-5 text-white/70 group-hover:text-white" />

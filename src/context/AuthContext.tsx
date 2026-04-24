@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // 1. Initial Check
     const initialize = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user || null;
       setUser(currentUser);
       
@@ -39,13 +39,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initialize();
 
-    // 2. Listen for Auth Changes
+    // 2. Listen for Auth & Data Changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user || null;
       setUser(currentUser);
       
       if (currentUser) {
-        // Fetch fresh profile data whenever auth state changes (login, token refresh)
         const { data } = await supabase
           .from('profiles')
           .select('*')
@@ -58,8 +57,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // 3. Real-time Profile Updates (for credits/wallet_balance sync)
+    const profileSubscription = supabase
+      .channel('profile_changes')
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'profiles',
+        filter: user ? `id=eq.${user.id}` : undefined
+      }, (payload) => {
+        setProfile(payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      profileSubscription.unsubscribe();
+    };
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider value={{ user, loading, profile }}>

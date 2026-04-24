@@ -10,8 +10,10 @@ import EditToolbar from '@/components/letterpad/EditToolbar';
 import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LetterpadGeneratorPage() {
+  const { user, loading: authLoading } = useAuth();
   const {
     state,
     updateForm,
@@ -27,6 +29,12 @@ export default function LetterpadGeneratorPage() {
     fillFromAI,
     lastModel,
   } = useLetterState();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/auth';
+    }
+  }, [user, authLoading]);
 
   // ── Mobile tab: 'edit' | 'preview' ──────────
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('preview');

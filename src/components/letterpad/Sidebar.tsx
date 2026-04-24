@@ -12,6 +12,8 @@ import {
 import { buildPrompt, generateLetterWithAI } from '@/lib/letterpad/aiService';
 import SignaturePad from './SignaturePad';
 import styles from './Sidebar.module.css';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 interface SidebarProps {
   state: AppState;
@@ -42,6 +44,7 @@ export default function Sidebar({
   state, onUpdateForm, onTemplate, onFont, onOffice, onLogo, onSigApply,
   onFillAI, onToggleEncl, onToggleCopy, onToggleEndorse,
 }: SidebarProps) {
+  const { user, profile } = useAuth();
   const { form, tpl, font, officeType, logoL, logoR } = state;
 
   // AI state
@@ -67,6 +70,21 @@ export default function Sidebar({
 
   // ── AI generate (uses Groq server-side) ──────
   async function handleGenerate() {
+    if (!user) {
+      alert("Please login to use AI generation.");
+      window.location.href = '/auth';
+      return;
+    }
+
+    const cost = 2; // AI generation cost
+    const balance = profile?.wallet_balance || 0;
+
+    if (balance < cost) {
+      alert(`Insufficient credits. AI generation costs ${cost} CR.`);
+      window.location.href = '/dashboard/wallet';
+      return;
+    }
+
     setAiLoading(true);
     setAiStatus('');
     try {
@@ -82,6 +100,23 @@ export default function Sidebar({
         aiMode === 'full' ? {} : { department: form.dept, office: form.ofc, city: form.city },
         setAiStatus
       );
+
+      // Deduct Credits
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ wallet_balance: balance - cost })
+        .eq('id', user.id);
+
+      if (updateError) throw new Error("Failed to deduct credits");
+
+      // Log Usage
+      await supabase.from('usage_logs').insert({
+        user_id: user.id,
+        tool_id: 'letterpad-ai',
+        credits_spent: cost,
+        metadata: { ai_type: aiType, model: result.model }
+      });
+
       onFillAI(result.data, aiMode === 'full', result.model);
       setAiStatus(`✓ Generated via ${result.model.replace(/-versatile|-instant/gi,'').replace('llama-','L-')}`);
     } catch (err) {
