@@ -251,7 +251,6 @@ export default function TDCommissionPage() {
     }
 
     console.log('TD Commission: Saving PDF to disk...');
-    const doc = await getPDF()
     const mDisp = office.month
       ? new Date(office.month + '-01').toLocaleString('en-IN', { month: 'long', year: 'numeric' })
       : ''
