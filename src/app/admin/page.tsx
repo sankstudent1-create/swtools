@@ -20,9 +20,19 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function checkAdminAndLoadData() {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/auth';
+        return;
+      }
+
+      // Fetch Profile to check is_admin column
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
       
-      // Strict Admin Check (Replace with your actual admin email)
-      if (user?.email !== 'admin@swtools.in' && user?.email !== 'sankstudent1@gmail.com') {
+      if (!profile?.is_admin) {
         window.location.href = '/dashboard';
         return;
       }
