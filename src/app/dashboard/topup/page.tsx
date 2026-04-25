@@ -67,9 +67,16 @@ export default function TopupPage() {
       const j = await res.json()
 
       if (!window.Razorpay) {
-        setError('Razorpay checkout script not loaded')
-        return
+        console.error('Razorpay script not found on window object');
+        setError('Payment gateway is still loading. Please wait a second and try again.');
+        return;
       }
+
+      console.log('Initializing Razorpay with options:', {
+        amount: j.amount_paise,
+        currency: j.currency,
+        order_id: j.order_id
+      });
 
       const options = {
         key: j.key_id,
@@ -78,15 +85,28 @@ export default function TopupPage() {
         order_id: j.order_id,
         name: 'SW Tools',
         description: 'Wallet Topup',
-        handler: () => {
-          // Final crediting happens by webhook. Just bring user back.
-          window.location.href = '/dashboard'
+        handler: function(response: any) {
+          console.log('Payment successful:', response);
+          window.location.href = '/dashboard?payment=success';
         },
-        theme: { color: '#10b981' },
-      }
+        modal: {
+          ondismiss: function() {
+            console.log('Payment modal closed');
+            setBusy(false);
+          }
+        },
+        prefill: {
+          email: data.session.user.email,
+        },
+        theme: { color: '#3b82f6' },
+      };
 
-      const rz = new window.Razorpay(options)
-      rz.open()
+      const rz = new window.Razorpay(options);
+      rz.on('payment.failed', function (response: any) {
+        console.error('Payment failed:', response.error);
+        setError(response.error.description || 'Payment failed');
+      });
+      rz.open();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Topup failed')
     } finally {

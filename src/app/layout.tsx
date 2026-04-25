@@ -94,7 +94,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable} font-sans antialiased text-white bg-[#07090f]`}>
-        <Script id="razorpay-checkout" src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
+        <Script id="razorpay-checkout" src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         {adsEnabled && adClient ? (
           <Script
             id="adsense-script"
