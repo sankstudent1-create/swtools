@@ -25,7 +25,7 @@ create table if not exists public.tool_pricing (
 
 create table if not exists public.manual_topup_requests (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
   amount_inr numeric not null,
   credits_requested bigint not null,
   utr text unique not null,
@@ -36,6 +36,13 @@ create table if not exists public.manual_topup_requests (
   reviewed_by uuid null references auth.users(id) on delete set null,
   admin_notes text null
 );
+
+alter table public.manual_topup_requests
+  drop constraint if exists manual_topup_requests_user_id_fkey;
+
+alter table public.manual_topup_requests
+  add constraint manual_topup_requests_user_id_fkey
+  foreign key (user_id) references public.profiles(id) on delete cascade;
 
 alter table public.manual_topup_requests enable row level security;
 
