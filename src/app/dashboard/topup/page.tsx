@@ -40,22 +40,43 @@ export default function TopupPage() {
   useEffect(() => {
     if (!supabase) return
     let cancelled = false
-    supabase.auth.getSession().then((res: any) => {
-      if (cancelled) return
-      const data = res?.data
-      const authError = res?.error
-      if (authError) {
+    const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
+      return await Promise.race([
+        p,
+        new Promise<T>((_resolve, reject) =>
+          setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+        ),
+      ])
+    }
+
+    ;(async () => {
+      try {
+        const res: any = await withTimeout(supabase.auth.getSession(), 8000, 'Auth check')
+        if (cancelled) return
+
+        const data = res?.data
+        const authError = res?.error
+        if (authError) {
+          setError(authError?.message || 'Authentication error')
+          setAuthReady(true)
+          return
+        }
+
+        const session = data?.session
+        if (!session) {
+          window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
+          return
+        }
+
+        setUser(session.user)
         setAuthReady(true)
-        return
+      } catch (e: any) {
+        if (cancelled) return
+        setError(e?.message || 'Failed to load authentication')
+        setAuthReady(true)
       }
-      const session = data.session
-      if (!session) {
-        window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
-        return
-      }
-      setUser(session.user)
-      setAuthReady(true)
-    })
+    })()
+
     return () => {
       cancelled = true
     }
