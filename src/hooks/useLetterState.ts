@@ -154,25 +154,31 @@ export function useLetterState() {
   // ── AI fill — populates fields from AI response ───
   const fillFromAI = useCallback(async (data: AILetterData, isFull: boolean = false, model?: string) => {
     const { data: { user } } = await supabase.auth.getUser();
+    /*
     if (!user) {
       alert("Please login to use AI features.");
       window.location.href = '/auth';
       return;
     }
+    */
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
 
-    const cost = costs.letterpad_ai_fill || 5;
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', user.id)
+        .single();
 
-    if (!profile || profile.wallet_balance < cost) {
-      alert(`Insufficient credits. ${cost} CR required for AI generation.`);
-      window.location.href = '/dashboard/wallet';
-      return;
+      const cost = costs.letterpad_ai_fill || 5;
+
+      if (!profile || profile.wallet_balance < cost) {
+        alert(`Insufficient credits. ${cost} CR required for AI generation.`);
+        window.location.href = '/dashboard/wallet';
+        return;
+      }
     }
+
 
     if (model) setLastModel(model);
 

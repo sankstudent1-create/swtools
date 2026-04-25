@@ -70,20 +70,23 @@ export default function Sidebar({
 
   // ── AI generate (uses Groq server-side) ──────
   async function handleGenerate() {
+    /*
     if (!user) {
       alert("Please login to use AI generation.");
       window.location.href = '/auth';
       return;
     }
+    */
 
     const cost = 2; // AI generation cost
     const balance = profile?.wallet_balance || 0;
 
-    if (balance < cost) {
+    if (user && balance < cost) {
       alert(`Insufficient credits. AI generation costs ${cost} CR.`);
       window.location.href = '/dashboard/wallet';
       return;
     }
+
 
     setAiLoading(true);
     setAiStatus('');
@@ -101,25 +104,27 @@ export default function Sidebar({
         setAiStatus
       );
 
-      // Deduct Credits
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ wallet_balance: balance - cost })
-        .eq('id', user.id);
+      // Only deduct credits and log if user is logged in
+      if (user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ wallet_balance: balance - cost })
+          .eq('id', user.id);
 
-      if (updateError) throw new Error("Failed to deduct credits");
-
-      // Log Usage
-      await supabase.from('usage_logs').insert({
-        user_id: user.id,
-        tool_id: 'letterpad-ai',
-        credits_spent: cost,
-        metadata: { ai_type: aiType, model: result.model }
-      });
+        if (!updateError) {
+          await supabase.from('usage_logs').insert({
+            user_id: user.id,
+            tool_id: 'letterpad-ai',
+            credits_spent: cost,
+            metadata: { ai_type: aiType, model: result.model }
+          });
+        }
+      }
 
       onFillAI(result.data, aiMode === 'full', result.model);
       setAiStatus(`✓ Generated via ${result.model.replace(/-versatile|-instant/gi,'').replace('llama-','L-')}`);
     } catch (err) {
+
       const msg = err instanceof Error ? err.message : String(err);
       setAiStatus('✗ ' + msg.slice(0, 100));
     } finally {

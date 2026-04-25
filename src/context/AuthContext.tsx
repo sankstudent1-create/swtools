@@ -22,32 +22,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // 1. Initial Check
     const initialize = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user || null;
-      setUser(currentUser);
-      
-      if (currentUser) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
+      try {
+        console.log('AuthContext: Initializing...');
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user || null;
+        setUser(currentUser);
         
-        if (error && error.code === 'PGRST116') {
-          // Create profile if it doesn't exist
-          const newProfile = {
-            id: currentUser.id,
-            full_name: currentUser.user_metadata?.full_name || 'User',
-            wallet_balance: 0
-          };
-          await supabase.from('profiles').insert(newProfile);
-          setProfile(newProfile);
-        } else {
-          setProfile(data);
+        if (currentUser) {
+          console.log('AuthContext: User found, fetching profile:', currentUser.id);
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+          
+          if (error && error.code === 'PGRST116') {
+            console.warn('AuthContext: Profile missing, creating default for:', currentUser.id);
+            const newProfile = {
+              id: currentUser.id,
+              full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User',
+              wallet_balance: 0
+            };
+            const { error: insErr } = await supabase.from('profiles').insert(newProfile);
+            if (insErr) console.error('AuthContext: Profile creation failed:', insErr);
+            setProfile(newProfile);
+          } else if (data) {
+            console.log('AuthContext: Profile loaded successfully');
+            setProfile(data);
+          }
         }
+      } catch (err) {
+        console.error('AuthContext: Initialization error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
 
     initialize();
 

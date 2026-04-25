@@ -8,10 +8,15 @@ export async function POST(req: Request) {
   
   try {
     console.log('Step 1: Parsing request body...');
-    const cookieSupabase = await createClient();
-    const { data: { user: cookieUser } } = await cookieSupabase.auth.getUser();
-    
-    let activeUser = cookieUser;
+    let activeUser: any = null;
+
+    try {
+      const cookieSupabase = await createClient();
+      const { data: { user } } = await cookieSupabase.auth.getUser();
+      activeUser = user;
+    } catch (e) {
+      console.warn('Razorpay Route: Failed to fetch user from cookies, using body userId fallback');
+    }
 
     const body = await req.json();
     console.log('Step 2: Request body received:', body);
@@ -20,13 +25,14 @@ export async function POST(req: Request) {
 
     if (!activeUser) {
       if (userId) {
-        console.warn('Razorpay Route: No session cookie found, falling back to body userId:', userId);
-        activeUser = { id: userId } as any;
+        console.log('Razorpay Route: Using userId from request body:', userId);
+        activeUser = { id: userId };
       } else {
-        console.error('Razorpay Route: Unauthorized - No user found in cookie or body');
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        console.error('Razorpay Route: No userId provided in body or cookie');
+        return NextResponse.json({ error: "Unauthorized - No userId" }, { status: 401 });
       }
     }
+
 
     const supabase = supabaseServer; // Use service role for DB operations
 
