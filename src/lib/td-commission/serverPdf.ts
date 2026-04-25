@@ -66,14 +66,14 @@ export async function buildTDCommissionPdfBytes(params: {
   y -= 18
 
   const cols = [
-    { key: 'sr', w: 28 },
-    { key: 'acc', w: 78 },
-    { key: 'pr', w: 48 },
-    { key: 'name', w: 126 },
-    { key: 'dep', w: 76 },
-    { key: 'term', w: 70 },
-    { key: 'rate', w: 70 },
-    { key: 'inc', w: 78 },
+    { key: 'sr', w: 26 },
+    { key: 'acc', w: 71 },
+    { key: 'pr', w: 44 },
+    { key: 'name', w: 115 },
+    { key: 'dep', w: 69 },
+    { key: 'term', w: 64 },
+    { key: 'rate', w: 64 },
+    { key: 'inc', w: 71 },
   ]
 
   const tableX = marginX
