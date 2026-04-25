@@ -70,12 +70,15 @@ export default function TDCommissionPage() {
     fetchCosts();
   }, []);
 
+  // Auth redirection removed as requested
+  /*
   useEffect(() => {
     if (!authLoading && !user) {
       console.log('TD Commission: Redirecting to auth because user is null');
       window.location.href = '/auth'
     }
   }, [user, authLoading])
+  */
 
   useEffect(() => {
     setOffice(prev => ({
@@ -243,6 +246,7 @@ export default function TDCommissionPage() {
   }
 
   const handlePrint = async () => {
+    /*
     if (!user) {
       console.log('TD Commission: No user found, redirecting to login');
       if (typeof window !== 'undefined') {
@@ -250,36 +254,39 @@ export default function TDCommissionPage() {
       }
       return;
     }
+    */
 
-    // Refresh latest profile for up‑to‑date credits
-    const { data: latestProfile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
-    const cost = costs.td_commission_download || 10;
-    const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
+    // Credit deduction bypassed as requested
+    /*
+    if (user) {
+      const { data: latestProfile } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', user.id)
+        .single();
+      const cost = costs.td_commission_download || 10;
+      const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
 
-    if (currentCredits < cost) {
-      alert(`Insufficient credits. ${cost} CR required to print.`);
-      window.location.href = '/dashboard/wallet';
-      return;
+      if (currentCredits < cost) {
+        alert(`Insufficient credits. ${cost} CR required to print.`);
+        window.location.href = '/dashboard/wallet';
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ wallet_balance: currentCredits - cost })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('TD Commission: Credit deduction failed:', updateError);
+        alert('Error deducting credits. Please try again.');
+        return;
+      }
+
+      await supabase.from('usage_logs').insert({ user_id: user.id, tool_id: 'td-commission', credits_spent: cost, metadata: { action: 'print' } });
     }
-
-    // Deduct credits
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ wallet_balance: currentCredits - cost })
-      .eq('id', user.id);
-
-    if (updateError) {
-      console.error('TD Commission: Credit deduction failed:', updateError);
-      alert('Error deducting credits. Please try again.');
-      return;
-    }
-
-    // Log usage
-    await supabase.from('usage_logs').insert({ user_id: user.id, tool_id: 'td-commission', credits_spent: cost, metadata: { action: 'print' } });
+    */
 
     const doc = await getPDF();
     const url = URL.createObjectURL(doc.output('blob'));

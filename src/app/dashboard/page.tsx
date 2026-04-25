@@ -245,7 +245,7 @@ export default function DashboardPage() {
                 <Clock className="w-5 h-5 text-blue-500" />
                 Recent Usage
               </h3>
-              <Link href="/dashboard/history" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-colors">View All Logs</Link>
+              <Link href="#" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-colors">View All Logs</Link>
             </div>
             <div className="space-y-3">
               {recentUsage.length > 0 ? recentUsage.map((log) => (

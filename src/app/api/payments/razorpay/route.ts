@@ -9,11 +9,23 @@ export async function POST(req: Request) {
   try {
     console.log('Step 1: Parsing request body...');
     const cookieSupabase = await createClient();
-    const { data: { user } } = await cookieSupabase.auth.getUser();
+    const { data: { user: cookieUser } } = await cookieSupabase.auth.getUser();
     
-    if (!user) {
-      console.log('Razorpay Route: No user found via cookies');
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let activeUser = cookieUser;
+
+    const body = await req.json();
+    console.log('Step 2: Request body received:', body);
+    
+    const { amount, credits, userId } = body;
+
+    if (!activeUser) {
+      if (userId) {
+        console.warn('Razorpay Route: No session cookie found, falling back to body userId:', userId);
+        activeUser = { id: userId } as any;
+      } else {
+        console.error('Razorpay Route: Unauthorized - No user found in cookie or body');
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     const supabase = supabaseServer; // Use service role for DB operations
@@ -22,16 +34,15 @@ export async function POST(req: Request) {
     const { data: latestProfile, error: profileErr } = await supabase
       .from('profiles')
       .select('wallet_balance')
-      .eq('id', user.id)
+      .eq('id', activeUser.id)
       .single();
+
     if (profileErr) {
       console.error('Failed to fetch latest profile:', profileErr);
     }
 
-    const body = await req.json();
-    console.log('Step 2: Request received:', body);
     
-    const { amount, credits, userId } = body;
+
 
     console.log('Step 3: Checking required fields...');
     if (!amount || !credits || !userId) {

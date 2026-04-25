@@ -36,12 +36,14 @@ export default function GDSLeavePage() {
     authLoading 
   });
 
+  /*
   useEffect(() => {
     if (!authLoading && !user) {
       console.log('GDS Leave: Redirecting to auth because user is null');
       window.location.href = '/auth';
     }
   }, [user, authLoading]);
+  */
 
   useEffect(() => {
     console.log('GDS Leave: Fetching tool costs...');
@@ -81,63 +83,51 @@ export default function GDSLeavePage() {
   async function handlePrint() {
     console.log('=== GDS Leave: Print Button Clicked ===');
     
+    /*
     if (!user) {
       console.log('GDS Leave: No user found, alerting and redirecting');
       alert("Please login to print.");
       window.location.href = '/auth';
       return;
     }
+    */
 
-    // Always fetch latest profile to be sure
-    const { data: latestProfile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
+    // Credit logic bypassed as requested
+    /*
+    if (user) {
+      const { data: latestProfile } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', user.id)
+        .single();
 
-    const cost = costs.gds_leave_download || 10;
-    const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
+      const cost = costs.gds_leave_download || 10;
+      const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
 
-    console.log('GDS Leave: Credit check:', { 
-      cost, 
-      currentCredits, 
-      sufficient: currentCredits >= cost 
-    });
+      if (currentCredits < cost) {
+        alert(`Insufficient credits. ${cost} CR required to download.`);
+        window.location.href = '/dashboard/wallet';
+        return;
+      }
 
-    if (currentCredits < cost) {
-      console.log('GDS Leave: Insufficient credits');
-      alert(`Insufficient credits. ${cost} CR required to download. Current: ${currentCredits} CR`)
-      window.location.href = '/dashboard/wallet';
-      return;
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ wallet_balance: currentCredits - cost })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error('GDS Leave: Credit deduction failed:', updateError);
+        return;
+      }
+
+      await supabase.from('usage_logs').insert({ 
+        user_id: user.id, 
+        tool_id: 'gds-leave', 
+        credits_spent: cost, 
+        metadata: { action: 'print' } 
+      });
     }
-
-    console.log('GDS Leave: Attempting to deduct credits...');
-    
-    // Deduct Credits
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ wallet_balance: currentCredits - cost })
-      .eq('id', user.id);
-
-    if (updateError) {
-      console.error('GDS Leave: Credit deduction failed:', updateError);
-      alert(`Error deducting credits: ${updateError.message}`);
-      return;
-    }
-    
-    // Log Usage
-    console.log('GDS Leave: Logging usage...');
-    const usageLogData = {
-      user_id: user.id,
-      tool_id: 'gds-leave',
-      credits_spent: cost,
-      metadata: { action: 'print' }
-    };
-    console.log('GDS Leave: Usage log data:', usageLogData);
-    
-    const { error: usageError } = await supabase
-      .from('usage_logs')
-      .insert(usageLogData);
+    */
     
     console.log('GDS Leave: Usage log response:', { error: usageError });
 

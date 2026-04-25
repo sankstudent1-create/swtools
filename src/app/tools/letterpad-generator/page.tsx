@@ -30,11 +30,13 @@ export default function LetterpadGeneratorPage() {
     lastModel,
   } = useLetterState();
 
+  /*
   useEffect(() => {
     if (!authLoading && !user) {
       window.location.href = '/auth';
     }
   }, [user, authLoading]);
+  */
 
   // ── Mobile tab: 'edit' | 'preview' ──────────
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('preview');
@@ -88,7 +90,7 @@ export default function LetterpadGeneratorPage() {
     </div>
   );
 
-  if (!user) return null;
+  // if (!user) return null;
 
   return (
     <div className={styles.letterpadRoot}>
