@@ -39,12 +39,15 @@ create table if not exists public.manual_topup_requests (
 
 alter table public.manual_topup_requests enable row level security;
 
+drop policy if exists "manual_topup_requests_insert_own" on public.manual_topup_requests;
 create policy "manual_topup_requests_insert_own" on public.manual_topup_requests
   for insert to authenticated with check (auth.uid() = user_id);
 
+drop policy if exists "manual_topup_requests_select_own" on public.manual_topup_requests;
 create policy "manual_topup_requests_select_own" on public.manual_topup_requests
   for select to authenticated using (auth.uid() = user_id);
 
+drop policy if exists "manual_topup_requests_admin_all" on public.manual_topup_requests;
 create policy "manual_topup_requests_admin_all" on public.manual_topup_requests
   for all to service_role using (true);
 
@@ -202,38 +205,51 @@ alter table public.razorpay_webhook_events enable row level security;
 alter table public.files enable row level security;
 alter table public.tool_runs enable row level security;
 
+drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own" on public.profiles
   for select using (auth.uid() = id or public.is_admin());
+
+drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own" on public.profiles
   for update using (auth.uid() = id) with check (auth.uid() = id);
 
+drop policy if exists "wallets_select_own" on public.wallets;
 create policy "wallets_select_own" on public.wallets
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "ledger_select_own" on public.wallet_ledger;
 create policy "ledger_select_own" on public.wallet_ledger
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "files_select_own" on public.files;
 create policy "files_select_own" on public.files
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "tool_runs_select_own" on public.tool_runs;
 create policy "tool_runs_select_own" on public.tool_runs
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "orders_select_own" on public.razorpay_orders;
 create policy "orders_select_own" on public.razorpay_orders
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "payments_select_own" on public.razorpay_payments;
 create policy "payments_select_own" on public.razorpay_payments
   for select using (auth.uid() = user_id or public.is_admin());
 
+drop policy if exists "webhook_events_admin_only" on public.razorpay_webhook_events;
 create policy "webhook_events_admin_only" on public.razorpay_webhook_events
   for select using (public.is_admin());
 
+drop policy if exists "pricing_read_all" on public.tool_pricing;
 create policy "pricing_read_all" on public.tool_pricing
   for select using (true);
 
+drop policy if exists "admin_settings_admin_only" on public.admin_settings;
 create policy "admin_settings_admin_only" on public.admin_settings
   for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "pricing_admin_write" on public.tool_pricing;
 create policy "pricing_admin_write" on public.tool_pricing
   for all using (public.is_admin()) with check (public.is_admin());
 
