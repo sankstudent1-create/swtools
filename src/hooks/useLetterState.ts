@@ -1,0 +1,186 @@
+// ─────────────────────────────────────────────
+//  hooks/useLetterState.ts  –  Central state for the letterpad
+// ─────────────────────────────────────────────
+'use client';
+import { useState, useCallback } from 'react';
+import type { AppState, LetterForm, TemplateType, FontClass, LogoSide, SigMode, AILetterData } from '@/types/letterpad';
+import { DEFAULT_FORM, DEFAULT_LOGO_POS, OFFICE_PRESETS, svgToDataUri } from '@/lib/letterpad/constants';
+
+const INITIAL_STATE: AppState = {
+  tpl: 'A',
+  font: '',
+  officeType: 'dop',
+  logoL: null,
+  logoR: null,
+  posL: { ...DEFAULT_LOGO_POS, x: 42, y: 14, w: 68 },
+  posR: { ...DEFAULT_LOGO_POS, x: 700, y: 14, w: 68 },
+  sigUrl: null,
+  sigMode: 'draw',
+  showEncl: false,
+  showCopy: false,
+  showEndorse: false,
+  form: { ...DEFAULT_FORM },
+};
+
+export function useLetterState() {
+  const [state, setState] = useState<AppState>(() => {
+    const dt = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+    return { ...INITIAL_STATE, form: { ...DEFAULT_FORM, dt } };
+  });
+  const [lastModel, setLastModel] = useState<string | undefined>(undefined);
+
+  // ── Form field update ────────────────────────────────
+  const updateForm = useCallback(<K extends keyof LetterForm>(key: K, value: LetterForm[K]) => {
+    setState(s => ({ ...s, form: { ...s.form, [key]: value } }));
+  }, []);
+
+  const setForm = useCallback((form: Partial<LetterForm>) => {
+    setState(s => ({ ...s, form: { ...s.form, ...form } }));
+  }, []);
+
+  // ── Template ─────────────────────────────────────────
+  const setTemplate = useCallback((tpl: TemplateType) => {
+    setState(s => ({ ...s, tpl }));
+  }, []);
+
+  // ── Font ─────────────────────────────────────────────
+  const setFont = useCallback((font: FontClass) => {
+    setState(s => ({ ...s, font }));
+  }, []);
+
+  // ── Office preset ────────────────────────────────────
+  const applyOfficePreset = useCallback((type: string) => {
+    const preset = OFFICE_PRESETS[type];
+    if (!preset) return;
+
+    const logoL = preset.ll ? svgToDataUri(preset.ll) : null;
+    const logoR = preset.lr ? svgToDataUri(preset.lr) : null;
+
+    setState(s => ({
+      ...s,
+      officeType: type as AppState['officeType'],
+      tpl: preset.t,
+      logoL,
+      logoR,
+      posR: { ...s.posR, placed: false }, // trigger auto-placement
+      form: {
+        ...s.form,
+        h1: preset.h1, h2: preset.h2,
+        e1: preset.e1, e2: preset.e2,
+        dept: preset.dept, divn: preset.divn,
+        ofc: preset.ofc, city: preset.city, pin: preset.pin,
+        ph: preset.ph, em: preset.em, wb: preset.wb,
+      },
+    }));
+  }, []);
+
+  // ── Logos ─────────────────────────────────────────────
+  const setLogo = useCallback((side: LogoSide, src: string | null) => {
+    if (side === 'L') setState(s => ({ ...s, logoL: src }));
+    else setState(s => ({ ...s, logoR: src, posR: { ...s.posR, placed: false } }));
+  }, []);
+
+  const setLogoPos = useCallback((side: LogoSide, pos: Partial<AppState['posL']>) => {
+    if (side === 'L') setState(s => ({ ...s, posL: { ...s.posL, ...pos } }));
+    else setState(s => ({ ...s, posR: { ...s.posR, ...pos } }));
+  }, []);
+
+  // ── Signature ─────────────────────────────────────────
+  const setSigUrl = useCallback((url: string | null) => {
+    setState(s => ({ ...s, sigUrl: url }));
+  }, []);
+
+  const setSigMode = useCallback((mode: SigMode) => {
+    setState(s => ({ ...s, sigMode: mode }));
+  }, []);
+
+  // ── Section toggles ───────────────────────────────────
+  const toggleEncl    = useCallback(() => setState(s => ({ ...s, showEncl:    !s.showEncl })), []);
+  const toggleCopy    = useCallback(() => setState(s => ({ ...s, showCopy:    !s.showCopy })), []);
+  const toggleEndorse = useCallback(() => setState(s => ({ ...s, showEndorse: !s.showEndorse })), []);
+
+  // ── AI fill — populates fields from AI response ───
+  const fillFromAI = useCallback((data: AILetterData, isFull: boolean = false, model?: string) => {
+    if (model) setLastModel(model);
+
+    setState(s => {
+      let newLogoL = isFull ? null : s.logoL;
+      let newLogoR = isFull ? null : s.logoR;
+      
+      if (isFull) {
+        const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2].join(' ').toLowerCase();
+        if (fullDeptStr.includes('post') || fullDeptStr.includes('dak') || fullDeptStr.includes('mail')) {
+          newLogoL = svgToDataUri('ip');
+          newLogoR = svgToDataUri('ashoka');
+        } else if (fullDeptStr.includes('prime minister') || fullDeptStr.includes('pm ')) {
+          newLogoL = svgToDataUri('ashoka');
+          newLogoR = null;
+        } else if (fullDeptStr.includes('parliament') || fullDeptStr.includes('sansad')) {
+          newLogoL = svgToDataUri('sansad');
+          newLogoR = svgToDataUri('ashoka');
+        } else if (fullDeptStr.includes('maharashtra')) {
+          newLogoL = svgToDataUri('mh');
+          newLogoR = null;
+        } else if (fullDeptStr.includes('government of india') || fullDeptStr.includes('ministry')) {
+          newLogoL = null;
+          newLogoR = svgToDataUri('ashoka');
+        }
+      }
+
+      return {
+      ...s,
+      officeType: isFull ? 'custom' : s.officeType,
+      logoL: newLogoL,
+      logoR: newLogoR,
+      showEncl: !!(data.encl?.trim()),
+      showCopy: !!(data.copy_to?.length),
+      form: {
+        ...s.form,
+        h1: isFull ? data.dept_hindi_1 : s.form.h1,
+        h2: isFull ? data.dept_hindi_2 : s.form.h2,
+        e1: isFull ? data.dept_english_1 : s.form.e1,
+        e2: isFull ? data.dept_english_2 : s.form.e2,
+        dept: isFull ? data.department : s.form.dept,
+        divn: isFull ? data.division : s.form.divn,
+        ofc:  isFull ? data.office : s.form.ofc,
+        city: isFull ? data.city : s.form.city,
+        pin:  isFull ? data.pin : s.form.pin,
+        ph:   isFull ? data.phone : s.form.ph,
+        em:   isFull ? data.email : s.form.em,
+        wb:   isFull ? data.website : s.form.wb,
+        fno:  data.file_no      || (isFull ? '' : s.form.fno),
+        toD:  data.to_designation || (isFull ? '' : s.form.toD),
+        toA:  data.to_address   || (isFull ? '' : s.form.toA),
+        sub:  data.subject      || (isFull ? '' : s.form.sub),
+        ref:  data.reference    || (isFull ? '' : s.form.ref),
+        sal:  data.salutation   || (isFull ? '' : s.form.sal),
+        cls:  data.closing      || (isFull ? '' : s.form.cls),
+        sn:   data.signatory_name || (isFull ? '' : s.form.sn),
+        sd:   data.signatory_designation || (isFull ? '' : s.form.sd),
+        body: data.body         || (isFull ? '' : s.form.body),
+        encl: data.encl         || (isFull ? '' : s.form.encl),
+        copyTo: data.copy_to?.length ? data.copy_to : (isFull ? [] : s.form.copyTo),
+      },
+      aiTick: (s.aiTick || 0) + 1,
+    };
+  });
+  }, []);
+
+  return {
+    state,
+    lastModel,
+    updateForm,
+    setForm,
+    setTemplate,
+    setFont,
+    applyOfficePreset,
+    setLogo,
+    setLogoPos,
+    setSigUrl,
+    setSigMode,
+    toggleEncl,
+    toggleCopy,
+    toggleEndorse,
+    fillFromAI,
+  };
+}

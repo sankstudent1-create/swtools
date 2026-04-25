@@ -1,0 +1,293 @@
+/* ── Page root ───────────────────────────────────────────────── */
+.letterpadRoot {
+  background: #c0bbb2;
+  min-height: 100vh;
+}
+
+/* ── Mobile tab bar ─────────────────────────────────────────── */
+.mobileTabBar {
+  display: flex;
+  align-items: center;
+  background: #111827;
+  border-bottom: 1px solid #1e293b;
+  position: sticky;
+  top: 52px;          /* desktop appbar height */
+  z-index: 100;
+  gap: 0;
+}
+/* On mobile the appbar is 48px */
+@media (max-width: 640px) { .mobileTabBar { top: 48px; } }
+
+.mobileTab {
+  flex: 1;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.5);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .02em;
+  border-bottom: 2px solid transparent;
+}
+.mobileTab:hover { color: rgba(255,255,255,.8); }
+.mobileTabActive {
+  color: #FF6600 !important;
+  border-bottom-color: #FF6600;
+  background: rgba(255,102,0,.07);
+}
+
+/* Quick-access Print/PDF in mobile tab bar */
+.mobileTabPrint {
+  padding: 7px 10px;
+  background: rgba(255,255,255,.06);
+  border: none;
+  border-left: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.7);
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .12s;
+  font-family: 'DM Sans', sans-serif;
+}
+.mobileTabPrint:hover { background: rgba(255,255,255,.12); color: #fff; }
+.mobileTabPDF {
+  background: rgba(255,102,0,.2);
+  color: #FF8C00;
+}
+.mobileTabPDF:hover { background: rgba(255,102,0,.35); }
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── Workspace: sidebar + paper preview ──────────────────────── */
+.workspace {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  min-height: calc(100vh - 52px);
+}
+
+/* ── Sidebar column is scrollable on its own ─────────────────── */
+.sidebarCol {
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  position: sticky;
+  top: 52px;
+  background: #1a1a1a;
+}
+
+/* ── Preview area ────────────────────────────────────────────── */
+.preview {
+  background: #c0bbb2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 60px;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: calc(100vh - 52px);
+}
+
+/* ── Tool bar above the paper ────────────────────────────────── */
+.previewTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 840px;
+  flex-wrap: wrap;
+}
+
+.previewLabel {
+  font-size: 9px;
+  color: rgba(255,255,255,.5);
+  font-family: 'DM Mono', monospace;
+  margin-right: auto;
+}
+
+.clearBtn {
+  padding: 5px 12px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 4px;
+  font-size: 10.5px;
+  color: rgba(255,255,255,.75);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.clearBtn:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+/* ── Paper wrapper — scales on small screens ─────────────────── */
+.paperWrap {
+  width: 100%;
+  max-width: 840px;
+  /* Scale the paper down smoothly on screen sizes < 840px */
+  transform-origin: top center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT / PDF STYLES
+   Key fix: undo ALL transform scaling; force A4 dimensions in mm.
+   This is the ONLY safe way to get pixel-perfect PDF on any device.
+═══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Page size — must come first */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Root bg becomes white */
+  .letterpadRoot { background: #fff !important; }
+
+  /* ── Hide ALL chrome ────────────────────────────── */
+  /* Appbar */
+  .letterpadRoot :global(header) { display: none !important; }
+  /* Mobile tab bar */
+  .mobileTabBar { display: none !important; }
+  /* Sidebar */
+  .sidebarCol { display: none !important; }
+  /* Edit toolbar */
+  .previewTop { display: none !important; }
+  /* EditToolbar component */
+  .letterpadRoot :global([class*="toolbar"]) { display: none !important; }
+  /* Edit handles */
+  .letterpadRoot :global([class*="resizeHandle"]),
+  .letterpadRoot :global([class*="delBtn"]),
+  .letterpadRoot :global([class*="editHint"]) { display: none !important; }
+
+  /* ── Layout reset ───────────────────────────────── */
+  .workspace    { display: block !important; }
+  .preview      { padding: 0 !important; background: #fff !important; gap: 0 !important; min-height: 0 !important; }
+  /* CRITICAL: force 210mm width for pixel-perfect A4 printing, prevents iOS Safari from truncating */
+  .paperWrap    {
+    transform: none !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+  /* Also reset the child — in some layouts the child carries the scale */
+  .paperWrap > * {
+    transform: none !important;
+    margin-bottom: 0 !important;
+    width: 210mm !important;
+  }
+
+  /* ── Paper itself ───────────────────────────────── */
+  .letterpadRoot :global([class*="paper"]) {
+    box-shadow: none !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+
+  /* ── Content clean-up ───────────────────────────── */
+  /* Remove editable borders/backgrounds */
+  .letterpadRoot :global([contenteditable]) {
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    cursor: default !important;
+  }
+  .letterpadRoot :global([class*="bodyText"]) { border-left: none !important; }
+  .letterpadRoot :global([class*="dlogo"])    { border: none !important; cursor: default !important; }
+
+  /* Ensure color accuracy */
+  .letterpadRoot :global(*) {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet (≤ 900px)
+   Tab-based layout: sidebar or paper, never both at once
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  /* Grid collapses to single column */
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* In mobile-tab mode each panel is full screen */
+  .workspaceMobile {
+    display: block;
+    min-height: calc(100vh - 100px); /* 52px appbar + 48px tab bar */
+  }
+
+  /* Sidebar takes full width, scrolls internally */
+  .sidebarCol {
+    height: auto;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    position: static;
+  }
+
+  /* Preview fills remaining space */
+  .preview {
+    min-height: calc(100vh - 100px);
+    padding: 14px 10px 50px;
+  }
+
+  /* Paper scales to fit screen */
+  .paperWrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .paperWrap > * {
+    transform: scale(var(--paper-scale, 0.7));
+    transform-origin: top center;
+    /* negative margin collapses the empty gap left by scaling */
+    margin-bottom: calc((var(--paper-scale, 0.7) - 1) * 1123px);
+  }
+
+  .previewLabel { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile (≤ 640px)
+   Sidebar becomes bottom drawer, paper scales to ~42-50% 
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .mobileTabBar {
+    /* Move tab bar below any sticky appbar (~52px) */
+    top: 52px;
+  }
+
+  .sidebarCol {
+    /* Sidebar in edit tab: full height, good scrolling */
+    max-height: calc(100vh - 104px);
+    padding-bottom: 20px;
+  }
+
+  .preview {
+    padding: 8px 4px 30px;
+    min-height: calc(100vh - 104px);
+  }
+
+  /* Tighter paper scale on very small phones */
+  .paperWrap > * {
+    transform: scale(var(--paper-scale, 0.42));
+    margin-bottom: calc((var(--paper-scale, 0.42) - 1) * 1123px);
+  }
+
+  .previewTop {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  /* Preview label too long on mobile */
+  .previewLabel { display: none; }
+}
+

@@ -1,0 +1,26 @@
+/* components/letterpad/SignaturePad.module.css */
+.wrap { display: flex; flex-direction: column; gap: 5px; }
+.tabs { display: flex; gap: 3px; }
+.tab {
+  flex: 1; padding: 4px; background: #0f1827; border: 1px solid #293958; border-radius: 3px;
+  font-size: 9px; color: #5878a8; cursor: pointer; text-align: center;
+  transition: all .12s; font-family: 'DM Sans', sans-serif;
+}
+.tabActive { background: rgba(200,168,75,.07); border-color: #c8a84b; color: #c8a84b; }
+.canvasWrap { background: #f8f8f4; border: 1.5px solid #293958; border-radius: 3px; }
+.canvas { display: block; cursor: crosshair; touch-action: none; width: 100%; }
+.typedInput {
+  width: 100%; padding: 5px 7px; font-family: 'Libre Baskerville', serif;
+  font-style: italic; font-size: 17px; color: #111; background: #f8f8f4;
+  border: 1.5px solid #293958; border-radius: 3px; outline: none;
+}
+.btns { display: flex; gap: 4px; }
+.btn {
+  flex: 1; padding: 5px; background: #0f1827; border: 1px solid #293958; border-radius: 3px;
+  font-size: 9.5px; color: #5878a8; cursor: pointer; transition: all .12s;
+  font-family: 'DM Sans', sans-serif; text-align: center;
+}
+.btn:hover { border-color: #405898; color: #b8c8e8; }
+.btnPrimary { background: rgba(255,102,0,.08); border-color: #FF6600; color: #FF6600; }
+.btnPrimary:hover { background: rgba(255,102,0,.16); }
+.hint { font-size: 8px; color: #344e78; }

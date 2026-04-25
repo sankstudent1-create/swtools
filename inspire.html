@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SW Info Systems — Exam Tools Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05060a;
+  --s1:#0d0f16;
+  --s2:#141720;
+  --s3:#1a1e2a;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.11);
+  --text:#dde2f0;
+  --muted:#606880;
+  --muted2:#8892aa;
+  --gold:#f0c060;
+  --blue:#60a8f0;
+  --green:#48d8a0;
+  --purple:#a080f0;
+  --red:#f07060;
+  --orange:#f08050;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:56px;
+  background:rgba(5,6,10,0.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;
+}
+.logo-mark{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+}
+.logo-icon{
+  width:32px;height:32px;background:var(--gold);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#000;
+  letter-spacing:-0.5px;
+}
+.logo-text{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:#fff;
+  letter-spacing:-0.3px;
+}
+.logo-text span{color:var(--gold)}
+.nav{display:flex;align-items:center;gap:2px}
+.nav a{
+  font-size:13px;font-weight:500;color:var(--muted2);
+  text-decoration:none;padding:6px 14px;border-radius:8px;
+  transition:all 0.15s;
+}
+.nav a:hover{color:#fff;background:var(--s3)}
+.nav-cta{
+  background:var(--gold) !important;color:#000 !important;
+  font-weight:600 !important;margin-left:8px;
+}
+.nav-cta:hover{background:#e0b050 !important}
+
+/* HERO */
+.hero{
+  padding:130px 2.5rem 80px;
+  max-width:1200px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.hero-left{}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(240,192,96,0.08);
+  border:1px solid rgba(240,192,96,0.2);
+  color:var(--gold);font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+  padding:5px 14px;border-radius:100px;
+  margin-bottom:22px;
+}
+.hero-tag::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--gold);animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+h1{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2.4rem,4.5vw,3.8rem);line-height:1.05;
+  letter-spacing:-2px;color:#fff;
+  margin-bottom:20px;
+}
+h1 .accent{color:var(--gold)}
+h1 .accent2{
+  -webkit-text-stroke:1.5px var(--blue);
+  color:transparent;
+}
+.hero-desc{
+  font-size:16px;color:var(--muted2);line-height:1.75;
+  max-width:480px;margin-bottom:36px;
+}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-primary{
+  background:var(--gold);color:#000;font-weight:600;font-size:14px;
+  padding:12px 28px;border-radius:10px;text-decoration:none;
+  transition:all 0.15s;display:inline-flex;align-items:center;gap:8px;
+  border:none;cursor:pointer;font-family:'Inter',sans-serif;
+}
+.btn-primary:hover{background:#e0b050;transform:translateY(-1px)}
+.btn-ghost{
+  background:transparent;color:var(--text);font-weight:500;font-size:14px;
+  padding:12px 28px;border-radius:10px;text-decoration:none;
+  border:1px solid var(--border2);transition:all 0.15s;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.25);background:var(--s2)}
+
+/* HERO VISUAL */
+.hero-right{
+  position:relative;display:flex;flex-direction:column;gap:10px;
+}
+.mockup-card{
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:14px;padding:16px 18px;
+  transition:transform 0.2s;
+}
+.mockup-card:hover{transform:translateX(-4px)}
+.mc-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.mc-exam{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff}
+.mc-org{
+  font-size:10px;font-weight:600;letter-spacing:0.07em;
+  text-transform:uppercase;padding:2px 8px;border-radius:100px;
+}
+.mc-org.ssc{background:rgba(240,192,96,0.1);color:var(--gold)}
+.mc-org.rrb{background:rgba(96,168,240,0.1);color:var(--blue)}
+.mc-org.bank{background:rgba(160,128,240,0.1);color:var(--purple)}
+.mc-org.nta{background:rgba(72,216,160,0.1);color:var(--green)}
+.mc-row{
+  display:flex;gap:8px;
+}
+.mc-spec{
+  flex:1;background:var(--s3);border-radius:8px;padding:8px 10px;
+}
+.mc-spec-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px}
+.mc-spec-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
+.mc-spec-val.hi{color:var(--gold)}
+.mc-spec-val.blue{color:var(--blue)}
+.mc-spec-val.green{color:var(--green)}
+.mc-spec-val.purple{color:var(--purple)}
+
+/* STATS BAR */
+.stats-bar{
+  max-width:1200px;margin:0 auto 80px;padding:0 2.5rem;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--border);border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.stat-box{
+  background:var(--s1);padding:28px 24px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.stat-box:first-child{border-radius:15px 0 0 15px}
+.stat-box:last-child{border-radius:0 15px 15px 0}
+.stat-n{
+  font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;
+  color:#fff;line-height:1;
+}
+.stat-n span{color:var(--gold)}
+.stat-l{font-size:12px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.06em;font-weight:500}
+
+/* SECTION LABEL */
+.sec-label{
+  font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:12px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* TOOLS GRID */
+.tools-section{max-width:1200px;margin:0 auto 100px;padding:0 2.5rem}
+.tools-header{margin-bottom:32px}
+.tools-title{
+  font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;
+  color:#fff;letter-spacing:-1px;margin-bottom:8px;
+}
+.tools-sub{font-size:15px;color:var(--muted2)}
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+.tool-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:16px;padding:22px;
+  text-decoration:none;display:block;
+  transition:all 0.2s;position:relative;overflow:hidden;
+  cursor:pointer;
+}
+.tool-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;border-radius:50%;
+  opacity:0;transition:opacity 0.2s;
+}
+.tool-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.tool-card.featured{
+  grid-column:span 2;
+  background:linear-gradient(135deg,var(--s2) 0%,var(--s1) 100%);
+  border-color:rgba(240,192,96,0.2);
+}
+.tool-card.featured:hover{border-color:rgba(240,192,96,0.4)}
+.tool-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:14px;
+}
+.tool-card-title{
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:#fff;margin-bottom:6px;letter-spacing:-0.3px;
+}
+.tool-card-desc{font-size:13px;color:var(--muted2);line-height:1.55;margin-bottom:14px}
+.tool-tags{display:flex;flex-wrap:wrap;gap:5px}
+.ttag{
+  font-size:10px;font-weight:500;padding:3px 8px;
+  border-radius:6px;color:var(--muted2);
+  background:var(--s3);border:1px solid var(--border);
+}
+.tool-arrow{
+  position:absolute;top:20px;right:20px;
+  width:28px;height:28px;border-radius:8px;
+  background:var(--s3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--muted);
+  transition:all 0.15s;
+}
+.tool-card:hover .tool-arrow{background:var(--gold);color:#000;border-color:transparent}
+.coming-soon-badge{
+  position:absolute;top:16px;right:16px;
+  font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;
+  background:rgba(96,168,240,0.1);color:var(--blue);
+  border:1px solid rgba(96,168,240,0.2);
+}
+
+/* EXAM TABLE SECTION */
+.exam-section{max-width:1200px;margin:0 auto 100px;padding:0 2.5rem}
+
+/* CATEGORY TABS */
+.cat-tabs{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px;
+}
+.cat-tab{
+  padding:8px 18px;border-radius:100px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--muted2);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.15s;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:6px;
+}
+.cat-tab .dot{width:6px;height:6px;border-radius:50%}
+.cat-tab:hover,.cat-tab.active{
+  border-color:rgba(240,192,96,0.4);
+  color:var(--gold);background:rgba(240,192,96,0.06);
+}
+
+/* EXAM CARDS */
+.exam-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:12px;
+}
+.ecard{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  transition:border-color 0.2s,transform 0.15s;
+}
+.ecard:hover{border-color:var(--border2);transform:translateY(-2px)}
+.ecard-head{
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;
+}
+.ecard-head-left{display:flex;align-items:center;gap:10px}
+.ecard-badge{
+  width:38px;height:38px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  flex-shrink:0;letter-spacing:-0.3px;
+}
+.ecard-name{font-size:14px;font-weight:600;color:#fff;line-height:1.2}
+.ecard-auth{font-size:11px;color:var(--muted);margin-top:2px}
+.ecard-org{
+  font-size:9.5px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;flex-shrink:0;
+}
+
+/* spec rows inside card */
+.ecard-specs{
+  padding:12px 16px;
+  display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;
+}
+.spec-row{display:flex;flex-direction:column;gap:1px;padding:6px 0}
+.spec-k{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;font-weight:500}
+.spec-v{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text)}
+.spec-v.g{color:var(--gold)}
+.spec-v.b{color:var(--blue)}
+.spec-v.pu{color:var(--purple)}
+.spec-v.gr{color:var(--green)}
+.spec-v.r{color:var(--red)}
+
+.ecard-notes{
+  padding:0 16px 14px;
+  border-top:1px solid var(--border);
+  padding-top:10px;
+}
+.note-item{
+  font-size:11.5px;color:var(--muted2);
+  padding:3px 0 3px 14px;position:relative;line-height:1.45;
+}
+.note-item::before{content:'›';position:absolute;left:3px;color:var(--gold);font-size:12px}
+.note-item.warn{color:rgba(240,96,96,0.8)}
+.note-item.warn::before{content:'!';color:var(--red);font-size:10px;top:4px;font-weight:700}
+
+/* COMPARE TABLE */
+.table-wrap{
+  overflow-x:auto;
+  border:1px solid var(--border);
+  border-radius:14px;
+}
+.cmp-table{width:100%;border-collapse:collapse;min-width:780px}
+.cmp-table thead tr{background:var(--s2)}
+.cmp-table th{
+  padding:11px 14px;font-size:10.5px;font-weight:600;
+  letter-spacing:0.07em;text-transform:uppercase;
+  color:var(--muted);text-align:left;border-bottom:1px solid var(--border);
+}
+.cmp-table td{
+  padding:10px 14px;font-size:13px;color:var(--text);
+  border-bottom:1px solid var(--border);vertical-align:middle;
+}
+.cmp-table tbody tr:last-child td{border-bottom:none}
+.cmp-table tbody tr:hover td{background:rgba(255,255,255,0.015)}
+.exam-name-cell{
+  font-weight:600;color:#fff;font-size:13px;
+  display:flex;align-items:center;gap:8px;
+  white-space:nowrap;
+}
+.dot-badge{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.pill{
+  display:inline-block;font-size:9.5px;font-weight:600;
+  letter-spacing:0.05em;padding:2px 7px;border-radius:100px;text-transform:uppercase;
+}
+.pill-jpeg{background:rgba(240,192,96,0.1);color:var(--gold)}
+.pill-warn{background:rgba(240,96,96,0.1);color:var(--red)}
+.pill-special{background:rgba(72,216,160,0.1);color:var(--green)}
+
+/* SPECIAL NOTES */
+.special-section{
+  max-width:1200px;margin:0 auto 100px;padding:0 2.5rem;
+}
+.special-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;
+  margin-top:24px;
+}
+.special-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:14px;padding:20px;
+}
+.special-card-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:14px;
+}
+.special-card h3{
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  color:#fff;margin-bottom:6px;
+}
+.special-card p{font-size:12.5px;color:var(--muted2);line-height:1.55}
+.special-card .tag{
+  display:inline-block;font-size:9.5px;font-weight:600;
+  padding:2px 7px;border-radius:100px;margin-top:10px;
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+
+/* HOW IT WORKS */
+.hiw-section{
+  max-width:1200px;margin:0 auto 100px;padding:0 2.5rem;
+}
+.hiw-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  margin-top:28px;
+}
+.hiw-step{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:14px;padding:22px;position:relative;
+}
+.hiw-num{
+  font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;
+  color:var(--border2);line-height:1;margin-bottom:12px;
+}
+.hiw-step h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.hiw-step p{font-size:12.5px;color:var(--muted2);line-height:1.55}
+
+/* FOOTER */
+footer{
+  border-top:1px solid var(--border);padding:36px 2.5rem;
+  max-width:1200px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;
+}
+.footer-logo{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--muted);
+}
+.footer-logo span{color:var(--gold)}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap}
+.footer-links a{font-size:12.5px;color:var(--muted);text-decoration:none;transition:color 0.15s}
+.footer-links a:hover{color:var(--text)}
+.footer-note{font-size:11px;color:var(--muted);max-width:400px;line-height:1.6}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.ecard{animation:fadeUp 0.35s ease both}
+.ecard:nth-child(1){animation-delay:.04s}.ecard:nth-child(2){animation-delay:.08s}
+.ecard:nth-child(3){animation-delay:.12s}.ecard:nth-child(4){animation-delay:.16s}
+.ecard:nth-child(5){animation-delay:.20s}.ecard:nth-child(6){animation-delay:.24s}
+.ecard:nth-child(7){animation-delay:.28s}.ecard:nth-child(8){animation-delay:.32s}
+
+/* BG GLOW */
+.glow-orb{
+  position:fixed;pointer-events:none;border-radius:50%;
+  filter:blur(100px);opacity:0.04;
+}
+.glow-1{width:600px;height:600px;background:var(--gold);top:-100px;right:-100px}
+.glow-2{width:400px;height:400px;background:var(--blue);bottom:200px;left:-150px}
+
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;padding:100px 1.5rem 60px}
+  .hero-right{display:none}
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .tools-grid{grid-template-columns:1fr}
+  .tool-card.featured{grid-column:span 1}
+  .hiw-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:0 1.5rem}
+  .nav a:not(.nav-cta){display:none}
+}
+</style>
+</head>
+<body>
+<div class="glow-orb glow-1"></div>
+<div class="glow-orb glow-2"></div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a class="logo-mark" href="#">
+    <div class="logo-icon">SW</div>
+    <div class="logo-text">Info<span>Systems</span> <span style="color:var(--muted);font-size:12px;font-weight:400;margin-left:4px">tools</span></div>
+  </a>
+  <nav class="nav">
+    <a href="#tools">All Tools</a>
+    <a href="#exams">Exam Specs</a>
+    <a href="#compare">Compare</a>
+    <a href="#" class="nav-cta">Start Using Free →</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Free Tools for Exam Applicants</div>
+    <h1>Stop getting<br><span class="accent">rejected</span> for<br><span class="accent2">photo errors</span></h1>
+    <p class="hero-desc">Resize, crop & format photos and signatures for every major Indian government exam — SSC, RRB, UPSC, Banking, NEET, JEE and more. Zero rejections. Free forever.</p>
+    <div class="hero-btns">
+      <a href="#tools" class="btn-primary">Use Photo Resizer ↓</a>
+      <a href="#exams" class="btn-ghost">View Exam Specs</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="mockup-card">
+      <div class="mc-header">
+        <span class="mc-exam">UPSC Civil Services 2026</span>
+        <span class="mc-org">UPSC</span>
+      </div>
+      <div class="mc-row">
+        <div class="mc-spec"><div class="mc-spec-label">Photo</div><div class="mc-spec-val hi">300–1000 px</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">File Size</div><div class="mc-spec-val hi">20–300 KB</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Special</div><div class="mc-spec-val" style="color:var(--red);font-size:10.5px">Name+Date+3 Sigs</div></div>
+      </div>
+    </div>
+    <div class="mockup-card">
+      <div class="mc-header">
+        <span class="mc-exam">NEET UG 2026</span>
+        <span class="mc-org nta">NTA</span>
+      </div>
+      <div class="mc-row">
+        <div class="mc-spec"><div class="mc-spec-label">Passport Photo</div><div class="mc-spec-val green">200×230 px</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Postcard Photo</div><div class="mc-spec-val green">4×6 inch</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">New 2026</div><div class="mc-spec-val" style="color:var(--orange);font-size:10px">Live Webcam+Aadhaar</div></div>
+      </div>
+    </div>
+    <div class="mockup-card">
+      <div class="mc-header">
+        <span class="mc-exam">India Post GDS</span>
+        <span class="mc-org" style="background:rgba(72,216,160,0.1);color:var(--green)">POST</span>
+      </div>
+      <div class="mc-row">
+        <div class="mc-spec"><div class="mc-spec-label">Photo Ratio</div><div class="mc-spec-val" style="color:var(--red)">4:5 STRICT</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Sig Ratio</div><div class="mc-spec-val" style="color:var(--red)">5:2 STRICT</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Photo px</div><div class="mc-spec-val green">320×400</div></div>
+      </div>
+    </div>
+    <div class="mockup-card">
+      <div class="mc-header">
+        <span class="mc-exam">SBI PO / IBPS PO</span>
+        <span class="mc-org bank">Banking</span>
+      </div>
+      <div class="mc-row">
+        <div class="mc-spec"><div class="mc-spec-label">Photo</div><div class="mc-spec-val purple">200×230 px</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Signature</div><div class="mc-spec-val purple">140×60 px</div></div>
+        <div class="mc-spec"><div class="mc-spec-label">Extra Docs</div><div class="mc-spec-val" style="font-size:10px;color:var(--muted2)">Thumb+Declaration</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-box">
+    <div class="stat-n">20<span>+</span></div>
+    <div class="stat-l">Exams covered</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-n">6<span>+</span></div>
+    <div class="stat-l">Organisations</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-n">1.2<span>cr+</span></div>
+    <div class="stat-l">Applicants/year</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-n">0<span>₹</span></div>
+    <div class="stat-l">Always free</div>
+  </div>
+</div>
+
+<!-- TOOLS SECTION -->
+<section class="tools-section" id="tools">
+  <div class="tools-header">
+    <div class="sec-label">All Tools</div>
+    <div class="tools-title">Everything you need,<br>one place</div>
+    <div class="tools-sub">Tools built specifically for Indian government exam applications</div>
+  </div>
+
+  <div class="tools-grid">
+
+    <!-- FEATURED -->
+    <div class="tool-card featured" onclick="document.getElementById('exams').scrollIntoView({behavior:'smooth'})">
+      <div class="tool-arrow">→</div>
+      <div class="tool-icon" style="background:rgba(240,192,96,0.12)">📸</div>
+      <div class="tool-card-title">Photo & Signature Resizer</div>
+      <div class="tool-card-desc">Upload your photo, pick your exam, and download a perfectly sized JPEG — correct pixels, correct KB, correct background. Supports 20+ exams including SSC, RRB, UPSC, NEET, JEE, Banking.</div>
+      <div class="tool-tags">
+        <span class="ttag">SSC CGL</span><span class="ttag">UPSC</span><span class="ttag">NEET 2026</span>
+        <span class="ttag">SBI PO</span><span class="ttag">India Post GDS</span><span class="ttag">RRB NTPC</span><span class="ttag">JEE Main</span>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="alert('Coming soon!')">
+      <div class="tool-arrow">→</div>
+      <div class="tool-icon" style="background:rgba(96,168,240,0.1)">🔍</div>
+      <div class="tool-card-title">Exam Spec Finder</div>
+      <div class="tool-card-desc">Search any exam and instantly see the official photo, signature, and document requirements.</div>
+      <div class="tool-tags"><span class="ttag">20+ Exams</span><span class="ttag">Instant</span></div>
+    </div>
+
+    <div class="tool-card" style="position:relative">
+      <div class="coming-soon-badge">Coming Soon</div>
+      <div class="tool-icon" style="background:rgba(160,128,240,0.1)">🎨</div>
+      <div class="tool-card-title">Background Remover</div>
+      <div class="tool-card-desc">Remove any background from your photo and replace with pure white — required for SSC GD, CPO, and most banking exams.</div>
+      <div class="tool-tags"><span class="ttag">AI Powered</span><span class="ttag">White BG</span></div>
+    </div>
+
+    <div class="tool-card" style="position:relative">
+      <div class="coming-soon-badge">Coming Soon</div>
+      <div class="tool-icon" style="background:rgba(72,216,160,0.1)">📝</div>
+      <div class="tool-card-title">NEET Postcard Maker</div>
+      <div class="tool-card-desc">Unique to NEET — generates a 4×6 inch postcard photo with your name and date auto-printed. Required for NEET 2026 admit card.</div>
+      <div class="tool-tags"><span class="ttag">NEET UG</span><span class="ttag">NEET PG</span><span class="ttag">4×6 inch</span></div>
+    </div>
+
+    <div class="tool-card" style="position:relative">
+      <div class="coming-soon-badge">Coming Soon</div>
+      <div class="tool-icon" style="background:rgba(240,96,96,0.1)">✍️</div>
+      <div class="tool-card-title">UPSC Triple Signature Tool</div>
+      <div class="tool-card-desc">UPSC 2026 now requires 3 signatures stacked vertically as a single image. This tool formats them perfectly.</div>
+      <div class="tool-tags"><span class="ttag">UPSC CSE</span><span class="ttag">UPSC CAPF</span></div>
+    </div>
+
+    <div class="tool-card" style="position:relative">
+      <div class="coming-soon-badge">Coming Soon</div>
+      <div class="tool-icon" style="background:rgba(240,192,96,0.1)">📄</div>
+      <div class="tool-card-title">Document Checker</div>
+      <div class="tool-card-desc">Upload your photo — we'll instantly tell you if it meets any exam's requirements: KB, pixels, aspect ratio, background brightness.</div>
+      <div class="tool-tags"><span class="ttag">Auto Verify</span><span class="ttag">All Exams</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXAM SPECS SECTION -->
+<section class="exam-section" id="exams">
+  <div class="sec-label">Exam Specifications</div>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-1px">Official photo & signature specs</div>
+      <div style="font-size:14px;color:var(--muted2);margin-top:4px">Based on official notifications — updated March 2026</div>
+    </div>
+    <span id="cat-count" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:var(--s2);border:1px solid var(--border);padding:4px 10px;border-radius:7px">20 exams</span>
+  </div>
+
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="filterExams('all',this)"><span class="dot" style="background:#fff"></span>All Exams</button>
+    <button class="cat-tab" onclick="filterExams('ssc',this)"><span class="dot" style="background:var(--gold)"></span>SSC</button>
+    <button class="cat-tab" onclick="filterExams('rrb',this)"><span class="dot" style="background:var(--blue)"></span>RRB Railways</button>
+    <button class="cat-tab" onclick="filterExams('bank',this)"><span class="dot" style="background:var(--purple)"></span>Banking</button>
+    <button class="cat-tab" onclick="filterExams('upsc',this)"><span class="dot" style="background:var(--red)"></span>UPSC</button>
+    <button class="cat-tab" onclick="filterExams('nta',this)"><span class="dot" style="background:var(--green)"></span>NTA Entrance</button>
+    <button class="cat-tab" onclick="filterExams('post',this)"><span class="dot" style="background:var(--orange)"></span>India Post</button>
+  </div>
+
+  <div class="exam-grid" id="exam-grid">
+
+    <!-- SSC CGL -->
+    <div class="ecard" data-cat="ssc">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(240,192,96,0.1);color:var(--gold);border:1px solid rgba(240,192,96,0.2)">CGL</div>
+          <div><div class="ecard-name">SSC CGL</div><div class="ecard-auth">ssc.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(240,192,96,0.08);color:var(--gold)">SSC</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v g">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v g">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+        <div class="spec-row"><div class="spec-k">BG</div><div class="spec-v">White</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item">Photo within 3 months; date printed (recommended)</div>
+        <div class="note-item warn">No cap, no glasses · both ears visible</div>
+        <div class="note-item warn">Signature: running handwriting, NOT block letters</div>
+      </div>
+    </div>
+
+    <!-- SSC CHSL -->
+    <div class="ecard" data-cat="ssc">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(240,192,96,0.1);color:var(--gold);border:1px solid rgba(240,192,96,0.2)">CHSL</div>
+          <div><div class="ecard-name">SSC CHSL</div><div class="ecard-auth">ssc.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(240,192,96,0.08);color:var(--gold)">SSC</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v g">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v g">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+        <div class="spec-row"><div class="spec-k">BG</div><div class="spec-v">White only</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">White background mandatory — gray/cream rejected</div>
+        <div class="note-item">Both ears must be visible</div>
+      </div>
+    </div>
+
+    <!-- SSC GD -->
+    <div class="ecard" data-cat="ssc">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(240,192,96,0.1);color:var(--gold);border:1px solid rgba(240,192,96,0.2)">GD</div>
+          <div><div class="ecard-name">SSC GD Constable</div><div class="ecard-auth">ssc.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(240,192,96,0.08);color:var(--gold)">SSC</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v g">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v g">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+        <div class="spec-row"><div class="spec-k">BG</div><div class="spec-v r">PURE WHITE</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">Strictly pure white — even light gray = rejection</div>
+        <div class="note-item warn">No spectacles at all allowed</div>
+      </div>
+    </div>
+
+    <!-- RRB NTPC Grad -->
+    <div class="ecard" data-cat="rrb">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(96,168,240,0.1);color:var(--blue);border:1px solid rgba(96,168,240,0.2)">NTPC</div>
+          <div><div class="ecard-name">RRB NTPC Graduate</div><div class="ecard-auth">rrbapply.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(96,168,240,0.08);color:var(--blue)">RRB</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v b">320 × 240</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v b">30 – 70</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 70</div></div>
+        <div class="spec-row"><div class="spec-k">Face</div><div class="spec-v">50–60%</div></div>
+        <div class="spec-row"><div class="spec-k">Ink</div><div class="spec-v">Black/Blue</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item">Face covers 50–60% of photo frame</div>
+        <div class="note-item warn">No shadows or glare · no cap/sunglasses</div>
+      </div>
+    </div>
+
+    <!-- RRB Group D -->
+    <div class="ecard" data-cat="rrb">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(96,168,240,0.1);color:var(--blue);border:1px solid rgba(96,168,240,0.2)">GRP D</div>
+          <div><div class="ecard-name">RRB Group D</div><div class="ecard-auth">rrbapply.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(96,168,240,0.08);color:var(--blue)">RRB</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v b">320 × 240</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v b">20 – 100</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v r">472 × 157</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign DPI</div><div class="spec-v">200</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">Signature wider than other RRB exams — 472×157 px</div>
+        <div class="note-item">No caps/goggles in photo</div>
+      </div>
+    </div>
+
+    <!-- SBI PO -->
+    <div class="ecard" data-cat="bank">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(160,128,240,0.1);color:var(--purple);border:1px solid rgba(160,128,240,0.2)">SBI</div>
+          <div><div class="ecard-name">SBI PO / Clerk</div><div class="ecard-auth">sbi.co.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(160,128,240,0.08);color:var(--purple)">Banking</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v pu">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v pu">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">Thumb px</div><div class="spec-v">240 × 240</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">Left thumb impression required (240×240 px)</div>
+        <div class="note-item">Sign in black ink on white paper · running handwriting only</div>
+      </div>
+    </div>
+
+    <!-- IBPS PO/Clerk -->
+    <div class="ecard" data-cat="bank">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(160,128,240,0.1);color:var(--purple);border:1px solid rgba(160,128,240,0.2)">IBPS</div>
+          <div><div class="ecard-name">IBPS PO / Clerk / SO</div><div class="ecard-auth">ibps.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(160,128,240,0.08);color:var(--purple)">Banking</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v pu">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v pu">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">Thumb</div><div class="spec-v">240 × 240</div></div>
+        <div class="spec-row"><div class="spec-k">Declaration</div><div class="spec-v" style="font-size:10px">800×400 px</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">4 uploads: photo + sign + thumb + handwritten declaration</div>
+        <div class="note-item">Colored backgrounds (blue/red) = rejection</div>
+      </div>
+    </div>
+
+    <!-- IBPS RRB -->
+    <div class="ecard" data-cat="bank">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(160,128,240,0.1);color:var(--purple);border:1px solid rgba(160,128,240,0.2)">RRB</div>
+          <div><div class="ecard-name">IBPS RRB PO / Clerk</div><div class="ecard-auth">ibps.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(160,128,240,0.08);color:var(--purple)">Banking</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v pu">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v pu">20 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">140 × 60</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 20</div></div>
+        <div class="spec-row"><div class="spec-k">DPI</div><div class="spec-v">200</div></div>
+        <div class="spec-row"><div class="spec-k">Recent</div><div class="spec-v">≤ 6 months</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item">Photo not older than 6 months from application date</div>
+        <div class="note-item warn">Thumb impression + handwritten declaration also needed</div>
+      </div>
+    </div>
+
+    <!-- UPSC CSE -->
+    <div class="ecard" data-cat="upsc" style="border-color:rgba(240,112,96,0.15)">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(240,96,96,0.1);color:var(--red);border:1px solid rgba(240,96,96,0.2)">UPSC</div>
+          <div><div class="ecard-name">UPSC CSE (IAS/IPS/IFS)</div><div class="ecard-auth">upsc.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(240,96,96,0.08);color:var(--red)">UPSC</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v r">300–1000 (sq)</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v r">20 – 300</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v">300–1000 (sq)</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">20 – 100</div></div>
+        <div class="spec-row"><div class="spec-k">Face</div><div class="spec-v">75% (3/4th)</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">Name + Date printed on photo mandatory (unique to UPSC)</div>
+        <div class="note-item warn">2026: 3 signatures stacked vertically as one image</div>
+        <div class="note-item">Manual photo review — 15-point checklist by UPSC staff</div>
+        <div class="note-item">Photo must not be older than 10 days from application start</div>
+      </div>
+    </div>
+
+    <!-- NEET UG -->
+    <div class="ecard" data-cat="nta" style="border-color:rgba(72,216,160,0.15)">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(72,216,160,0.1);color:var(--green);border:1px solid rgba(72,216,160,0.2)">NEET</div>
+          <div><div class="ecard-name">NEET UG 2026</div><div class="ecard-auth">nta.ac.in · ntaneet.nic.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(72,216,160,0.08);color:var(--green)">NTA</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Passport px</div><div class="spec-v gr">200 × 230</div></div>
+        <div class="spec-row"><div class="spec-k">Passport KB</div><div class="spec-v gr">10 – 200</div></div>
+        <div class="spec-row"><div class="spec-k">Postcard size</div><div class="spec-v r">4 × 6 inch</div></div>
+        <div class="spec-row"><div class="spec-k">Sig KB</div><div class="spec-v">4 – 30 (or 10–100)</div></div>
+        <div class="spec-row"><div class="spec-k">Thumb</div><div class="spec-v">Blue ink</div></div>
+        <div class="spec-row"><div class="spec-k">Face</div><div class="spec-v">80%+</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">TWO photos required: passport + 4×6 postcard (name+date printed)</div>
+        <div class="note-item warn">2026 NEW: Live webcam photo + Aadhaar eKYC verification</div>
+        <div class="note-item">Thumb impression in blue ink · photo after Jan 1, 2026</div>
+      </div>
+    </div>
+
+    <!-- JEE Main -->
+    <div class="ecard" data-cat="nta">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(72,216,160,0.1);color:var(--green);border:1px solid rgba(72,216,160,0.2)">JEE</div>
+          <div><div class="ecard-name">JEE Main</div><div class="ecard-auth">jeemain.nta.nic.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(72,216,160,0.08);color:var(--green)">NTA</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo size</div><div class="spec-v gr">3.5 × 4.5 cm</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v gr">10 – 200</div></div>
+        <div class="spec-row"><div class="spec-k">Sign size</div><div class="spec-v">3.5 × 1.5 cm</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v">10 – 50</div></div>
+        <div class="spec-row"><div class="spec-k">Format</div><div class="spec-v">JPEG</div></div>
+        <div class="spec-row"><div class="spec-k">BG</div><div class="spec-v">White/Light</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item">Glasses allowed if worn regularly (no glare/reflection)</div>
+        <div class="note-item warn">Polaroid & computer-generated photos NOT accepted</div>
+        <div class="note-item">Name + date on photo recommended</div>
+      </div>
+    </div>
+
+    <!-- GATE -->
+    <div class="ecard" data-cat="nta">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(72,216,160,0.1);color:var(--green);border:1px solid rgba(72,216,160,0.2)">GATE</div>
+          <div><div class="ecard-name">GATE 2026</div><div class="ecard-auth">gate2026.iisc.ac.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(72,216,160,0.08);color:var(--green)">IITs/IISc</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v gr">200–530 w × 260–690 h</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v gr">5 KB – 1 MB</div></div>
+        <div class="spec-row"><div class="spec-k">Photo ratio</div><div class="spec-v">0.66 – 0.89</div></div>
+        <div class="spec-row"><div class="spec-k">Sign ratio</div><div class="spec-v">1 : (2.75–3.75)</div></div>
+        <div class="spec-row"><div class="spec-k">Sign coverage</div><div class="spec-v">70–80%</div></div>
+        <div class="spec-row"><div class="spec-k">Face</div><div class="spec-v">60–70%</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item">Most lenient file size — up to 1 MB allowed for photo</div>
+        <div class="note-item warn">Signature aspect ratio is 1:R where R must be 2.75–3.75</div>
+        <div class="note-item">Spectacles allowed if glare-free</div>
+      </div>
+    </div>
+
+    <!-- India Post GDS -->
+    <div class="ecard" data-cat="post" style="border-color:rgba(240,128,80,0.2)">
+      <div class="ecard-head">
+        <div class="ecard-head-left">
+          <div class="ecard-badge" style="background:rgba(240,128,80,0.1);color:var(--orange);border:1px solid rgba(240,128,80,0.2)">GDS</div>
+          <div><div class="ecard-name">India Post GDS</div><div class="ecard-auth">indiapostgdsonline.gov.in</div></div>
+        </div>
+        <span class="ecard-org" style="background:rgba(240,128,80,0.08);color:var(--orange)">Post</span>
+      </div>
+      <div class="ecard-specs">
+        <div class="spec-row"><div class="spec-k">Photo px</div><div class="spec-v" style="color:var(--orange)">320 × 400</div></div>
+        <div class="spec-row"><div class="spec-k">Photo KB</div><div class="spec-v" style="color:var(--orange)">30 – 100</div></div>
+        <div class="spec-row"><div class="spec-k">Photo ratio</div><div class="spec-v r">4:5 STRICT</div></div>
+        <div class="spec-row"><div class="spec-k">Sign px</div><div class="spec-v" style="color:var(--orange)">300 × 120</div></div>
+        <div class="spec-row"><div class="spec-k">Sign KB</div><div class="spec-v" style="color:var(--orange)">20 – 100</div></div>
+        <div class="spec-row"><div class="spec-k">Sign ratio</div><div class="spec-v r">5:2 STRICT ±5%</div></div>
+      </div>
+      <div class="ecard-notes">
+        <div class="note-item warn">Portal CHECKS aspect ratio mathematically — exact error shown</div>
+        <div class="note-item warn">File name: no spaces/symbols (e.g. GDS_Photo.jpg)</div>
+        <div class="note-item">Signature must fill 70–80% of the image area</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- QUICK COMPARE TABLE -->
+<section style="max-width:1200px;margin:0 auto 100px;padding:0 2.5rem" id="compare">
+  <div class="sec-label">Quick Compare</div>
+  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:24px">All exams at a glance</div>
+  <div class="table-wrap">
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Exam</th>
+          <th>Photo px</th>
+          <th>Photo KB</th>
+          <th>Signature px</th>
+          <th>Sign KB</th>
+          <th>Format</th>
+          <th>Special</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--gold)"></span>SSC CGL / CHSL / MTS</div></td><td><span class="mono">200×230</span></td><td><span class="mono">20–50</span></td><td><span class="mono">140×60</span></td><td><span class="mono">10–20</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td style="font-size:12px;color:var(--muted2)">White BG · ears visible</td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--gold)"></span>SSC GD / CPO</div></td><td><span class="mono">200×230</span></td><td><span class="mono">20–50</span></td><td><span class="mono">140×60</span></td><td><span class="mono">10–20</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">PURE WHITE only</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--blue)"></span>RRB NTPC (both)</div></td><td><span class="mono">320×240</span></td><td><span class="mono">20–70</span></td><td><span class="mono">140×60</span></td><td><span class="mono">10–70</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td style="font-size:12px;color:var(--muted2)">Face 50–60%</td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--blue)"></span>RRB Group D</div></td><td><span class="mono">320×240</span></td><td><span class="mono">20–100</span></td><td><span class="mono" style="color:var(--red)">472×157</span></td><td><span class="mono">10–50</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">Wide sign (6cm)</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--purple)"></span>SBI PO / Clerk</div></td><td><span class="mono">200×230</span></td><td><span class="mono">20–50</span></td><td><span class="mono">140×60</span></td><td><span class="mono">10–20</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-special">+Thumb 240×240</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--purple)"></span>IBPS PO / Clerk / SO</div></td><td><span class="mono">200×230</span></td><td><span class="mono">20–50</span></td><td><span class="mono">140×60</span></td><td><span class="mono">10–20</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">+Thumb+Declaration</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--red)"></span>UPSC CSE (IAS/IPS)</div></td><td><span class="mono" style="color:var(--red)">300–1000 sq</span></td><td><span class="mono">20–300</span></td><td><span class="mono">300–1000 sq</span></td><td><span class="mono">20–100</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">Name+Date · 3 stacked sigs</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--green)"></span>NEET UG 2026</div></td><td><span class="mono">200×230</span></td><td><span class="mono">10–200</span></td><td><span class="mono">varies</span></td><td><span class="mono">4–100</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">+Postcard 4×6 · Webcam+Aadhaar</span></td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--green)"></span>JEE Main</div></td><td><span class="mono">3.5×4.5 cm</span></td><td><span class="mono">10–200</span></td><td><span class="mono">3.5×1.5 cm</span></td><td><span class="mono">10–50</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td style="font-size:12px;color:var(--muted2)">Glasses OK if no glare</td></tr>
+        <tr><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--green)"></span>GATE 2026</div></td><td><span class="mono">200–530 w</span></td><td><span class="mono">5–1000</span></td><td><span class="mono">ratio 1:2.75–3.75</span></td><td><span class="mono">5–500</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td style="font-size:12px;color:var(--muted2)">Most lenient (1 MB allowed)</td></tr>
+        <tr style="border-top:1px solid rgba(240,128,80,0.2)"><td><div class="exam-name-cell"><span class="dot-badge" style="background:var(--orange)"></span>India Post GDS</div></td><td><span class="mono" style="color:var(--orange)">320×400</span></td><td><span class="mono">30–100</span></td><td><span class="mono" style="color:var(--orange)">300×120</span></td><td><span class="mono">20–100</span></td><td><span class="pill pill-jpeg">JPEG</span></td><td><span class="pill pill-warn">4:5 & 5:2 ratio ENFORCED</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- SPECIAL EXAMS NOTES -->
+<section class="special-section">
+  <div class="sec-label">Special Cases</div>
+  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:8px">Unique requirements to know</div>
+  <div style="font-size:14px;color:var(--muted2);margin-bottom:0">These exams have requirements that most candidates miss</div>
+  <div class="special-grid">
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(72,216,160,0.1)">📋</div>
+      <h3>NEET 2026: Webcam + Aadhaar</h3>
+      <p>NEET UG 2026 introduced live photo capture via webcam during online application. This live photo is matched against your Aadhaar. A pre-clicked photo will no longer work for initial registration.</p>
+      <span class="tag" style="background:rgba(240,96,96,0.1);color:var(--red)">New 2026</span>
+    </div>
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(240,96,96,0.1)">✍️</div>
+      <h3>UPSC: Triple Signature Image</h3>
+      <p>From 2026, UPSC CSE requires candidates to sign three times vertically on a single white sheet, scan all three as one image, and upload it. Single signature images are now insufficient.</p>
+      <span class="tag" style="background:rgba(240,96,96,0.1);color:var(--red)">New 2026</span>
+    </div>
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(240,192,96,0.1)">📅</div>
+      <h3>UPSC: Name + Date on Photo</h3>
+      <p>UPSC is the only major exam where the photo must have the candidate's name and date printed on it. This is printed text on the photo itself, not handwritten. ~4.2% of UPSC applications are rejected for this alone.</p>
+      <span class="tag" style="background:rgba(240,192,96,0.1);color:var(--gold)">UPSC Unique</span>
+    </div>
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(72,216,160,0.1)">🖼️</div>
+      <h3>NEET: Two Different Photo Sizes</h3>
+      <p>NEET requires both a 2.5×3.5 inch passport photo AND a 4×6 inch postcard photo — with the candidate's name and date printed on both. No other major exam requires a postcard-sized photo.</p>
+      <span class="tag" style="background:rgba(72,216,160,0.1);color:var(--green)">NEET Unique</span>
+    </div>
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(240,128,80,0.1)">📐</div>
+      <h3>India Post GDS: Ratio Math Check</h3>
+      <p>The GDS portal calculates the aspect ratio of uploaded images and throws a hard error if it's even slightly off. Photo must be exactly 4:5 (±10%) and signature 5:2 (±5%). Most photo tools fail this check.</p>
+      <span class="tag" style="background:rgba(240,128,80,0.1);color:var(--orange)">Portal Enforced</span>
+    </div>
+
+    <div class="special-card">
+      <div class="special-card-icon" style="background:rgba(160,128,240,0.1)">👆</div>
+      <h3>Banking Exams: Thumb + Declaration</h3>
+      <p>IBPS exams require 4 separate uploads: photo, signature, left thumb impression (240×240 px in blue ink), and a handwritten declaration. SBI PO/Clerk also needs the thumb impression. Each must meet separate specs.</p>
+      <span class="tag" style="background:rgba(160,128,240,0.1);color:var(--purple)">IBPS / SBI</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="hiw-section">
+  <div class="sec-label">How to use</div>
+  <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:#fff;letter-spacing:-1px;margin-bottom:0">Ready in 60 seconds</div>
+  <div class="hiw-grid">
+    <div class="hiw-step">
+      <div class="hiw-num">01</div>
+      <h4>Pick your exam</h4>
+      <p>Select from 20+ exams — SSC, RRB, UPSC, NEET, JEE, Banking, India Post. Specs load instantly.</p>
+    </div>
+    <div class="hiw-step">
+      <div class="hiw-num">02</div>
+      <h4>Upload your photo</h4>
+      <p>Upload any JPG, PNG, or HEIC. We'll show you exact dimensions, KB, and background requirements.</p>
+    </div>
+    <div class="hiw-step">
+      <div class="hiw-num">03</div>
+      <h4>Auto-resize & compress</h4>
+      <p>One click. We resize to exact pixels, compress to target KB, and optionally clean the background.</p>
+    </div>
+    <div class="hiw-step">
+      <div class="hiw-num">04</div>
+      <h4>Download & upload</h4>
+      <p>Get your exam-ready JPEG. Upload directly to the exam portal. No rejection. Job done.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SW<span>.</span>InfoSystems Tools</div>
+  <div class="footer-links">
+    <a href="#">Photo Resizer</a>
+    <a href="#">Exam Specs</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-note">tools.swinfosystems.online · Specs based on official SSC, RRB, UPSC, NTA, India Post notifications. Always verify with the current official notification before applying.</div>
+</footer>
+
+<script>
+function filterExams(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const cards = document.querySelectorAll('.ecard');
+  let n = 0;
+  cards.forEach(c => {
+    const show = cat === 'all' || c.dataset.cat === cat;
+    c.style.display = show ? '' : 'none';
+    if (show) n++;
+  });
+  document.getElementById('cat-count').textContent = n + (n === 1 ? ' exam' : ' exams');
+}
+</script>
+</body>
+</html>
