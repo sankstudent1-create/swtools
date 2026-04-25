@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { createClient } from '@/lib/supabase-server';
 import { supabaseServer } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
@@ -7,13 +8,15 @@ export async function POST(req: Request) {
   
   try {
     console.log('Step 1: Parsing request body...');
-    const supabase = supabaseServer;
-    const { data: { user } } = await supabase.auth.getUser();
+    const cookieSupabase = await createClient();
+    const { data: { user } } = await cookieSupabase.auth.getUser();
     
     if (!user) {
-      console.log('TD Commission: No user found, redirecting to login');
+      console.log('Razorpay Route: No user found via cookies');
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = supabaseServer; // Use service role for DB operations
 
     // Refresh latest profile to get up‑to‑date credits
     const { data: latestProfile, error: profileErr } = await supabase
