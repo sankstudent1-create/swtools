@@ -342,7 +342,7 @@ export default function TopupPage() {
 
               <button
                 className="ui-btn-primary w-full py-4 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-blue-500/10"
-                disabled={submitBusy || !utr.trim() || amount <= 0}
+                disabled={submitBusy || amount <= 0 || (!utr.trim() && !screenshot)}
                 onClick={submitUtr}
               >
                 {submitBusy ? (

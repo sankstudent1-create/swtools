@@ -21,15 +21,15 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json()) as Body
   const amountInr = Number(body?.amount_inr)
-  const utr = String(body?.utr || '').trim()
+  const utr = body?.utr ? String(body.utr).trim() : null
   const creditsRequested = Number(body?.credits_requested)
   const screenshotPath = body?.screenshot_path || null
 
   if (!Number.isFinite(amountInr) || amountInr <= 0) {
     return NextResponse.json({ error: 'Invalid amount' }, { status: 400 })
   }
-  if (!utr || utr.length < 6) {
-    return NextResponse.json({ error: 'Invalid UTR' }, { status: 400 })
+  if (!utr && !screenshotPath) {
+    return NextResponse.json({ error: 'Provide at least UTR or Screenshot' }, { status: 400 })
   }
   if (!Number.isFinite(creditsRequested) || creditsRequested <= 0) {
     return NextResponse.json({ error: 'Invalid credits' }, { status: 400 })
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     user_id: user.id,
     amount_inr: amountInr,
     credits_requested: creditsRequested,
-    utr,
+    utr: utr || `pending_ocr_${Date.now()}`,
     screenshot_path: screenshotPath,
     status: 'pending',
   })
