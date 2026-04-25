@@ -2,11 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Settings, Save, ArrowLeft, Loader2, Cpu, Globe, Zap, ShieldCheck } from 'lucide-react'
 
 export default function AdminSettingsPage() {
-  const supabase = createSupabaseBrowserClient()
   const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -15,14 +13,14 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     async function load() {
       try {
-        const { data } = await supabase
-          .from('admin_settings')
-          .select('*')
-          .eq('key', 'credits_per_inr')
-          .maybeSingle()
-        
-        if (data?.value?.credits_per_inr) {
-          setCreditsPerInr(data.value.credits_per_inr)
+        const res = await fetch('/api/admin/settings/credits-per-inr', { method: 'GET' })
+        const j = await res.json().catch(() => null)
+
+        if (res.ok) {
+          const v = Number(j?.credits_per_inr)
+          if (Number.isFinite(v) && v > 0) setCreditsPerInr(v)
+        } else {
+          setMsg({ text: j?.error || 'Failed to load current settings', type: 'error' })
         }
       } finally {
         setLoading(false)

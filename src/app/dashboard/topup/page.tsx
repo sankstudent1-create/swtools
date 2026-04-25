@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
-import { Wallet, ShieldCheck, ArrowLeft, Loader2, CreditCard } from 'lucide-react'
+import { Wallet, ShieldCheck, ArrowLeft, Loader2, CreditCard, ExternalLink, KeyRound, CheckCircle2 } from 'lucide-react'
 
 declare global {
   interface Window {
@@ -25,6 +25,11 @@ export default function TopupPage() {
   const [error, setError] = useState<string | null>(null)
   const [scriptLoaded, setScriptLoaded] = useState(false)
 
+  const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
+  const [paymentId, setPaymentId] = useState('')
+  const [verifyBusy, setVerifyBusy] = useState(false)
+  const [verifyMsg, setVerifyMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
   // Verify Razorpay script is available
   useEffect(() => {
     const checkScript = setInterval(() => {
@@ -34,6 +39,26 @@ export default function TopupPage() {
       }
     }, 500)
     return () => clearInterval(checkScript)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadRate() {
+      try {
+        const res = await fetch('/api/wallet/topup/rate', { method: 'GET' })
+        const j = await res.json().catch(() => null)
+        if (!cancelled && res.ok) {
+          const v = Number(j?.credits_per_inr)
+          if (Number.isFinite(v) && v > 0) setCreditsPerInr(v)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadRate()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const canPay = scriptLoaded && !busy && amount > 0
@@ -116,6 +141,39 @@ export default function TopupPage() {
     }
   }
 
+  const verifyPaymentLink = async () => {
+    setVerifyBusy(true)
+    setVerifyMsg(null)
+    try {
+      const res = await fetch('/api/wallet/topup/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ razorpay_payment_id: paymentId.trim() }),
+      })
+
+      if (res.status === 401) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
+        return
+      }
+
+      const j = await res.json().catch(() => null)
+      if (!res.ok) {
+        setVerifyMsg({ type: 'error', text: j?.error || 'Payment verification failed' })
+        return
+      }
+
+      if (j?.status === 'duplicate') {
+        setVerifyMsg({ type: 'success', text: 'Payment already verified earlier. Wallet is already updated.' })
+        return
+      }
+
+      setVerifyMsg({ type: 'success', text: `Wallet topped up successfully. +${j?.credited ?? 0} credits added.` })
+      setPaymentId('')
+    } finally {
+      setVerifyBusy(false)
+    }
+  }
+
   return (
     <main className="min-h-screen px-4 py-24 bg-[#07090f]">
       <div className="mx-auto max-w-3xl">
@@ -185,7 +243,7 @@ export default function TopupPage() {
                   placeholder="Enter amount"
                 />
               </div>
-              <p className="mt-2 text-[11px] text-white/30 italic italic">Approx. {amount * 1.25} credits will be added</p>
+              <p className="mt-2 text-[11px] text-white/30 italic italic">Approx. {amount * creditsPerInr} credits will be added</p>
             </div>
 
             {error ? (
@@ -212,6 +270,69 @@ export default function TopupPage() {
                 </>
               )}
             </button>
+
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <div className="text-sm font-semibold text-white">Alternative payment link</div>
+                <a
+                  className="text-xs text-blue-400 hover:text-blue-300 inline-flex items-center gap-1"
+                  href="https://razorpay.me/@agriwadi"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open link
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
+                <div className="text-xs text-white/50 leading-relaxed">
+                  If the in-app checkout is stuck, pay using the Razorpay payment link above, then paste your Razorpay <span className="text-white/80 font-mono">payment_id</span> here to instantly credit your wallet.
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Razorpay Payment ID</label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <input
+                      className="ui-input pl-11 font-mono"
+                      value={paymentId}
+                      onChange={(e: any) => setPaymentId(String(e.target.value))}
+                      placeholder="pay_XXXXXXXXXXXXXX"
+                    />
+                  </div>
+                </div>
+
+                {verifyMsg ? (
+                  <div
+                    className={`p-3 rounded-lg border text-sm flex items-center gap-2 ${
+                      verifyMsg.type === 'success'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                        : 'bg-red-500/10 border-red-500/20 text-red-300'
+                    }`}
+                  >
+                    {verifyMsg.type === 'success' ? (
+                      <CheckCircle2 className="w-4 h-4" />
+                    ) : (
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                    )}
+                    {verifyMsg.text}
+                  </div>
+                ) : null}
+
+                <button
+                  className="ui-btn-secondary w-full"
+                  disabled={verifyBusy || !paymentId.trim()}
+                  onClick={verifyPaymentLink}
+                >
+                  {verifyBusy ? 'Verifying…' : 'Verify & Add Credits'}
+                </button>
+
+                <div className="text-[11px] text-white/30">
+                  Current conversion rate: <span className="font-mono text-white/50">{creditsPerInr}</span> credits per ₹1
+                </div>
+              </div>
+            </div>
 
             <div className="flex flex-col gap-3 items-center text-center">
               <p className="text-[10px] text-white/30 leading-relaxed max-w-xs">

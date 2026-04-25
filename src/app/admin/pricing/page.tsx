@@ -2,11 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import { Tag, Save, ArrowLeft, Loader2, Power, Zap, ShieldCheck } from 'lucide-react'
 
 export default function AdminPricingPage() {
-  const supabase = createSupabaseBrowserClient()
   const [credits, setCredits] = useState<number>(10)
   const [active, setActive] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -16,15 +14,15 @@ export default function AdminPricingPage() {
   useEffect(() => {
     async function load() {
       try {
-        const { data } = await supabase
-          .from('tool_pricing')
-          .select('*')
-          .eq('tool_id', 'td_commission')
-          .maybeSingle()
-        
-        if (data) {
-          setCredits(data.download_credits)
-          setActive(data.is_active)
+        const res = await fetch('/api/admin/pricing/td-commission', { method: 'GET' })
+        const j = await res.json().catch(() => null)
+
+        if (res.ok) {
+          const c = Number(j?.download_credits)
+          if (Number.isFinite(c) && c > 0) setCredits(c)
+          setActive(Boolean(j?.is_active))
+        } else {
+          setMsg({ text: j?.error || 'Failed to load current pricing', type: 'error' })
         }
       } finally {
         setLoading(false)

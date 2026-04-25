@@ -8,6 +8,25 @@ type Body = {
   credits_per_inr: number
 }
 
+export async function GET() {
+  const { isAdmin } = await requireAdmin()
+  if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const admin = createSupabaseAdminClient()
+  const { data, error } = await admin
+    .from('admin_settings')
+    .select('value,updated_at')
+    .eq('key', 'credits_per_inr')
+    .maybeSingle()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  const creditsPerInr = Number(data?.value?.credits_per_inr ?? data?.value ?? 1)
+  return NextResponse.json({ credits_per_inr: creditsPerInr, updated_at: data?.updated_at ?? null })
+}
+
 export async function POST(req: NextRequest) {
   const { isAdmin } = await requireAdmin()
   if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
