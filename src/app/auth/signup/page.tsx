@@ -41,27 +41,34 @@ export default function SignupPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-24">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6">
-        <h1 className="text-xl font-bold">Create account</h1>
-        <p className="mt-1 text-sm text-white/60">Sign up with email and password.</p>
+      <div className="w-full max-w-md ui-modal-shell p-8">
+        <h1 className="text-2xl font-bold">Create Account</h1>
+        <p className="mt-2 text-sm text-white/60">Join us to start using our professional tools</p>
 
-        <div className="mt-6 space-y-3">
-          <input
-            className="ui-input"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Email"
-            autoComplete="email"
-          />
-          <input
-            className="ui-input"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Password (min 6 chars)"
-            autoComplete="new-password"
-          />
+        <div className="mt-8 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1">Email Address</label>
+            <input
+              className="ui-input"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1">Password</label>
+            <input
+              className="ui-input"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="new-password"
+            />
+            <p className="mt-1 text-[10px] text-white/40 italic">Minimum 6 characters required</p>
+          </div>
 
           {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
@@ -70,14 +77,16 @@ export default function SignupPage() {
             onClick={onSignup}
             disabled={busy || !email || password.length < 6}
           >
-            {busy ? 'Creating…' : 'Create account'}
+            {busy ? 'Creating Account…' : 'Create Account'}
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-white/60">
+        <div className="mt-6 text-center text-sm text-white/60">
           Already have an account?{' '}
-          <Link className="underline" href={`/auth/login?next=${encodeURIComponent(nextUrl)}`}>Login</Link>
-        </p>
+          <Link className="text-blue-400 hover:underline font-medium" href={`/auth/login?next=${encodeURIComponent(nextUrl)}`}>
+            Sign in instead
+          </Link>
+        </div>
       </div>
     </main>
   )

@@ -3,12 +3,27 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, User } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Hide site nav on full-screen tool pages that have their own appbar
   const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission'];
@@ -44,6 +59,16 @@ export default function Navigation() {
               <Link href="/about" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${pathname === "/about" ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
                 About
               </Link>
+              {user ? (
+                <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
+                  <User className="w-4 h-4" />
+                  Dashboard
+                </Link>
+              ) : (
+                <Link href="/auth/login" className="px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 text-white/50 hover:text-white hover:bg-white/[0.04]">
+                  Login
+                </Link>
+              )}
             </nav>
 
             {/* Mobile Menu Toggle */}
@@ -77,6 +102,24 @@ export default function Navigation() {
             >
               About
             </Link>
+            {user ? (
+              <Link 
+                href="/dashboard" 
+                onClick={() => setIsOpen(false)} 
+                className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
+              >
+                <User className="w-6 h-6" />
+                Dashboard
+              </Link>
+            ) : (
+              <Link 
+                href="/auth/login" 
+                onClick={() => setIsOpen(false)} 
+                className="p-4 rounded-2xl text-xl font-medium transition-colors text-white/60 hover:text-white hover:bg-white/[0.02]"
+              >
+                Login
+              </Link>
+            )}
           </nav>
         </div>
       )}

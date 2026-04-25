@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
+import AddCreditsButton from './AddCreditsButton'
 
 export default async function AdminUsersPage() {
   const { isAdmin, supabase } = await requireAdmin()
@@ -8,7 +9,7 @@ export default async function AdminUsersPage() {
   // Fetch users with their wallet balance
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('*, wallets(balance)')
+    .select('*, wallets(balance_credits)')
     .order('created_at', { ascending: false })
 
   return (
@@ -41,8 +42,11 @@ export default async function AdminUsersPage() {
                       {p.role}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono">
-                    {p.wallets?.[0]?.balance ?? 0}
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <span className="font-mono">{p.wallets?.[0]?.balance_credits ?? 0}</span>
+                      <AddCreditsButton userId={p.id} />
+                    </div>
                   </td>
                 </tr>
               ))}

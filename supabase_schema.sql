@@ -211,3 +211,25 @@ create policy "admin_settings_admin_only" on public.admin_settings
 
 create policy "pricing_admin_write" on public.tool_pricing
   for all using (public.is_admin()) with check (public.is_admin());
+
+-- Profile creation fix: ensure triggers exist
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, email, role)
+  values (new.id, new.email, 'user');
+
+  insert into public.wallets (user_id, balance_credits)
+  values (new.id, 0);
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

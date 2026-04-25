@@ -33,27 +33,38 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-24">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md p-6">
-        <h1 className="text-xl font-bold">Login</h1>
-        <p className="mt-1 text-sm text-white/60">Use your email and password to continue.</p>
+      <div className="w-full max-w-md ui-modal-shell p-8">
+        <h1 className="text-2xl font-bold">Welcome Back</h1>
+        <p className="mt-2 text-sm text-white/60">Log in to your account to continue</p>
 
-        <div className="mt-6 space-y-3">
-          <input
-            className="ui-input"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Email"
-            autoComplete="email"
-          />
-          <input
-            className="ui-input"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Password"
-            autoComplete="current-password"
-          />
+        <div className="mt-8 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-white/70 mb-1">Email Address</label>
+            <input
+              className="ui-input"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-white/70">Password</label>
+              <Link href="/auth/forgot-password" size="sm" className="text-xs text-blue-400 hover:underline">
+                Forgot?
+              </Link>
+            </div>
+            <input
+              className="ui-input"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+          </div>
 
           {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
@@ -62,14 +73,16 @@ export default function LoginPage() {
             onClick={onLogin}
             disabled={busy || !email || !password}
           >
-            {busy ? 'Signing in…' : 'Sign in'}
+            {busy ? 'Signing in…' : 'Sign In'}
           </button>
         </div>
 
-        <p className="mt-4 text-sm text-white/60">
-          Don&apos;t have an account?{' '}
-          <Link className="underline" href={`/auth/signup?next=${encodeURIComponent(nextUrl)}`}>Create one</Link>
-        </p>
+        <div className="mt-6 text-center text-sm text-white/60">
+          New here?{' '}
+          <Link className="text-blue-400 hover:underline font-medium" href={`/auth/signup?next=${encodeURIComponent(nextUrl)}`}>
+            Create an account
+          </Link>
+        </div>
       </div>
     </main>
   )
