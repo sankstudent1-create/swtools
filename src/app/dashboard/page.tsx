@@ -87,7 +87,7 @@ export default async function DashboardPage() {
               </h2>
             </div>
             <div className="ui-modal-shell overflow-hidden border-white/5">
-              <FilesListClient initialFiles={files || []} />
+              <FilesListClient files={files || []} />
             </div>
           </div>
 
