@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
-import { ShieldCheck, ArrowLeft, Loader2, QrCode, Copy, Send, CheckCircle2 } from 'lucide-react'
+import { Wallet, ShieldCheck, ArrowLeft, Loader2, QrCode, Copy, Send, CheckCircle2, Upload, FileText, Smartphone } from 'lucide-react'
 
 const PRICING_PLANS = [
   { amount: 99, credits: 100, tag: 'Starter' },
@@ -22,6 +22,8 @@ export default function TopupPage() {
   const [utr, setUtr] = useState('')
   const [submitBusy, setSubmitBusy] = useState(false)
   const [submitMsg, setSubmitMsg] = useState<string | null>(null)
+  const [screenshot, setScreenshot] = useState<File | null>(null)
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -47,15 +49,16 @@ export default function TopupPage() {
 
   const upiLink = useMemo(() => {
     const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
+    const note = `Topup_${amount}INR_${creditsPerInr}rate`
     const params = new URLSearchParams({
       pa: UPI_ID,
       pn: 'SW Info Systems',
       am,
       cu: 'INR',
-      tn: 'SW Tools Wallet Topup',
+      tn: note,
     })
     return `upi://pay?${params.toString()}`
-  }, [amount])
+  }, [amount, creditsPerInr])
 
   const qrUrl = useMemo(() => {
     const data = encodeURIComponent(upiLink)
@@ -67,16 +70,33 @@ export default function TopupPage() {
     setError(null)
     setSubmitMsg(null)
     try {
-      const { data } = await supabase.auth.getSession()
-      if (!data.session) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
         window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
         return
+      }
+
+      let screenshotPath = null
+      if (screenshot) {
+        const fileExt = screenshot.name.split('.').pop()
+        const fileName = `${session.user.id}/${Date.now()}.${fileExt}`
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('topup-screenshots')
+          .upload(fileName, screenshot)
+
+        if (uploadError) throw uploadError
+        screenshotPath = uploadData.path
       }
 
       const res = await fetch('/api/wallet/topup/manual-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount_inr: amount, utr: utr.trim() }),
+        body: JSON.stringify({ 
+          amount_inr: amount, 
+          utr: utr.trim(),
+          credits_requested: Math.floor(amount * creditsPerInr),
+          screenshot_path: screenshotPath
+        }),
       })
 
       if (res.status === 401) {
@@ -90,8 +110,10 @@ export default function TopupPage() {
         return
       }
 
-      setSubmitMsg('Submitted. We will verify and approve your topup manually.')
+      setSubmitMsg('Submitted successfully! Our team will verify the UTR/Screenshot and approve your credits soon.')
       setUtr('')
+      setScreenshot(null)
+      setScreenshotPreview(null)
     } finally {
       setSubmitBusy(false)
     }
@@ -188,20 +210,36 @@ export default function TopupPage() {
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-white flex items-center gap-2">
                   <QrCode className="w-4 h-4 text-white/60" />
-                  Dynamic QR
+                  Dynamic QR (Scan to Pay)
                 </div>
-                <a
-                  className="text-xs text-blue-400 hover:text-blue-300"
-                  href={upiLink}
-                >
-                  Open in UPI app
-                </a>
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                  <a
+                    className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                    href={upiLink}
+                  >
+                    Open UPI App
+                  </a>
+                </div>
               </div>
-              <div className="mt-4 flex items-center justify-center">
-                <img src={qrUrl} alt="UPI QR" className="rounded-xl border border-white/10" />
+              <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-white/10 shadow-2xl shadow-white/5">
+                <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
+                <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
+                  Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
+                </div>
               </div>
-              <div className="mt-3 text-[11px] text-white/30 break-all">
-                UPI link: <span className="font-mono text-white/50">{upiLink}</span>
+              <div className="mt-4 space-y-2">
+                <div className="text-[10px] text-white/30 uppercase tracking-widest font-bold">UPI Payment Details</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px]">
+                    <span className="block text-white/30 mb-0.5">VPA</span>
+                    <span className="text-white/80 font-mono truncate">{UPI_ID}</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-white/5 border border-white/5 text-[10px]">
+                    <span className="block text-white/30 mb-0.5">NAME</span>
+                    <span className="text-white/80 truncate uppercase">SW Info Systems</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -220,30 +258,82 @@ export default function TopupPage() {
             ) : null}
 
             <div className="mt-2 p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
-              <div className="text-sm font-semibold text-white">Submit UTR for approval</div>
-              <div className="text-xs text-white/50 leading-relaxed">
-                After you pay, copy the UTR/Transaction reference from your UPI app and submit below. We will verify manually and then approve your wallet topup.
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-white/60" />
+                  Payment Verification
+                </div>
               </div>
-              <input
-                className="ui-input font-mono"
-                value={utr}
-                onChange={(e: any) => setUtr(String(e.target.value))}
-                placeholder="Enter UTR / Transaction Reference"
-              />
+              
+              <div className="text-xs text-white/50 leading-relaxed bg-blue-500/5 border border-blue-500/10 p-3 rounded-xl">
+                After successful payment, please provide the 12-digit UTR number and a screenshot of the payment for faster approval.
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5">UTR / Transaction ID</label>
+                  <input
+                    className="ui-input font-mono text-sm"
+                    value={utr}
+                    onChange={(e: any) => setUtr(String(e.target.value))}
+                    placeholder="Enter 12-digit UTR number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1.5">Payment Screenshot (Optional)</label>
+                  <div 
+                    className={`relative border-2 border-dashed rounded-xl p-4 transition-all duration-300 group ${
+                      screenshotPreview ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/10 hover:border-white/20 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e: any) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          setScreenshot(file)
+                          setScreenshotPreview(URL.createObjectURL(file))
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="flex flex-col items-center justify-center gap-2 text-center">
+                      {screenshotPreview ? (
+                        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-emerald-500/20">
+                          <img src={screenshotPreview} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-xs font-medium">Click to change</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="p-2 rounded-full bg-white/5">
+                            <Upload className="w-5 h-5 text-white/40" />
+                          </div>
+                          <div className="text-xs text-white/40">Click or drag to upload screenshot</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <button
-                className="ui-btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                disabled={submitBusy || busy || !utr.trim() || amount <= 0}
+                className="ui-btn-primary w-full py-4 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 shadow-xl shadow-blue-500/10"
+                disabled={submitBusy || !utr.trim() || amount <= 0}
                 onClick={submitUtr}
               >
                 {submitBusy ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Submitting…
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing Submission...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    Submit UTR
+                    <Send className="w-5 h-5" />
+                    Submit Request
                   </>
                 )}
               </button>
