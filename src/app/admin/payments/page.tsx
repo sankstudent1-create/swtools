@@ -1,15 +1,28 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
+import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 
 export default async function AdminPaymentsPage() {
-  const { isAdmin, supabase } = await requireAdmin()
+  const { isAdmin } = await requireAdmin()
   if (!isAdmin) return null
 
-  // Fetch payments
-  const { data: payments } = await supabase
-    .from('razorpay_payments')
-    .select('*, profiles(email)')
-    .order('created_at', { ascending: false })
+  let payments: any[] | null = null
+  let loadError: string | null = null
+  try {
+    const admin = createSupabaseAdminClient()
+    const { data, error } = await admin
+      .from('razorpay_payments')
+      .select('*, profiles(email)')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      loadError = error.message
+    } else {
+      payments = data
+    }
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : 'Failed to load'
+  }
 
   return (
     <main className="min-h-screen px-4 py-24">
@@ -18,6 +31,12 @@ export default async function AdminPaymentsPage() {
           <h1 className="text-2xl font-bold">Payments</h1>
           <Link className="ui-btn-secondary" href="/admin">Back</Link>
         </div>
+
+        {loadError ? (
+          <div className="mt-6 ui-modal-shell p-6">
+            <div className="text-sm text-red-400">{loadError}</div>
+          </div>
+        ) : null}
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
           <table className="w-full text-left text-sm">

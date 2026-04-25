@@ -1,16 +1,29 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
+import { createSupabaseAdminClient } from '@/lib/supabase/admin'
 import AddCreditsButton from './AddCreditsButton'
 
 export default async function AdminUsersPage() {
-  const { isAdmin, supabase } = await requireAdmin()
+  const { isAdmin } = await requireAdmin()
   if (!isAdmin) return null
 
-  // Fetch users with their wallet balance
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*, wallets(balance_credits)')
-    .order('created_at', { ascending: false })
+  let profiles: any[] | null = null
+  let loadError: string | null = null
+  try {
+    const admin = createSupabaseAdminClient()
+    const { data, error } = await admin
+      .from('profiles')
+      .select('*, wallets(balance_credits)')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      loadError = error.message
+    } else {
+      profiles = data
+    }
+  } catch (e) {
+    loadError = e instanceof Error ? e.message : 'Failed to load'
+  }
 
   return (
     <main className="min-h-screen px-4 py-24">
@@ -19,6 +32,12 @@ export default async function AdminUsersPage() {
           <h1 className="text-2xl font-bold">User Management</h1>
           <Link className="ui-btn-secondary" href="/admin">Back</Link>
         </div>
+
+        {loadError ? (
+          <div className="mt-6 ui-modal-shell p-6">
+            <div className="text-sm text-red-400">{loadError}</div>
+          </div>
+        ) : null}
 
         <div className="mt-6 overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
           <table className="w-full text-left text-sm">
@@ -50,6 +69,13 @@ export default async function AdminUsersPage() {
                   </td>
                 </tr>
               ))}
+              {!profiles?.length && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-12 text-center text-white/40">
+                    No users found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
