@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { Users, CreditCard, Activity, Tag, Settings, ArrowUpRight, ChevronRight, LayoutDashboard } from 'lucide-react'
+import { Users, CreditCard, Activity, Tag, Settings, ArrowUpRight, ChevronRight, LayoutDashboard, FileCheck } from 'lucide-react'
 
 export default async function AdminPage() {
   const { isAdmin } = await requireAdmin()
@@ -70,6 +70,15 @@ export default async function AdminPage() {
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10',
       border: 'border-emerald-500/20'
+    },
+    {
+      title: 'Topup Verifications',
+      desc: 'Review UPI topup requests, run OCR, and approve credits.',
+      href: '/admin/topup-requests',
+      icon: FileCheck,
+      color: 'text-sky-400',
+      bg: 'bg-sky-500/10',
+      border: 'border-sky-500/20'
     },
     {
       title: 'Activity Logs',

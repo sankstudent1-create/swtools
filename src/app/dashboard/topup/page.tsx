@@ -12,7 +12,7 @@ const PRICING_PLANS = [
 ]
 
 export default function TopupPage() {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
+  const [supabase, setSupabase] = useState<any>(null)
 
   const [amount, setAmount] = useState<number>(199)
   const [busy, setBusy] = useState(false)
@@ -26,11 +26,39 @@ export default function TopupPage() {
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
   const [user, setUser] = useState<any>(null)
+  const [authReady, setAuthReady] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
+    try {
+      setSupabase(createSupabaseBrowserClient())
+    } catch (e: any) {
+      setError(e?.message || 'Supabase is not configured')
+      setAuthReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase) return
+    let cancelled = false
+    supabase.auth.getSession().then((res: any) => {
+      if (cancelled) return
+      const data = res?.data
+      const authError = res?.error
+      if (authError) {
+        setAuthReady(true)
+        return
+      }
+      const session = data.session
+      if (!session) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
+        return
+      }
+      setUser(session.user)
+      setAuthReady(true)
     })
+    return () => {
+      cancelled = true
+    }
   }, [supabase])
 
   useEffect(() => {
@@ -56,10 +84,11 @@ export default function TopupPage() {
   const UPI_ID = 'swinfosystems@nyes'
 
   const upiLink = useMemo(() => {
+    if (!user) return ''
     const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
     // Embed user details and transaction info in the UPI note (tn)
-    const userEmail = user?.email || 'noemail'
-    const userId = user?.id || 'anon'
+    const userEmail = user?.email || ''
+    const userId = user?.id || ''
     const note = `Topup_${am}INR_${creditsPerInr}rate_${userEmail}_${userId}`
     const params = new URLSearchParams({
       pa: UPI_ID,
@@ -72,6 +101,7 @@ export default function TopupPage() {
   }, [amount, creditsPerInr, user])
 
   const qrUrl = useMemo(() => {
+    if (!upiLink) return ''
     const data = encodeURIComponent(upiLink)
     return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${data}`
   }, [upiLink])
@@ -81,6 +111,19 @@ export default function TopupPage() {
     setError(null)
     setSubmitMsg(null)
     try {
+      if (!supabase) {
+        setError('Supabase is not configured')
+        return
+      }
+      const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
+        return await Promise.race([
+          p,
+          new Promise<T>((_resolve, reject) =>
+            setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+          ),
+        ])
+      }
+
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
@@ -94,18 +137,23 @@ export default function TopupPage() {
         const fileName = `${session.user.id}/${Date.now()}.${fileExt}`
         
         // Ensure bucket existence doesn't block the UI - the bucket check script was run
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('topup-screenshots')
-          .upload(fileName, screenshot, {
-            cacheControl: '3600',
-            upsert: false
-          })
+        const uploadRes = await withTimeout(
+          supabase.storage
+            .from('topup-screenshots')
+            .upload(fileName, screenshot, {
+              cacheControl: '3600',
+              upsert: false,
+            }),
+          30000,
+          'Screenshot upload'
+        ) as any
+        const uploadData = uploadRes?.data
+        const uploadError = uploadRes?.error
 
         if (uploadError) {
           console.error('Upload error details:', uploadError)
           // Fallback: If upload fails, we still try to submit the UTR but warn the user
           setError(`Screenshot upload failed, but you can try submitting just the UTR. Error: ${uploadError.message}`)
-          setSubmitBusy(false)
           return 
         }
         screenshotPath = uploadData.path
@@ -113,16 +161,20 @@ export default function TopupPage() {
 
       setSubmitMsg('Submitting details...')
 
-      const res = await fetch('/api/wallet/topup/manual-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          amount_inr: amount, 
-          utr: utr.trim() || null,
-          credits_requested: Math.floor(amount * creditsPerInr),
-          screenshot_path: screenshotPath
+      const res = await withTimeout(
+        fetch('/api/wallet/topup/manual-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount_inr: amount,
+            utr: utr.trim() || null,
+            credits_requested: Math.floor(amount * creditsPerInr),
+            screenshot_path: screenshotPath,
+          }),
         }),
-      })
+        20000,
+        'Request submission'
+      )
 
       if (res.status === 401) {
         window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
@@ -139,9 +191,26 @@ export default function TopupPage() {
       setUtr('')
       setScreenshot(null)
       setScreenshotPreview(null)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to submit request')
     } finally {
       setSubmitBusy(false)
     }
+  }
+
+  if (!authReady) {
+    return (
+      <main className="min-h-screen px-4 py-24 bg-[#07090f]">
+        <div className="mx-auto max-w-3xl">
+          <div className="ui-modal-shell p-8 max-w-xl mx-auto">
+            <div className="flex items-center justify-center gap-3 text-white/60">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Loading…
+            </div>
+          </div>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -241,17 +310,30 @@ export default function TopupPage() {
                   <Smartphone className="w-3.5 h-3.5 text-blue-400" />
                   <a
                     className="text-xs text-blue-400 hover:text-blue-300 font-medium"
-                    href={upiLink}
+                    href={upiLink || '#'}
+                    aria-disabled={!upiLink}
+                    onClick={(e: any) => {
+                      if (!upiLink) e.preventDefault()
+                    }}
                   >
                     Open UPI App
                   </a>
                 </div>
               </div>
               <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-white/10 shadow-2xl shadow-white/5">
-                <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
-                <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
-                  Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
-                </div>
+                {qrUrl ? (
+                  <>
+                    <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
+                    <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
+                      Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-black/50">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Preparing QR…
+                  </div>
+                )}
               </div>
               <div className="mt-4 space-y-2">
                 <div className="text-[10px] text-white/30 uppercase tracking-widest font-bold">UPI Payment Details</div>
