@@ -139,11 +139,11 @@ export async function buildTDCommissionPdfBytes(params: {
       const size = 8
       const pad = 4
       let tx = x + pad
-      if ([0, 1, 2, 5, 6].includes(i)) {
+      if ([0, 1, 2, 5].includes(i)) {
         const tw = fontReg.widthOfTextAtSize(v, size)
         tx = x + (cols[i].w - tw) / 2
       }
-      if ([4, 7].includes(i)) {
+      if ([4].includes(i)) {
         const tw = fontReg.widthOfTextAtSize(v, size)
         tx = x + cols[i].w - tw - pad
       }
