@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
-import { createClient } from '@/utils/supabase/server';
+import { supabaseServer } from '@/utils/supabase/server';
 
 export async function POST(req: Request) {
   console.log('=== Razorpay POST handler started ===');
   
   try {
     console.log('Step 1: Parsing request body...');
-    const supabase = createClient();
+    const supabase = supabaseServer;
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {

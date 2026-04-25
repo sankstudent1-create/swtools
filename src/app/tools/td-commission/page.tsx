@@ -284,7 +284,14 @@ export default function TDCommissionPage() {
     const doc = await getPDF();
     const url = URL.createObjectURL(doc.output('blob'));
     const w = window.open(url, '_blank');
-    if (w) w.onload = () => { w.focus(); w.print(); } else alert('Allow popups to use Print.');
+    if (w) {
+      w.onload = () => {
+        w.focus();
+        w.print();
+      };
+    } else {
+      alert('Allow popups to use Print.');
+    }
   }
 
   const clearAll = () => {
