@@ -38,6 +38,28 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  if (user && (path.startsWith('/dashboard') || path.startsWith('/admin'))) {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const isAdmin = !error && profile?.role === 'admin'
+
+    if (isAdmin && path.startsWith('/dashboard')) {
+      const adminUrl = req.nextUrl.clone()
+      adminUrl.pathname = '/admin'
+      return NextResponse.redirect(adminUrl)
+    }
+
+    if (!isAdmin && path.startsWith('/admin')) {
+      const dashUrl = req.nextUrl.clone()
+      dashUrl.pathname = '/dashboard'
+      return NextResponse.redirect(dashUrl)
+    }
+  }
+
   return res
 }
 

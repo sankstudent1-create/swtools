@@ -108,10 +108,12 @@ export default function Navigation() {
                       Admin
                     </Link>
                   )}
-                  <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
-                    <LayoutDashboard className="w-4 h-4" />
-                    Dashboard
-                  </Link>
+                  {!isAdmin && (
+                    <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -171,14 +173,16 @@ export default function Navigation() {
                     Admin Panel
                   </Link>
                 )}
-                <Link 
-                  href="/dashboard" 
-                  onClick={() => setIsOpen(false)} 
-                  className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
-                >
-                  <LayoutDashboard className="w-6 h-6" />
-                  Dashboard
-                </Link>
+                {!isAdmin && (
+                  <Link 
+                    href="/dashboard" 
+                    onClick={() => setIsOpen(false)} 
+                    className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
+                  >
+                    <LayoutDashboard className="w-6 h-6" />
+                    Dashboard
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={() => { handleLogout(); setIsOpen(false); }} 

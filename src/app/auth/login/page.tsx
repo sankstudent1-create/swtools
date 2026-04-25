@@ -25,6 +25,21 @@ export default function LoginPage() {
         setError(err.message)
         return
       }
+
+      const { data: auth } = await supabase.auth.getUser()
+      const userId = auth.user?.id
+      if (userId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle()
+        if (profile?.role === 'admin') {
+          window.location.href = '/admin'
+          return
+        }
+      }
+
       window.location.href = nextUrl
     } finally {
       setBusy(false)

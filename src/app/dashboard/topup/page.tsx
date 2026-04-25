@@ -36,6 +36,8 @@ export default function TopupPage() {
     return () => clearInterval(checkScript)
   }, [])
 
+  const canPay = scriptLoaded && !busy && amount > 0
+
   const startTopup = async () => {
     setBusy(true)
     setError(null)
@@ -163,6 +165,13 @@ export default function TopupPage() {
 
         <div className="ui-modal-shell p-8 max-w-xl mx-auto">
           <div className="space-y-6">
+            {!scriptLoaded ? (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse" />
+                Payment gateway is loading… if it stays stuck, refresh the page once.
+              </div>
+            ) : null}
+
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">Custom Amount (INR)</label>
               <div className="relative">
@@ -189,7 +198,7 @@ export default function TopupPage() {
             <button 
               className="ui-btn-primary w-full py-4 text-base flex items-center justify-center gap-2 relative overflow-hidden group shadow-xl shadow-blue-500/10 disabled:opacity-50" 
               onClick={startTopup} 
-              disabled={busy || amount <= 0 || !scriptLoaded}
+              disabled={!canPay}
             >
               {busy ? (
                 <>
