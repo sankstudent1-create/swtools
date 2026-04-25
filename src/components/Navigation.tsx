@@ -53,10 +53,18 @@ export default function Navigation() {
   }, []);
 
   const handleLogout = async () => {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    try {
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsAdmin(false);
+      setIsOpen(false);
+      
+      // Force immediate navigation and state reset
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Hide site nav on full-screen tool pages that have their own appbar
