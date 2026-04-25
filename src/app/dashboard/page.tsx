@@ -23,31 +23,31 @@ export default function DashboardPage() {
     async function loadDashboardData() {
       if (!user) return;
       try {
-        // 1. Fetch Recent Usage Logs
-        const { data: usage, error: usageError } = await supabase
-          .from('usage_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
+        // Fetch Recent Usage Logs and Generated Files in parallel
+        const [usageResult, filesResult] = await Promise.all([
+          supabase
+            .from('usage_logs')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5),
+          supabase
+            .from('user_files')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(3)
+        ]);
         
-        if (usageError && usageError.code !== 'PGRST116') {
-          console.error('Usage logs fetch error:', usageError.message);
+        if (usageResult.error && usageResult.error.code !== 'PGRST116') {
+          console.error('Usage logs fetch error:', usageResult.error.message);
         }
-        setRecentUsage(usage || []);
-
-        // 2. Fetch Generated Files
-        const { data: files, error: filesError } = await supabase
-          .from('user_files')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(3);
+        setRecentUsage(usageResult.data || []);
         
-        if (filesError && filesError.code !== 'PGRST116') {
-          console.error('User files fetch error:', filesError.message);
+        if (filesResult.error && filesResult.error.code !== 'PGRST116') {
+          console.error('User files fetch error:', filesResult.error.message);
         }
-        setUserFiles(files || []);
+        setUserFiles(filesResult.data || []);
 
       } catch (err: any) {
         console.error('Dashboard load error:', err);
