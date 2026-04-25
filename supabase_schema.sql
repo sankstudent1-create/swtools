@@ -18,10 +18,39 @@ create table if not exists public.admin_settings (
 
 create table if not exists public.tool_pricing (
   tool_id text primary key,
-  download_credits integer not null,
+  download_credits integer not null default 10,
   is_active boolean not null default true,
   updated_at timestamptz not null default now()
 );
+
+create table if not exists public.manual_topup_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  amount_inr numeric not null,
+  utr text not null,
+  status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  reviewed_at timestamptz null,
+  reviewed_by uuid null references auth.users(id) on delete set null,
+  notes text null
+);
+
+alter table public.manual_topup_requests enable row level security;
+
+create policy "manual_topup_requests_insert_own" on public.manual_topup_requests
+  for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+create policy "manual_topup_requests_select_own" on public.manual_topup_requests
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "manual_topup_requests_admin_all" on public.manual_topup_requests
+  for all
+  to authenticated
+  using (public.is_admin()) with check (public.is_admin());
 
 create table if not exists public.wallets (
   user_id uuid primary key references auth.users(id) on delete cascade,

@@ -76,6 +76,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Payment not captured (status: ${status || 'unknown'})` }, { status: 400 })
   }
 
+  // Basic binding: ensure the Razorpay payment belongs to the logged-in user.
+  // With a shared payment-link, the only reliable fields we can validate are payer email/contact.
+  const payerEmail = typeof payment?.email === 'string' ? payment.email.trim().toLowerCase() : ''
+  const userEmail = typeof auth.user.email === 'string' ? auth.user.email.trim().toLowerCase() : ''
+  if (payerEmail && userEmail && payerEmail !== userEmail) {
+    return NextResponse.json({ error: 'Payment email does not match your account email' }, { status: 403 })
+  }
+
   const admin = createSupabaseAdminClient()
 
   // Insert payment record (unique on razorpay_payment_id) - ensures idempotency
@@ -119,6 +127,8 @@ export async function POST(req: NextRequest) {
   })
 
   if (creditRes.error) {
+    // Don't leave an orphan "captured" payment row without credits.
+    await admin.from('razorpay_payments').delete().eq('razorpay_payment_id', paymentId)
     return NextResponse.json({ error: creditRes.error.message }, { status: 500 })
   }
 

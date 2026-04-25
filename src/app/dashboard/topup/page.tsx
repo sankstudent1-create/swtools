@@ -3,13 +3,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
-import { Wallet, ShieldCheck, ArrowLeft, Loader2, CreditCard, ExternalLink, KeyRound, CheckCircle2 } from 'lucide-react'
-
-declare global {
-  interface Window {
-    Razorpay?: any
-  }
-}
+import { ShieldCheck, ArrowLeft, Loader2, QrCode, Copy, Send, CheckCircle2 } from 'lucide-react'
 
 const PRICING_PLANS = [
   { amount: 99, credits: 100, tag: 'Starter' },
@@ -23,23 +17,11 @@ export default function TopupPage() {
   const [amount, setAmount] = useState<number>(199)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [scriptLoaded, setScriptLoaded] = useState(false)
 
   const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
-  const [paymentId, setPaymentId] = useState('')
-  const [verifyBusy, setVerifyBusy] = useState(false)
-  const [verifyMsg, setVerifyMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-
-  // Verify Razorpay script is available
-  useEffect(() => {
-    const checkScript = setInterval(() => {
-      if (window.Razorpay) {
-        setScriptLoaded(true)
-        clearInterval(checkScript)
-      }
-    }, 500)
-    return () => clearInterval(checkScript)
-  }, [])
+  const [utr, setUtr] = useState('')
+  const [submitBusy, setSubmitBusy] = useState(false)
+  const [submitMsg, setSubmitMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -61,94 +43,40 @@ export default function TopupPage() {
     }
   }, [])
 
-  const canPay = scriptLoaded && !busy && amount > 0
+  const UPI_ID = 'swinfosystems@nyes'
 
-  const startTopup = async () => {
-    setBusy(true)
+  const upiLink = useMemo(() => {
+    const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
+    const params = new URLSearchParams({
+      pa: UPI_ID,
+      pn: 'SW Info Systems',
+      am,
+      cu: 'INR',
+      tn: 'SW Tools Wallet Topup',
+    })
+    return `upi://pay?${params.toString()}`
+  }, [amount])
+
+  const qrUrl = useMemo(() => {
+    const data = encodeURIComponent(upiLink)
+    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${data}`
+  }, [upiLink])
+
+  const submitUtr = async () => {
+    setSubmitBusy(true)
     setError(null)
-
+    setSubmitMsg(null)
     try {
-      // Ensure session exists (creates cookies)
       const { data } = await supabase.auth.getSession()
       if (!data.session) {
         window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
         return
       }
 
-      const res = await fetch('/api/wallet/topup/create-order', {
+      const res = await fetch('/api/wallet/topup/manual-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount_inr: amount }),
-      })
-
-      if (res.status === 401) {
-        window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
-        return
-      }
-      if (!res.ok) {
-        const j = await res.json().catch(() => null)
-        setError(j?.error || 'Failed to create order')
-        return
-      }
-
-      const j = await res.json()
-
-      if (!window.Razorpay) {
-        console.error('Razorpay script not found on window object');
-        setError('Payment gateway is still loading. Please wait a second and try again.');
-        return;
-      }
-
-      console.log('Initializing Razorpay with options:', {
-        amount: j.amount_paise,
-        currency: j.currency,
-        order_id: j.order_id
-      });
-
-      const options = {
-        key: j.key_id,
-        amount: j.amount_paise,
-        currency: j.currency,
-        order_id: j.order_id,
-        name: 'SW Tools',
-        description: 'Wallet Topup',
-        handler: function(response: any) {
-          console.log('Payment successful:', response);
-          window.location.href = '/dashboard?payment=success';
-        },
-        modal: {
-          ondismiss: function() {
-            console.log('Payment modal closed');
-            setBusy(false);
-          }
-        },
-        prefill: {
-          email: data.session.user.email,
-        },
-        theme: { color: '#3b82f6' },
-      };
-
-      const rz = new window.Razorpay(options);
-      rz.on('payment.failed', function (response: any) {
-        console.error('Payment failed:', response.error);
-        setError(response.error.description || 'Payment failed');
-      });
-      rz.open();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Topup failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const verifyPaymentLink = async () => {
-    setVerifyBusy(true)
-    setVerifyMsg(null)
-    try {
-      const res = await fetch('/api/wallet/topup/verify-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ razorpay_payment_id: paymentId.trim() }),
+        body: JSON.stringify({ amount_inr: amount, utr: utr.trim() }),
       })
 
       if (res.status === 401) {
@@ -158,19 +86,14 @@ export default function TopupPage() {
 
       const j = await res.json().catch(() => null)
       if (!res.ok) {
-        setVerifyMsg({ type: 'error', text: j?.error || 'Payment verification failed' })
+        setError(j?.error || 'Failed to submit request')
         return
       }
 
-      if (j?.status === 'duplicate') {
-        setVerifyMsg({ type: 'success', text: 'Payment already verified earlier. Wallet is already updated.' })
-        return
-      }
-
-      setVerifyMsg({ type: 'success', text: `Wallet topped up successfully. +${j?.credited ?? 0} credits added.` })
-      setPaymentId('')
+      setSubmitMsg('Submitted. We will verify and approve your topup manually.')
+      setUtr('')
     } finally {
-      setVerifyBusy(false)
+      setSubmitBusy(false)
     }
   }
 
@@ -187,7 +110,7 @@ export default function TopupPage() {
           </Link>
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
             <ShieldCheck className="w-3.5 h-3.5" />
-            Secure Payment
+            Manual Verification
           </div>
         </div>
 
@@ -195,7 +118,7 @@ export default function TopupPage() {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
             Top Up Your Wallet
           </h1>
-          <p className="text-white/40 mt-2">Choose a plan or enter a custom amount to add credits</p>
+          <p className="text-white/40 mt-2">Pay via UPI, then submit UTR for manual approval</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -223,12 +146,27 @@ export default function TopupPage() {
 
         <div className="ui-modal-shell p-8 max-w-xl mx-auto">
           <div className="space-y-6">
-            {!scriptLoaded ? (
-              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse" />
-                Payment gateway is loading… if it stays stuck, refresh the page once.
+            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Pay to UPI</div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="font-mono text-sm text-white/80 break-all">{UPI_ID}</div>
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-2 text-xs inline-flex items-center gap-2"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(UPI_ID)
+                      setSubmitMsg('UPI ID copied')
+                    } catch {
+                      setSubmitMsg('Copy failed')
+                    }
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy
+                </button>
               </div>
-            ) : null}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">Custom Amount (INR)</label>
@@ -239,11 +177,32 @@ export default function TopupPage() {
                   type="number"
                   min={1}
                   value={amount}
-                  onChange={e => setAmount(Number(e.target.value))}
+                  onChange={(e: any) => setAmount(Number(e.target.value))}
                   placeholder="Enter amount"
                 />
               </div>
               <p className="mt-2 text-[11px] text-white/30 italic italic">Approx. {amount * creditsPerInr} credits will be added</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-white flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-white/60" />
+                  Dynamic QR
+                </div>
+                <a
+                  className="text-xs text-blue-400 hover:text-blue-300"
+                  href={upiLink}
+                >
+                  Open in UPI app
+                </a>
+              </div>
+              <div className="mt-4 flex items-center justify-center">
+                <img src={qrUrl} alt="UPI QR" className="rounded-xl border border-white/10" />
+              </div>
+              <div className="mt-3 text-[11px] text-white/30 break-all">
+                UPI link: <span className="font-mono text-white/50">{upiLink}</span>
+              </div>
             </div>
 
             {error ? (
@@ -253,90 +212,49 @@ export default function TopupPage() {
               </div>
             ) : null}
 
-            <button 
-              className="ui-btn-primary w-full py-4 text-base flex items-center justify-center gap-2 relative overflow-hidden group shadow-xl shadow-blue-500/10 disabled:opacity-50" 
-              onClick={startTopup} 
-              disabled={!canPay}
-            >
-              {busy ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Initializing Secure Checkout...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Pay ₹{amount} with Razorpay
-                </>
-              )}
-            </button>
-
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <div className="flex items-center justify-between gap-4 mb-4">
-                <div className="text-sm font-semibold text-white">Alternative payment link</div>
-                <a
-                  className="text-xs text-blue-400 hover:text-blue-300 inline-flex items-center gap-1"
-                  href="https://razorpay.me/@agriwadi"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open link
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+            {submitMsg ? (
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                {submitMsg}
               </div>
+            ) : null}
 
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
-                <div className="text-xs text-white/50 leading-relaxed">
-                  If the in-app checkout is stuck, pay using the Razorpay payment link above, then paste your Razorpay <span className="text-white/80 font-mono">payment_id</span> here to instantly credit your wallet.
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">Razorpay Payment ID</label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <input
-                      className="ui-input pl-11 font-mono"
-                      value={paymentId}
-                      onChange={(e: any) => setPaymentId(String(e.target.value))}
-                      placeholder="pay_XXXXXXXXXXXXXX"
-                    />
-                  </div>
-                </div>
-
-                {verifyMsg ? (
-                  <div
-                    className={`p-3 rounded-lg border text-sm flex items-center gap-2 ${
-                      verifyMsg.type === 'success'
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                        : 'bg-red-500/10 border-red-500/20 text-red-300'
-                    }`}
-                  >
-                    {verifyMsg.type === 'success' ? (
-                      <CheckCircle2 className="w-4 h-4" />
-                    ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                    )}
-                    {verifyMsg.text}
-                  </div>
-                ) : null}
-
-                <button
-                  className="ui-btn-secondary w-full"
-                  disabled={verifyBusy || !paymentId.trim()}
-                  onClick={verifyPaymentLink}
-                >
-                  {verifyBusy ? 'Verifying…' : 'Verify & Add Credits'}
-                </button>
-
-                <div className="text-[11px] text-white/30">
-                  Current conversion rate: <span className="font-mono text-white/50">{creditsPerInr}</span> credits per ₹1
-                </div>
+            <div className="mt-2 p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
+              <div className="text-sm font-semibold text-white">Submit UTR for approval</div>
+              <div className="text-xs text-white/50 leading-relaxed">
+                After you pay, copy the UTR/Transaction reference from your UPI app and submit below. We will verify manually and then approve your wallet topup.
+              </div>
+              <input
+                className="ui-input font-mono"
+                value={utr}
+                onChange={(e: any) => setUtr(String(e.target.value))}
+                placeholder="Enter UTR / Transaction Reference"
+              />
+              <button
+                className="ui-btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                disabled={submitBusy || busy || !utr.trim() || amount <= 0}
+                onClick={submitUtr}
+              >
+                {submitBusy ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Submitting…
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Submit UTR
+                  </>
+                )}
+              </button>
+              <div className="text-[11px] text-white/30">
+                Current conversion rate: <span className="font-mono text-white/50">{creditsPerInr}</span> credits per ₹1
               </div>
             </div>
 
             <div className="flex flex-col gap-3 items-center text-center">
               <p className="text-[10px] text-white/30 leading-relaxed max-w-xs">
-                Payments are processed securely via Razorpay. Credits are added instantly after verification.
+                Payments are made via UPI. Credits are added after manual verification and approval.
               </p>
               <div className="flex items-center gap-4 grayscale opacity-40">
                 {/* Placeholder for payment icons */}
