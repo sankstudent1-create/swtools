@@ -89,15 +89,24 @@ export default function TopupPage() {
 
       let screenshotPath = null
       if (screenshot) {
+        setSubmitMsg('Uploading screenshot...')
         const fileExt = screenshot.name.split('.').pop()
         const fileName = `${session.user.id}/${Date.now()}.${fileExt}`
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('topup-screenshots')
-          .upload(fileName, screenshot)
+          .upload(fileName, screenshot, {
+            cacheControl: '3600',
+            upsert: false
+          })
 
-        if (uploadError) throw uploadError
+        if (uploadError) {
+          console.error('Upload error details:', uploadError)
+          throw new Error(`Screenshot upload failed: ${uploadError.message}`)
+        }
         screenshotPath = uploadData.path
       }
+
+      setSubmitMsg('Submitting UTR details...')
 
       const res = await fetch('/api/wallet/topup/manual-request', {
         method: 'POST',
