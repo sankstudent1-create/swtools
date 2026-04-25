@@ -15,7 +15,7 @@ type Body = {
 const STORAGE_BUCKET = 'user-files'
 
 export async function POST(req: NextRequest) {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data: auth } = await supabase.auth.getUser()
 
   if (!auth.user) {

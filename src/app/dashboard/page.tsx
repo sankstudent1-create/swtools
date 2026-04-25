@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import FilesListClient from './FilesListClient'
 
 export default async function DashboardPage() {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data: auth } = await supabase.auth.getUser()
 
   const userId = auth.user?.id
