@@ -6,47 +6,48 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
     
+    const resolveAdmin = async (session: any) => {
+      if (!session?.user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[nav] profile role fetch failed', error);
+        setIsAdmin(false);
+        return;
+      }
+
+      setIsAdmin(profile?.role === 'admin');
+    };
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        setIsAdmin(profile?.role === 'admin');
-      } else {
-        setIsAdmin(false);
-      }
+      await resolveAdmin(session);
     };
 
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', session.user.id)
-          .single();
-        setIsAdmin(profile?.role === 'admin');
-      } else {
-        setIsAdmin(false);
-      }
+      await resolveAdmin(session);
     });
 
     return () => subscription.unsubscribe();
@@ -54,14 +55,12 @@ export default function Navigation() {
 
   const handleLogout = async () => {
     try {
-      const supabase = createSupabaseBrowserClient();
-      await supabase.auth.signOut();
       setUser(null);
       setIsAdmin(false);
       setIsOpen(false);
       
       // Force immediate navigation and state reset
-      window.location.href = "/";
+      window.location.href = "/auth/logout";
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -113,7 +112,8 @@ export default function Navigation() {
                     <LayoutDashboard className="w-4 h-4" />
                     Dashboard
                   </Link>
-                  <button 
+                  <button
+                    type="button"
                     onClick={handleLogout}
                     className="p-2 rounded-full text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300"
                     title="Logout"
@@ -179,7 +179,8 @@ export default function Navigation() {
                   <LayoutDashboard className="w-6 h-6" />
                   Dashboard
                 </Link>
-                <button 
+                <button
+                  type="button"
                   onClick={() => { handleLogout(); setIsOpen(false); }} 
                   className="p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 text-red-400 hover:bg-red-400/05"
                 >

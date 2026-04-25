@@ -26,32 +26,58 @@ export async function POST(req: NextRequest) {
 
   const amountPaise = Math.round(amountInr * 100)
 
-  const razorpay = createRazorpayClient()
+  try {
+    const keyId = process.env.RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
 
-  const order = await razorpay.orders.create({
-    amount: amountPaise,
-    currency: 'INR',
-    receipt: `wallet_${auth.user.id}_${Date.now()}`,
-    notes: {
+    if (!keyId || !keySecret) {
+      return NextResponse.json(
+        {
+          error:
+            'Payments are not configured on this deployment. Missing RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET in environment variables (Preview deployments need them too).',
+        },
+        { status: 500 }
+      )
+    }
+
+    const razorpay = createRazorpayClient()
+
+    const order = await razorpay.orders.create({
+      amount: amountPaise,
+      currency: 'INR',
+      receipt: `wallet_${auth.user.id}_${Date.now()}`,
+      notes: {
+        user_id: auth.user.id,
+        purpose: 'wallet_topup',
+      },
+    })
+
+    const admin = createSupabaseAdminClient()
+    const ins = await admin.from('razorpay_orders').insert({
       user_id: auth.user.id,
-      purpose: 'wallet_topup',
-    },
-  })
+      razorpay_order_id: order.id,
+      amount_paise: amountPaise,
+      currency: 'INR',
+      status: 'created',
+      raw: order,
+    })
 
-  const admin = createSupabaseAdminClient()
-  await admin.from('razorpay_orders').insert({
-    user_id: auth.user.id,
-    razorpay_order_id: order.id,
-    amount_paise: amountPaise,
-    currency: 'INR',
-    status: 'created',
-    raw: order,
-  })
+    if (ins.error) {
+      console.error('[wallet topup] razorpay_orders insert failed', ins.error)
+      return NextResponse.json({ error: 'Could not save order' }, { status: 500 })
+    }
 
-  return NextResponse.json({
-    order_id: order.id,
-    amount_paise: amountPaise,
-    currency: 'INR',
-    key_id: process.env.RAZORPAY_KEY_ID,
-  })
+    return NextResponse.json({
+      order_id: order.id,
+      amount_paise: amountPaise,
+      currency: 'INR',
+      key_id: keyId,
+    })
+  } catch (err) {
+    console.error('[wallet topup] create-order failed', err)
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Failed to create order' },
+      { status: 500 }
+    )
+  }
 }
