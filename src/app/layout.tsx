@@ -81,18 +81,6 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "SW Tools",
   },
-  openGraph: {
-    title: "SW Tools",
-    description: "A premium toolkit for image, PDF, signature, scan, and document formatting workflows.",
-    images: ["/brand/hero-ai-grid.svg"],
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "SW Tools",
-    description: "Image, PDF, signature, and document formatting utilities in one place.",
-    images: ["/brand/hero-ai-grid.svg"],
-  },
 };
 
 export default function RootLayout({

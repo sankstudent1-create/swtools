@@ -4,13 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -24,6 +26,13 @@ export default function Navigation() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   // Hide site nav on full-screen tool pages that have their own appbar
   const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission'];
@@ -60,10 +69,19 @@ export default function Navigation() {
                 About
               </Link>
               {user ? (
-                <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
-                  <User className="w-4 h-4" />
-                  Dashboard
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
+                    <User className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2 rounded-full text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300"
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
                 <Link href="/auth/login" className="px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 text-white/50 hover:text-white hover:bg-white/[0.04]">
                   Login
@@ -103,14 +121,23 @@ export default function Navigation() {
               About
             </Link>
             {user ? (
-              <Link 
-                href="/dashboard" 
-                onClick={() => setIsOpen(false)} 
-                className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
-              >
-                <User className="w-6 h-6" />
-                Dashboard
-              </Link>
+              <>
+                <Link 
+                  href="/dashboard" 
+                  onClick={() => setIsOpen(false)} 
+                  className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
+                >
+                  <User className="w-6 h-6" />
+                  Dashboard
+                </Link>
+                <button 
+                  onClick={() => { handleLogout(); setIsOpen(false); }} 
+                  className="p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 text-red-400 hover:bg-red-400/05"
+                >
+                  <LogOut className="w-6 h-6" />
+                  Logout
+                </button>
+              </>
             ) : (
               <Link 
                 href="/auth/login" 
