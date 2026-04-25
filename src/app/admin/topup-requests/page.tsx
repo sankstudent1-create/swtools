@@ -14,7 +14,8 @@ import {
   Eye,
   Wallet,
   Calendar,
-  User as UserIcon
+  User as UserIcon,
+  Scan
 } from 'lucide-react'
 
 type TopupRequest = {
@@ -40,6 +41,8 @@ export default function AdminTopupRequestsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [search, setSearch] = useState('')
 
+  const [ocrBusyId, setOcrBusyId] = useState<string | null>(null)
+
   async function loadRequests() {
     setLoading(true)
     try {
@@ -60,6 +63,34 @@ export default function AdminTopupRequestsPage() {
   useEffect(() => {
     loadRequests()
   }, [])
+
+  const runOCR = async (requestId: string, screenshotPath: string) => {
+    setOcrBusyId(requestId)
+    try {
+      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/topup-screenshots/${screenshotPath}`
+      const res = await fetch('/api/admin/topup-requests/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl })
+      })
+      const j = await res.json()
+      if (res.ok && j.utr) {
+        setRequests(prev => prev.map(r => r.id === requestId ? { ...r, utr: j.utr } : r))
+        // Optionally update the DB with the detected UTR
+        await fetch('/api/admin/topup-requests/update-utr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: requestId, utr: j.utr })
+        })
+      } else {
+        alert(j.utr ? `Detected UTR: ${j.utr}` : 'Could not detect UTR automatically')
+      }
+    } catch (e) {
+      alert('OCR failed')
+    } finally {
+      setOcrBusyId(null)
+    }
+  }
 
   const handleAction = async (requestId: string, action: 'approve' | 'reject') => {
     if (!confirm(`Are you sure you want to ${action} this request?`)) return
@@ -204,7 +235,21 @@ export default function AdminTopupRequestsPage() {
                       <Search className="w-3.5 h-3.5" />
                       UTR
                     </div>
-                    <span className="font-mono text-white/80 select-all">{request.utr}</span>
+                    <div className="flex items-center gap-2">
+                        <span className={`font-mono select-all ${request.utr.startsWith('pending_ocr') ? 'text-amber-500 italic' : 'text-white/80'}`}>
+                            {request.utr}
+                        </span>
+                        {request.screenshot_path && request.utr.startsWith('pending_ocr') && (
+                            <button 
+                                onClick={() => runOCR(request.id, request.screenshot_path!)}
+                                disabled={!!ocrBusyId}
+                                className="p-1 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 transition-colors"
+                                title="Run OCR to find UTR"
+                            >
+                                {ocrBusyId === request.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Scan className="w-3 h-3" />}
+                            </button>
+                        )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs p-3 rounded-xl bg-white/5 border border-white/5">
                     <div className="flex items-center gap-2 text-white/40 uppercase font-bold tracking-tighter">
