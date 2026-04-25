@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     user_agent: req.headers.get('user-agent') ?? null,
   })
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(pdfBytes), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
