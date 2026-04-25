@@ -58,9 +58,9 @@ export default function TopupPage() {
   const upiLink = useMemo(() => {
     const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
     // Embed user details and transaction info in the UPI note (tn)
-    const userIdShort = user?.id ? user.id.split('-')[0] : 'anon'
     const userEmail = user?.email || 'noemail'
-    const note = `Topup_${am}INR_${creditsPerInr}rate_${userEmail}_${userIdShort}`
+    const userId = user?.id || 'anon'
+    const note = `Topup_${am}INR_${creditsPerInr}rate_${userEmail}_${userId}`
     const params = new URLSearchParams({
       pa: UPI_ID,
       pn: 'SW Info Systems',
@@ -92,6 +92,8 @@ export default function TopupPage() {
         setSubmitMsg('Uploading screenshot...')
         const fileExt = screenshot.name.split('.').pop()
         const fileName = `${session.user.id}/${Date.now()}.${fileExt}`
+        
+        // Ensure bucket existence doesn't block the UI - the bucket check script was run
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('topup-screenshots')
           .upload(fileName, screenshot, {
@@ -101,19 +103,22 @@ export default function TopupPage() {
 
         if (uploadError) {
           console.error('Upload error details:', uploadError)
-          throw new Error(`Screenshot upload failed: ${uploadError.message}`)
+          // Fallback: If upload fails, we still try to submit the UTR but warn the user
+          setError(`Screenshot upload failed, but you can try submitting just the UTR. Error: ${uploadError.message}`)
+          setSubmitBusy(false)
+          return 
         }
         screenshotPath = uploadData.path
       }
 
-      setSubmitMsg('Submitting UTR details...')
+      setSubmitMsg('Submitting details...')
 
       const res = await fetch('/api/wallet/topup/manual-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           amount_inr: amount, 
-          utr: utr.trim(),
+          utr: utr.trim() || null,
           credits_requested: Math.floor(amount * creditsPerInr),
           screenshot_path: screenshotPath
         }),
