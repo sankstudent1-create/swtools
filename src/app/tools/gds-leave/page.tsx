@@ -129,35 +129,23 @@ export default function GDSLeavePage() {
     }
     */
     
-    console.log('GDS Leave: Usage log response:', { error: usageError });
-
-    if (usageError) {
-      console.error('GDS Leave: Usage log failed:', usageError);
-    }
-
-    // Save Record
-    console.log('GDS Leave: Saving file reference...');
-    const fileData = {
-      user_id: user.id,
-      tool_id: 'gds-leave',
-      file_name: `GDS_Leave_${data.applicant.name}.pdf`,
-      storage_path: 'inline_metadata',
-      metadata: { data }
-    };
-    console.log('GDS Leave: File data:', fileData);
-    
-    const { error: fileError } = await supabase
-      .from('user_files')
-      .insert(fileData);
-    
-    console.log('GDS Leave: File reference response:', { error: fileError });
-
-    if (fileError) {
-      console.error('GDS Leave: File reference failed:', fileError);
+    // Save Record (Only if logged in)
+    if (user) {
+        console.log('GDS Leave: Saving file reference...');
+        const fileData = {
+          user_id: user.id,
+          tool_id: 'gds-leave',
+          file_name: `GDS_Leave_${data.applicant.name}.pdf`,
+          storage_path: 'inline_metadata',
+          metadata: { data }
+        };
+        
+        await supabase.from('user_files').insert(fileData);
     }
 
     console.log('GDS Leave: Opening print window...');
     openPrintWindow(data);
+
     showToast('✓ Print dialog opening… choose "Save as PDF" to download');
     console.log('GDS Leave: Print complete');
   }

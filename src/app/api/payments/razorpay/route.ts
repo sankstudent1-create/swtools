@@ -34,8 +34,9 @@ export async function POST(req: Request) {
     const { data: latestProfile, error: profileErr } = await supabase
       .from('profiles')
       .select('wallet_balance')
-      .eq('id', activeUser.id)
+      .eq('id', activeUser!.id)
       .single();
+
 
     if (profileErr) {
       console.error('Failed to fetch latest profile:', profileErr);

@@ -153,86 +153,66 @@ export default function TDCommissionPage() {
       return
     }
 
-    // Always fetch latest profile to be sure
-    const { data: latestProfile } = await supabase
-      .from('profiles')
-      .select('wallet_balance')
-      .eq('id', user.id)
-      .single();
+    // Credit logic bypassed as requested
+    /*
+    if (user) {
+      const { data: latestProfile } = await supabase
+        .from('profiles')
+        .select('wallet_balance')
+        .eq('id', user.id)
+        .single();
 
-    const cost = costs.td_commission_download || 10
-    const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0
+      const cost = costs.td_commission_download || 10;
+      const currentCredits = latestProfile?.wallet_balance ?? profile?.wallet_balance ?? 0;
 
-    console.log('TD Commission: Credit check:', { 
-      cost, 
-      currentCredits, 
-      sufficient: currentCredits >= cost 
-    });
+      if (currentCredits < cost) {
+        alert(`Insufficient credits. ${cost} CR required to download.`);
+        window.location.href = '/dashboard/wallet';
+        return;
+      }
 
-    if (currentCredits < cost) {
-      console.log('TD Commission: Insufficient credits');
-      alert(`Insufficient credits. ${cost} CR required to download. Current: ${currentCredits} CR`)
-      window.location.href = '/dashboard/wallet'
-      return
+      await supabase.from('profiles').update({ wallet_balance: currentCredits - cost }).eq('id', user.id);
+      await supabase.from('usage_logs').insert({ user_id: user.id, tool_id: 'td-commission', credits_spent: cost, metadata: { action: 'download' } });
     }
+    */
 
-    console.log('TD Commission: Attempting to deduct credits...');
-    
-    // Deduct Credits
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ wallet_balance: currentCredits - cost })
-      .eq('id', user.id)
+    if (user) {
+      // Log Usage
+      console.log('TD Commission: Logging usage...');
+      const usageLogData = {
+        user_id: user.id,
+        tool_id: 'td-commission',
+        credits_spent: 0,
+        metadata: { action: 'download', office: office.bo }
+      };
+      console.log('TD Commission: Usage log data:', usageLogData);
+      
+      const { error: usageError } = await supabase
+        .from('usage_logs')
+        .insert(usageLogData);
+      
+      console.log('TD Commission: Usage log response:', { error: usageError });
 
-    if (updateError) {
-      console.error('TD Commission: Credit deduction failed:', updateError);
-      alert(`Error deducting credits: ${updateError.message}`)
-      return
+      if (usageError) {
+        console.error('TD Commission: Usage log failed:', usageError);
+      } 
     }
-
-    // Log Usage
-    console.log('TD Commission: Logging usage...');
-    const usageLogData = {
-      user_id: user.id,
-      tool_id: 'td-commission',
-      credits_spent: cost,
-      metadata: { action: 'download', office: office.bo }
-    };
-    console.log('TD Commission: Usage log data:', usageLogData);
-    
-    const { error: usageError } = await supabase
-      .from('usage_logs')
-      .insert(usageLogData);
-    
-    console.log('TD Commission: Usage log response:', { error: usageError });
-
-    if (usageError) {
-      console.error('TD Commission: Usage log failed:', usageError);
-    } 
 
     console.log('TD Commission: Generating PDF...');
     const doc = await getPDF()
     console.log('TD Commission: PDF generated successfully');
 
-    // Save File Reference (Simplified for now, saving metadata)
-    console.log('TD Commission: Saving file reference...');
-    const fileData = {
-      user_id: user.id,
-      tool_id: 'td-commission',
-      file_name: `TD_Commission_${office.bo}_${office.month}.pdf`,
-      storage_path: 'inline_metadata',
-      metadata: { office, rows }
-    };
-    console.log('TD Commission: File data:', fileData);
-    
-    const { error: fileError } = await supabase
-      .from('user_files')
-      .insert(fileData);
-    
-    console.log('TD Commission: File reference response:', { error: fileError });
-
-    if (fileError) {
-      console.error('TD Commission: File reference failed:', fileError);
+    // Save File Reference (Only if logged in)
+    if (user) {
+        console.log('TD Commission: Saving file reference...');
+        const fileData = {
+          user_id: user.id,
+          tool_id: 'td-commission',
+          file_name: `TD_Commission_${office.bo}_${office.month}.pdf`,
+          storage_path: 'inline_metadata',
+          metadata: { office, rows }
+        };
+        await supabase.from('user_files').insert(fileData);
     }
 
     console.log('TD Commission: Saving PDF to disk...');
