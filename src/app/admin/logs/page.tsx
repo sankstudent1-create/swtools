@@ -12,7 +12,7 @@ export default async function AdminLogsPage() {
     const admin = createSupabaseAdminClient()
     const { data, error } = await admin
       .from('tool_runs')
-      .select('*, profiles(email)')
+      .select('*, profiles!tool_runs_user_id_fkey(email)')
       .order('created_at', { ascending: false })
       .limit(50)
 

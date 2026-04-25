@@ -12,7 +12,7 @@ export default async function AdminPaymentsPage() {
     const admin = createSupabaseAdminClient()
     const { data, error } = await admin
       .from('razorpay_payments')
-      .select('*, profiles(email)')
+      .select('*, profiles!razorpay_payments_user_id_fkey(email)')
       .order('created_at', { ascending: false })
 
     if (error) {

@@ -13,7 +13,7 @@ export default async function AdminUsersPage() {
     const admin = createSupabaseAdminClient()
     const { data, error } = await admin
       .from('profiles')
-      .select('*, wallets(balance_credits)')
+      .select('*, wallets!wallets_user_id_fkey(balance_credits)')
       .order('created_at', { ascending: false })
 
     if (error) {
