@@ -4,24 +4,49 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-    });
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        setIsAdmin(profile?.role === 'admin');
+      } else {
+        setIsAdmin(false);
+      }
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        setIsAdmin(profile?.role === 'admin');
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -70,8 +95,14 @@ export default function Navigation() {
               </Link>
               {user ? (
                 <div className="flex items-center gap-1.5">
-                  <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
-                    <User className="w-4 h-4" />
+                  {isAdmin && (
+                    <Link href="/admin" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/admin") ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "text-white/50 hover:text-purple-400 hover:bg-white/[0.04]"}`}>
+                      <Settings className="w-4 h-4" />
+                      Admin
+                    </Link>
+                  )}
+                  <Link href="/dashboard" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 ${pathname.startsWith("/dashboard") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
+                    <LayoutDashboard className="w-4 h-4" />
                     Dashboard
                   </Link>
                   <button 
@@ -122,12 +153,22 @@ export default function Navigation() {
             </Link>
             {user ? (
               <>
+                {isAdmin && (
+                  <Link 
+                    href="/admin" 
+                    onClick={() => setIsOpen(false)} 
+                    className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/admin") ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : "text-white/60 hover:text-purple-400 hover:bg-white/[0.02]"}`}
+                  >
+                    <Settings className="w-6 h-6" />
+                    Admin Panel
+                  </Link>
+                )}
                 <Link 
                   href="/dashboard" 
                   onClick={() => setIsOpen(false)} 
-                  className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") || pathname.startsWith("/admin") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
+                  className={`p-4 rounded-2xl text-xl font-medium transition-colors flex items-center gap-3 ${pathname.startsWith("/dashboard") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
                 >
-                  <User className="w-6 h-6" />
+                  <LayoutDashboard className="w-6 h-6" />
                   Dashboard
                 </Link>
                 <button 
