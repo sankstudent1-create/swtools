@@ -25,6 +25,14 @@ export default function TopupPage() {
   const [screenshot, setScreenshot] = useState<File | null>(null)
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+    })
+  }, [supabase])
+
   useEffect(() => {
     let cancelled = false
     async function loadRate() {
@@ -49,7 +57,10 @@ export default function TopupPage() {
 
   const upiLink = useMemo(() => {
     const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
-    const note = `Topup_${amount}INR_${creditsPerInr}rate`
+    // Embed user details and transaction info in the UPI note (tn)
+    const userIdShort = user?.id ? user.id.split('-')[0] : 'anon'
+    const userEmail = user?.email || 'noemail'
+    const note = `Topup_${am}INR_${creditsPerInr}rate_${userEmail}_${userIdShort}`
     const params = new URLSearchParams({
       pa: UPI_ID,
       pn: 'SW Info Systems',
@@ -58,7 +69,7 @@ export default function TopupPage() {
       tn: note,
     })
     return `upi://pay?${params.toString()}`
-  }, [amount, creditsPerInr])
+  }, [amount, creditsPerInr, user])
 
   const qrUrl = useMemo(() => {
     const data = encodeURIComponent(upiLink)
