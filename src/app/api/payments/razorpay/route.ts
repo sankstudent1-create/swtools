@@ -74,10 +74,11 @@ export async function POST(req: Request) {
       console.log('Step 7: Order created successfully:', order.id);
       // Return only necessary fields to client
       return NextResponse.json({ id: order.id, amount: order.amount, currency: order.currency });
-    } catch (orderErr) {
+    } catch (orderErr: any) {
       console.error('Razorpay order creation failed:', orderErr);
       return NextResponse.json({ error: 'Failed to create Razorpay order', details: orderErr?.message || '' }, { status: 500 });
-    }  } catch (error: any) {
+    }
+  } catch (error: any) {
     console.error('=== Razorpay order error ===');
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
