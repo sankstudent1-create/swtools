@@ -143,8 +143,8 @@ body { background: #fff; }
 .t.sz12  { font-size: 12pt; }
 .ul  { position: absolute; height: 0; border-bottom: 0.8pt solid #000; }
 .ulv {
-  position: absolute; font-size: 11pt; line-height: 1; color: #000;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  position: absolute; font-size: 11pt; line-height: 1.2; color: #000;
+  white-space: nowrap; overflow: visible;
   font-family: 'Bookman Old Style','Book Antiqua',Palatino,Georgia,serif;
 }
 #letter-content {

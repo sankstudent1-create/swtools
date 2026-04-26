@@ -61,11 +61,10 @@ function UV({
       style={{
         position: 'absolute',
         fontSize,
-        lineHeight: 1,
+        lineHeight: 1.2,
         color: '#000',
         whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+        overflow: 'visible',
         fontFamily: "'Bookman Old Style','Book Antiqua',Palatino,Georgia,serif",
         left, top, right, width,
       }}

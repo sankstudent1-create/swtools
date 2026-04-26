@@ -12,7 +12,7 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
     `<div class="t ${cls}" style="${style}">${content}</div>`;
   const UL = (style: string) => `<div class="ul" style="${style}"></div>`;
   const UV = (id: string, style: string, content: string) =>
-    `<div class="ulv" style="display:flex;align-items:center;line-height:1;z-index:10;${style}">${content}</div>`;
+    `<div class="ulv" style="display:flex;align-items:center;line-height:1.2;z-index:10;${style}">${content}</div>`;
 
   return `
 <div class="pdf-page">
