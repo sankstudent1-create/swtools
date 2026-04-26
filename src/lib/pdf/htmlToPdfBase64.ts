@@ -145,8 +145,8 @@ export async function htmlPagesToPdfBlobA4(html: string, pageSelector: string) {
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
-  iframe.style.width = '1200px'
-  iframe.style.height = '900px'
+  iframe.style.width = '1200px' // Force a desktop-width viewport
+  iframe.style.height = '1200px'
   iframe.style.opacity = '0'
   iframe.style.pointerEvents = 'none'
 

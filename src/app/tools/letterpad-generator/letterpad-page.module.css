@@ -68,10 +68,11 @@
 /* ── Workspace: sidebar + paper preview ──────────────────────── */
 .workspace {
   display: grid;
-  grid-template-columns: 310px 1fr;
+  grid-template-columns: 320px 1fr;
   min-height: calc(100vh - 52px);
   width: 100%;
   max-width: none;
+  align-items: stretch;
 }
 
 /* ── Sidebar column is scrollable on its own ─────────────────── */
@@ -81,6 +82,8 @@
   position: sticky;
   top: 52px;
   background: #1a1a1a;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  z-index: 10;
 }
 
 /* ── Preview area ────────────────────────────────────────────── */
