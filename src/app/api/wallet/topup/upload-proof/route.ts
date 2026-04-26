@@ -40,12 +40,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Storage failed: ${uploadErr.message}` }, { status: 500 })
     }
 
-    // 2. Create DB Record
+    // 3. Attempt Server-Side OCR immediately
+    let detectedUtr = utr
+    try {
+      const publicUrl = admin.storage.from('manual-topup-proofs').getPublicUrl(fileName).data.publicUrl
+      console.log('[upload-api] Starting background OCR for:', publicUrl)
+      
+      const ocrRes = await fetch(`${req.nextUrl.origin}/api/admin/topup-requests/ocr`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': req.headers.get('cookie') || '' // Pass cookies for admin auth
+        },
+        body: JSON.stringify({ imageUrl: publicUrl })
+      })
+      
+      if (ocrRes.ok) {
+        const ocrData = await ocrRes.json()
+        if (ocrData.utr) {
+          console.log('[upload-api] OCR detected UTR:', ocrData.utr)
+          detectedUtr = ocrData.utr
+        }
+      }
+    } catch (ocrErr) {
+      console.error('[upload-api] Background OCR failed:', ocrErr)
+    }
+
+    // 4. Create DB Record with detected UTR
     const { error: dbErr } = await admin.from('manual_topup_requests').insert({
       user_id: user.id,
       amount_inr: Number(amount),
       credits_requested: Number(credits),
-      utr: utr || `pending_ocr_${Date.now()}`,
+      utr: detectedUtr || utr || `pending_ocr_${Date.now()}`,
       screenshot_path: fileName,
       status: 'pending'
     })

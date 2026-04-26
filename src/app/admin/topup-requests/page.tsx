@@ -15,7 +15,12 @@ import {
   Wallet,
   Calendar,
   User as UserIcon,
-  Scan
+  Scan,
+  FileText,
+  Upload,
+  AlertTriangle,
+  X,
+  ScanLine
 } from 'lucide-react'
 
 type TopupRequest = {
@@ -40,6 +45,7 @@ export default function AdminTopupRequestsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [search, setSearch] = useState('')
+  const [activeTab, setActiveTab] = useState<'requests' | 'csv'>('requests')
 
   const [ocrBusyId, setOcrBusyId] = useState<string | null>(null)
 
@@ -276,285 +282,295 @@ export default function AdminTopupRequestsPage() {
     }
   }
 
-  const filteredRequests = requests.filter(r => {
-    const matchesFilter = filter === 'all' || r.status === filter
-    const matchesSearch = r.utr.toLowerCase().includes(search.toLowerCase()) || 
-                         r.profiles.email.toLowerCase().includes(search.toLowerCase())
+  const filteredRequests = requests.filter(request => {
+    const matchesFilter = filter === 'all' || request.status === filter
+    const searchLower = search.toLowerCase()
+    const matchesSearch = !search || 
+      request.utr?.toLowerCase().includes(searchLower) || 
+      request.profiles?.email?.toLowerCase().includes(searchLower) ||
+      request.profiles?.full_name?.toLowerCase().includes(searchLower)
     return matchesFilter && matchesSearch
   })
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
-      case 'rejected': return 'text-red-400 bg-red-400/10 border-red-400/20'
-      default: return 'text-amber-400 bg-amber-400/10 border-amber-400/20'
-    }
-  }
-
   return (
-    <main className="min-h-screen px-6 py-24 bg-[#07090f] text-white">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <Link 
-              href="/admin" 
-              className="flex items-center gap-2 text-sm text-white/50 hover:text-white transition-colors group mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              Back to Dashboard
-            </Link>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-              Topup Requests
+            <h1 className="text-4xl font-black tracking-tighter text-white mb-2 italic uppercase">
+              Manual Topup <span className="text-blue-500">Verification</span>
             </h1>
-            <p className="text-white/40 mt-2 font-medium">Verify UPI payments and approve wallet credits</p>
+            <p className="text-white/40 text-sm font-medium tracking-tight">
+              Manage and verify manual credit topup requests.
+            </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input
-                className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-64"
-                placeholder="Search UTR or Email..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <select
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer"
-              value={filter}
-              onChange={(e: any) => setFilter(e.target.value)}
-            >
-              <option value="all" className="bg-[#0f1117]">All Status</option>
-              <option value="pending" className="bg-[#0f1117]">Pending</option>
-              <option value="approved" className="bg-[#0f1117]">Approved</option>
-              <option value="rejected" className="bg-[#0f1117]">Rejected</option>
-            </select>
+          
+          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
             <button 
-              onClick={loadRequests}
-              className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              onClick={() => setActiveTab('requests')}
+              className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'requests' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
             >
-              <Clock className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              Requests List
+            </button>
+            <button 
+              onClick={() => setActiveTab('csv')}
+              className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'csv' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
+            >
+              CSV Verification
             </button>
           </div>
         </div>
 
-        <div className="mb-8 ui-modal-shell p-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <div className="text-sm font-bold text-white">CSV Verification</div>
-              <div className="text-xs text-white/40 mt-1">
-                Upload a CSV that contains UTR numbers. We will match against pending requests and you can bulk approve.
+        {activeTab === 'csv' ? (
+          <div className="mb-12 p-8 rounded-3xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-xl relative overflow-hidden group">
+            {/* CSV Module Content */}
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                </div>
+                <h2 className="text-xl font-bold tracking-tight text-white uppercase italic">Bulk CSV Matcher</h2>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="ui-btn-secondary px-4 py-2 text-xs inline-flex items-center gap-2 cursor-pointer">
-                Upload CSV
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) handleCsvUpload(f)
-                  }}
-                  disabled={csvBusy}
-                />
-              </label>
-              <button
-                type="button"
-                className="ui-btn-primary px-4 py-2 text-xs"
-                onClick={approveCsvMatches}
-                disabled={csvBusy || csvMatches.filter(m => m.amountMatch).length === 0}
-              >
-                {csvBusy ? 'Working…' : `Approve Valid Matches (${csvMatches.filter(m => m.amountMatch).length})`}
-              </button>
-            </div>
-          </div>
+              
+              <div className="flex flex-col md:flex-row items-center gap-4">
+                <label className="flex-1 w-full group/label">
+                  <div className="relative cursor-pointer py-4 px-6 rounded-2xl bg-white/5 border-2 border-dashed border-white/10 group-hover/label:border-blue-500/50 group-hover/label:bg-blue-500/5 transition-all flex items-center justify-center gap-3">
+                    <Upload className="w-5 h-5 text-white/30 group-hover/label:text-blue-500 transition-colors" />
+                    <span className="text-sm font-bold text-white/40 group-hover/label:text-white transition-colors">
+                      {csvBusy ? 'Uploading...' : 'Drop bank CSV here or click to browse'}
+                    </span>
+                    <input
+                      type="file"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) handleCsvUpload(f)
+                      }}
+                      disabled={csvBusy}
+                    />
+                  </div>
+                </label>
+                <button
+                  type="button"
+                  className="ui-btn-primary px-8 py-4 text-xs font-black uppercase tracking-widest whitespace-nowrap h-full"
+                  onClick={approveCsvMatches}
+                  disabled={csvBusy || csvMatches.filter(m => m.amountMatch || m.isEditing).length === 0}
+                >
+                  {csvBusy ? 'Processing...' : `Approve Valid Matches (${csvMatches.filter(m => m.amountMatch || m.isEditing).length})`}
+                </button>
+              </div>
 
-          {csvMsg ? (
-            <div className={`mt-3 text-xs font-medium ${csvMsg.includes('WARNING') ? 'text-amber-400' : 'text-emerald-400'}`}>
-              {csvMsg}
-            </div>
-          ) : null}
+              {csvMsg && (
+                <div className={`mt-4 p-4 rounded-xl border text-xs font-bold flex items-center gap-3 ${csvMsg.includes('WARNING') ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                  {csvMsg.includes('WARNING') ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {csvMsg}
+                </div>
+              )}
 
-          {csvMatches.length > 0 && (
-            <div className="mt-4 border-t border-white/5 pt-4">
-              <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Match Details</div>
-              <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                {csvMatches.map((m, i) => (
-                  <div key={i} className={`flex flex-col gap-2 p-3 rounded bg-white/5 border ${m.amountMatch ? 'border-emerald-500/20' : 'border-amber-500/20'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="font-mono text-[11px] text-white/70">{m.utr}</div>
-                      <div className="flex items-center gap-2">
-                        {m.amountMatch ? (
-                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">Exact Match</span>
-                        ) : (
-                          <span className="text-[10px] text-amber-400 font-bold uppercase tracking-tighter">Amount Mismatch</span>
+              {csvMatches.length > 0 && (
+                <div className="mt-8 border-t border-white/5 pt-8">
+                  <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Verification Analysis</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    {csvMatches.map((m, i) => (
+                      <div key={i} className={`flex flex-col gap-3 p-4 rounded-2xl bg-white/5 border transition-all hover:bg-white/10 ${m.amountMatch ? 'border-emerald-500/20' : 'border-amber-500/20'}`}>
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                          <div className="font-mono text-xs font-bold text-white/80">{m.utr}</div>
+                          {m.amountMatch ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase">Verified</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-500 text-[9px] font-black uppercase tracking-tighter">Amount Error</span>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-white/30">User Claimed</span>
+                            <span className="text-white">₹{m.dbAmount}</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-medium">
+                            <span className="text-white/30">Bank Statement</span>
+                            <span className={`font-black ${m.amountMatch ? 'text-emerald-400' : 'text-red-400'}`}>₹{m.csvAmount}</span>
+                          </div>
+                        </div>
+
+                        {!m.amountMatch && (
+                          <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-white/30 uppercase font-black">Correct To:</span>
+                              <input 
+                                type="number"
+                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 w-full text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+                                defaultValue={m.csvAmount}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value)
+                                  setCsvMatches(prev => prev.map((item, idx) => 
+                                    idx === i ? { ...item, newAmount: val, isEditing: true } : item
+                                  ))
+                                }}
+                              />
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setCsvMatches(prev => prev.map((item, idx) => 
+                                  idx === i ? { ...item, isEditing: true, newAmount: m.csvAmount } : item
+                                ))
+                              }}
+                              className="w-full py-2 rounded-lg bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase hover:bg-blue-500 hover:text-white transition-all"
+                            >
+                              Apply Bank Amount
+                            </button>
+                          </div>
                         )}
                       </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-[11px]">
-                      <div className="text-white/40">User Claim: <span className="text-white font-bold ml-1">₹{m.dbAmount}</span></div>
-                      <div className="text-white/40">Bank CSV: <span className={`font-bold ml-1 ${m.amountMatch ? 'text-emerald-400' : 'text-red-400'}`}>₹{m.csvAmount}</span></div>
-                    </div>
-
-                    {!m.amountMatch && (
-                      <div className="flex items-center gap-2 mt-1 pt-2 border-t border-white/5">
-                        <span className="text-[10px] text-white/40">Update to:</span>
-                        <input 
-                          type="number"
-                          className="bg-black/40 border border-white/10 rounded px-2 py-0.5 w-20 text-[11px] focus:outline-none focus:border-blue-500"
-                          defaultValue={m.csvAmount}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value)
-                            setCsvMatches(prev => prev.map((item, idx) => 
-                              idx === i ? { ...item, newAmount: val, isEditing: true } : item
-                            ))
-                          }}
-                        />
-                        <button 
-                          onClick={() => {
-                            setCsvMatches(prev => prev.map((item, idx) => 
-                              idx === i ? { ...item, isEditing: true, newAmount: m.csvAmount } : item
-                            ))
-                          }}
-                          className="text-[10px] text-blue-400 hover:text-blue-300 font-medium"
-                        >
-                          Use CSV Amount
-                        </button>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {error && (
-          <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3">
-            <XCircle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
-
-        {loading && requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-            <p className="text-white/40 animate-pulse font-medium">Fetching requests...</p>
-          </div>
-        ) : filteredRequests.length === 0 ? (
-          <div className="text-center py-32 rounded-3xl border-2 border-dashed border-white/5">
-            <Filter className="w-12 h-12 text-white/10 mx-auto mb-4" />
-            <p className="text-white/30 font-medium">No requests found matching your filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredRequests.map((request) => (
-              <div 
-                key={request.id}
-                className="ui-modal-shell p-6 group transition-all duration-300 hover:border-white/20"
-              >
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-blue-400 font-bold">
-                      {request.profiles.full_name?.[0] || request.profiles.email[0].toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">
-                        {request.profiles.full_name || 'Anonymous User'}
-                      </h3>
-                      <p className="text-xs text-white/40 font-mono">{request.profiles.email}</p>
-                    </div>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusColor(request.status)}`}>
-                    {request.status}
-                  </div>
-                </div>
+          <>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+              <div className="flex flex-wrap items-center gap-2">
+                {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-black shadow-xl shadow-white/10' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <span className="block text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1">Amount</span>
-                    <span className="text-xl font-bold text-emerald-400">₹{request.amount_inr}</span>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <span className="block text-[10px] text-white/30 uppercase tracking-widest font-bold mb-1">Credits</span>
-                    <span className="text-xl font-bold text-blue-400">+{request.credits_requested}</span>
-                  </div>
-                </div>
+              <div className="relative group min-w-[300px]">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-500 transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search UTR, Email, Name..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all placeholder:text-white/20 font-medium"
+                />
+              </div>
+            </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center justify-between text-xs p-3 rounded-xl bg-white/5 border border-white/5">
-                    <div className="flex items-center gap-2 text-white/40 uppercase font-bold tracking-tighter">
-                      <Search className="w-3.5 h-3.5" />
-                      UTR
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className={`font-mono select-all ${request.utr.startsWith('pending_ocr') ? 'text-amber-500 italic' : 'text-white/80'}`}>
-                            {request.utr}
-                        </span>
-                        {request.screenshot_path && request.utr.startsWith('pending_ocr') && (
-                            <button 
-                                onClick={() => runOCR(request.id, request.screenshot_path!)}
-                                disabled={!!ocrBusyId}
-                                className="p-1 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 transition-colors"
-                                title="Run OCR to find UTR"
-                            >
-                                {ocrBusyId === request.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Scan className="w-3 h-3" />}
-                            </button>
-                        )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs p-3 rounded-xl bg-white/5 border border-white/5">
-                    <div className="flex items-center gap-2 text-white/40 uppercase font-bold tracking-tighter">
-                      <Calendar className="w-3.5 h-3.5" />
-                      Date
-                    </div>
-                    <span className="text-white/60">{new Date(request.created_at).toLocaleString()}</span>
-                  </div>
+            {error && (
+              <div className="mb-8 p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/30">
+                  <XCircle className="w-5 h-5" />
                 </div>
-
-                <div className="flex items-center gap-3">
-                  {request.screenshot_path && (
-                    <button 
-                      className="ui-btn-secondary py-2 px-4 text-xs flex items-center gap-2"
-                      onClick={() => {
-                        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${request.screenshot_path}`
-                        window.open(url, '_blank')
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Screenshot
-                    </button>
-                  )}
-                  
-                  {request.status === 'pending' && (
-                    <>
-                      <button 
-                        className="ui-btn-primary bg-emerald-500 hover:bg-emerald-600 border-emerald-500/50 py-2 px-4 text-xs flex items-center gap-2 ml-auto"
-                        disabled={!!busyId}
-                        onClick={() => handleAction(request.id, 'approve')}
-                      >
-                        {busyId === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                        Approve
-                      </button>
-                      <button 
-                        className="ui-btn-secondary border-red-500/30 text-red-400 hover:bg-red-500/5 py-2 px-4 text-xs flex items-center gap-2"
-                        disabled={!!busyId}
-                        onClick={() => handleAction(request.id, 'reject')}
-                      >
-                        {busyId === request.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                        Reject
-                      </button>
-                    </>
-                  )}
+                <div className="flex-1">
+                  <div className="text-sm font-black uppercase italic">Error Detected</div>
+                  <div className="text-xs text-red-400/70 font-medium">{error}</div>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-6">
+              {filteredRequests.map(request => (
+                <div key={request.id} className="group p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] hover:border-white/20 transition-all relative overflow-hidden">
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          request.status === 'pending' ? 'bg-amber-500/20 text-amber-500' :
+                          request.status === 'approved' ? 'bg-emerald-500/20 text-emerald-500' :
+                          'bg-red-500/20 text-red-500'
+                        }`}>
+                          {request.status}
+                        </div>
+                        <span className="text-white/20 text-xs font-bold tracking-widest uppercase">
+                          {new Date(request.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div>
+                          <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">User Details</div>
+                          <div className="text-sm font-bold text-white truncate">{request.profiles?.email}</div>
+                          <div className="text-xs font-medium text-white/40">{request.profiles?.full_name || 'Anonymous User'}</div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">UTR Number</div>
+                          <div className={`font-mono text-sm font-bold ${request.utr?.startsWith('pending_ocr') ? 'text-amber-500 italic' : 'text-white'}`}>
+                            {request.utr}
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Amount</div>
+                          <div className="text-xl font-black italic tracking-tight text-white">
+                            ₹{request.amount_inr}
+                          </div>
+                          <div className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">
+                            {request.credits_requested} Credits
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 md:min-w-[400px] justify-end">
+                      {request.screenshot_path && (
+                        <div className="flex gap-2">
+                          <button 
+                            className="ui-btn-secondary py-3 px-6 text-[11px] font-black uppercase tracking-widest flex items-center gap-3 bg-white/5 hover:bg-white/10 transition-all border border-white/10"
+                            onClick={() => {
+                              const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${request.screenshot_path}`
+                              window.open(url, '_blank')
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Proof
+                          </button>
+                          <button 
+                            className="ui-btn-secondary py-3 px-6 text-[11px] font-black uppercase tracking-widest flex items-center gap-3 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20"
+                            onClick={() => runOCR(request.id, request.screenshot_path!)}
+                            disabled={ocrBusyId === request.id}
+                          >
+                            <ScanLine className={`w-4 h-4 ${ocrBusyId === request.id ? 'animate-spin' : ''}`} />
+                            {ocrBusyId === request.id ? 'Scanning...' : 'Run OCR'}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {request.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleAction(request.id, 'reject')}
+                            disabled={busyId === request.id}
+                            className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20 disabled:opacity-50"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleAction(request.id, 'approve')}
+                            disabled={busyId === request.id}
+                            className="py-3 px-8 rounded-xl bg-emerald-500 text-white font-black uppercase tracking-widest text-[11px] shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                          >
+                            {busyId === request.id ? '...' : 'Approve'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {filteredRequests.length === 0 && !loading && (
+                <div className="py-20 text-center rounded-[3rem] bg-white/[0.02] border border-dashed border-white/10">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
+                    <Search className="w-8 h-8 text-white/10" />
+                  </div>
+                  <div className="text-xl font-black text-white/40 italic uppercase italic tracking-tighter">No requests found</div>
+                  <p className="text-sm text-white/20 font-medium">Try adjusting your filters or search terms</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
-    </main>
+    </div>
   )
 }
