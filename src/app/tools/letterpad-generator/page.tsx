@@ -104,7 +104,7 @@ export default function LetterpadGeneratorPage() {
     updateForm(key, value);
   }, [updateForm]);
 
-  const handleFillAI = async (prompt: string) => {
+  const handleFillAI = async (prompt: string, isFull: boolean = false) => {
     setIsCharging(true);
     try {
       const res = await fetch('/api/tools/letterpad-generator/charge', {
@@ -128,8 +128,22 @@ export default function LetterpadGeneratorPage() {
         return;
       }
 
-      await fillFromAI(prompt);
+      // We need to call the actual AI generation API first to get the AILetterData
+      // Searching for where the AI generation happens...
+      const aiRes = await fetch('/api/tools/letterpad-generator/generate-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, isFull }),
+      });
+      
+      if (!aiRes.ok) {
+        throw new Error('AI Generation failed');
+      }
+      
+      const aiData = await aiRes.json();
+      await fillFromAI(aiData.data, isFull, aiData.model);
     } catch (e) {
+      console.error('AI Error:', e);
       alert('AI processing failed');
     } finally {
       setIsCharging(false);
