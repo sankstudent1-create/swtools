@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient()
   const { data: auth } = await supabase.auth.getUser()
 
-  if (!auth.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!auth.user) {
+    return NextResponse.json({ error: 'Unauthorized: No active session' }, { status: 401 })
   }
 
   const body = (await req.json()) as Body
@@ -31,13 +31,11 @@ export async function POST(req: NextRequest) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET
 
     if (!keyId || !keySecret) {
-      return NextResponse.json(
-        {
-          error:
-            'Payments are not configured on this deployment. Missing RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET in environment variables (Preview deployments need them too).',
-        },
-        { status: 500 }
-      )
+      console.error('[RAZORPAY] Missing environment variables')
+      return NextResponse.json({ 
+        error: 'Payment Configuration Error: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is not set in environment variables.',
+        details: 'Check your Vercel/Netlify environment variables.'
+      }, { status: 500 })
     }
 
     const razorpay = createRazorpayClient()
@@ -64,7 +62,10 @@ export async function POST(req: NextRequest) {
 
     if (ins.error) {
       console.error('[wallet topup] razorpay_orders insert failed', ins.error)
-      return NextResponse.json({ error: 'Could not save order' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Database Error: Could not save order record.',
+        details: ins.error.message
+      }, { status: 500 })
     }
 
     return NextResponse.json({
