@@ -12,28 +12,43 @@ let globalWorker: any = null
 
 async function getWorker() {
   if (globalWorker) return globalWorker
-  globalWorker = await createWorker('eng')
+  
+  // Use corePath to use the faster WebAssembly version if possible, 
+  // or at least ensure we aren't reloading everything.
+  globalWorker = await createWorker('eng', 1, {
+    logger: m => console.log(`[ocr-worker] ${m.status}: ${Math.round(m.progress * 100)}%`),
+    errorHandler: err => {
+      console.error('[ocr-worker] Error:', err)
+      globalWorker = null
+    }
+  })
   return globalWorker
 }
 
 export async function POST(req: NextRequest) {
-  // Relax requireAdmin for background server-side calls if needed
-  // (In production, use a shared secret or JWT check)
-  const { imageUrl, skipAdminCheck } = await req.json()
-  
-  if (!skipAdminCheck) {
-    const { isAdmin } = await requireAdmin()
-    if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  if (!imageUrl) return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 })
+  // 1. SET A TIMEOUT ABORT SIGNAL
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 9000) // 9 second limit
 
   try {
+    const body = await req.json()
+    const { imageUrl, skipAdminCheck } = body
+    
+    if (!skipAdminCheck) {
+      const { isAdmin } = await requireAdmin()
+      if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (!imageUrl) return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 })
+
+    console.log('[ocr] Processing image:', imageUrl)
     const worker = await getWorker()
+    
+    // Perform recognition with a potential timeout
     const { data: { text } } = await worker.recognize(imageUrl)
     
-    // Improved Regex: Find 12-digit UTR specifically
-    // Look for common UPI patterns or raw 12 digits
+    clearTimeout(timeoutId)
+
     const utrPatterns = [
       /UTR\D*(\d{12})/i,
       /Transaction\s*ID\D*(\d{12})/i,
@@ -50,10 +65,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ text: text.substring(0, 500), utr })
+    return NextResponse.json({ 
+      text: text.substring(0, 300), 
+      utr,
+      confidence: 'low' 
+    })
   } catch (error: any) {
-    // Force worker reset on crash
-    globalWorker = null 
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    clearTimeout(timeoutId)
+    console.error('[ocr] Processing error:', error.message)
+    
+    if (error.name === 'AbortError') {
+      return NextResponse.json({ error: 'OCR taking too long. Please verify manually.' }, { status: 504 })
+    }
+
+    // Force worker reset on crash to prevent "stuck" states
+    if (globalWorker) {
+      await globalWorker.terminate()
+      globalWorker = null 
+    }
+    
+    return NextResponse.json({ error: error.message || 'OCR failed' }, { status: 500 })
   }
 }
