@@ -1,13 +1,10 @@
-import { Metadata } from 'next';
+import { buildToolMetadata } from '@/lib/og-metadata';
 
-export const metadata: Metadata = {
-  title: 'Professional Letterpad Generator',
-  description: 'Generate official government and business letterpads with our smart, customizable template output engine.',
-  keywords: ["letterpad generator","office letterhead template","government formatting tool"],
-  alternates: {
-    canonical: '/tools/letterpad-generator'
-  }
-};
+export const metadata = buildToolMetadata(
+  'Professional Letterpad Generator',
+  'Generate official government and business letterpads with our smart, customizable template output engine.',
+  '/tools/letterpad-generator'
+);
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

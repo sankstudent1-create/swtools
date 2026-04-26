@@ -1,13 +1,10 @@
-import { Metadata } from 'next';
+import { buildToolMetadata } from '@/lib/og-metadata';
 
-export const metadata: Metadata = {
-  title: 'Online Image Cropper',
-  description: 'Easily crop pictures using custom bounds or popular social media aspect ratios.',
-  keywords: ["crop image online","photo cropping tool","free crop pictures"],
-  alternates: {
-    canonical: '/tools/image-cropper'
-  }
-};
+export const metadata = buildToolMetadata(
+  'Online Image Cropper',
+  'Easily crop pictures using custom bounds or popular social media aspect ratios.',
+  '/tools/image-cropper'
+);
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

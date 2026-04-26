@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { Users, CreditCard, Activity, Tag, Settings, ArrowUpRight, ChevronRight, LayoutDashboard, FileCheck } from 'lucide-react'
+import { Users, CreditCard, Activity, Tag, Settings, ArrowUpRight, ChevronRight, LayoutDashboard, FileCheck, MessageSquare } from 'lucide-react'
 
 export default async function AdminPage() {
   const { isAdmin } = await requireAdmin()
@@ -79,6 +79,15 @@ export default async function AdminPage() {
       color: 'text-sky-400',
       bg: 'bg-sky-500/10',
       border: 'border-sky-500/20'
+    },
+    {
+      title: 'Contact Messages',
+      desc: 'View and reply to contact form submissions.',
+      href: '/admin/contact-messages',
+      icon: MessageSquare,
+      color: 'text-fuchsia-400',
+      bg: 'bg-fuchsia-500/10',
+      border: 'border-fuchsia-500/20'
     },
     {
       title: 'Activity Logs',

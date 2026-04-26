@@ -1,13 +1,10 @@
-import { Metadata } from 'next';
+import { buildToolMetadata } from '@/lib/og-metadata';
 
-export const metadata: Metadata = {
-  title: 'Watermark Stamper Tool',
-  description: 'Protect your images by stamping customized text watermarks securely in your browser.',
-  keywords: ["watermark tool online","add watermark to photo","text stamp image"],
-  alternates: {
-    canonical: '/tools/watermark-stamper'
-  }
-};
+export const metadata = buildToolMetadata(
+  'Watermark Stamper Tool',
+  'Protect your images by stamping customized text watermarks securely in your browser.',
+  '/tools/watermark-stamper'
+);
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

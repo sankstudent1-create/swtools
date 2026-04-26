@@ -121,18 +121,18 @@ export function lsSet(key: string, value: string): void {
 /** CSS used inside the printed window */
 export function getPrintCSS(): string {
   return `
-@page { size: 215.91mm 279.42mm; margin: 0; }
+@page { size: A4; margin: 0; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: #fff; }
 .pdf-page {
-  display: block; width: 215.91mm; height: 279.42mm;
+  display: block; width: 210mm; height: 297mm;
   position: relative; background: #fff;
   font-family: 'Bookman Old Style','Book Antiqua',Palatino,Georgia,serif;
   color: #000; overflow: hidden; page-break-after: always;
 }
 .pdf-border {
-  position: absolute; left: 8.47mm; top: 8.47mm;
-  width: 199.01mm; height: 262.52mm; border: 1pt solid #000;
+  position: absolute; left: 8mm; top: 8mm;
+  width: 194mm; height: 281mm; border: 1pt solid #000;
 }
 .t {
   position: absolute; white-space: nowrap; font-size: 12pt; line-height: 1; color: #000;

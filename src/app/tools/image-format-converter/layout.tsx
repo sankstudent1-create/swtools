@@ -1,13 +1,10 @@
-import { Metadata } from 'next';
+import { buildToolMetadata } from '@/lib/og-metadata';
 
-export const metadata: Metadata = {
-  title: 'Image Format Converter',
-  description: 'Convert images freely between JPG, PNG, and WebP using this high-performance secure in-browser tool.',
-  keywords: ["convert webp to jpg","png to webp","image format changer online"],
-  alternates: {
-    canonical: '/tools/image-format-converter'
-  }
-};
+export const metadata = buildToolMetadata(
+  'Image Format Converter',
+  'Convert images freely between JPG, PNG, and WebP using this high-performance secure in-browser tool.',
+  '/tools/image-format-converter'
+);
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

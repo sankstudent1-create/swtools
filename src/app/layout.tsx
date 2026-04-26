@@ -39,8 +39,10 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: SITE,
   alternates: {
     canonical: "/",
   },
@@ -64,6 +66,23 @@ export const metadata: Metadata = {
     "ssc rrb exam signature",
     "official letterhead generator",
   ],
+  openGraph: {
+    title: "SW Tools | Image, PDF, Signature and Document Utilities",
+    description: "A premium suite of browser-based utilities for government employees, students, and professionals.",
+    url: SITE,
+    siteName: "SW Tools",
+    images: [
+      { url: "/icon-512.png", width: 512, height: 512, alt: "SW Tools" },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SW Tools | Image, PDF, Signature and Document Utilities",
+    description: "A premium suite of browser-based utilities for government employees, students, and professionals.",
+    images: ["/icon-512.png"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },

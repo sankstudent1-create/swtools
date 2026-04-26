@@ -1,13 +1,10 @@
-import { Metadata } from 'next';
+import { buildToolMetadata } from '@/lib/og-metadata';
 
-export const metadata: Metadata = {
-  title: 'TD Commission / BPM Bill Generator',
-  description: 'Create official BPM Incentive Bills for Time Deposit (TD) commissions automatically. Calculations made easy with SW Tools.',
-  keywords: ["TD commission bill","BPM incentive bill generator","time deposit commission calculate"],
-  alternates: {
-    canonical: '/tools/td-commission'
-  }
-};
+export const metadata = buildToolMetadata(
+  'TD Commission / BPM Bill Generator',
+  'Create official BPM Incentive Bills for Time Deposit (TD) commissions automatically. Calculations made easy with SW Tools.',
+  '/tools/td-commission'
+);
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return children;

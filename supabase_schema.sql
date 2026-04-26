@@ -47,8 +47,10 @@ alter table public.manual_topup_requests
 alter table public.manual_topup_requests enable row level security;
 
 drop policy if exists "manual_topup_requests_insert_own" on public.manual_topup_requests;
-create policy "manual_topup_requests_insert_own" on public.manual_topup_requests
-  for insert to authenticated with check (auth.uid() = user_id);
+create policy "Users can insert manual topup requests" on manual_topup_requests
+  for insert
+  to authenticated
+  with check (auth.uid() = user_id);
 
 drop policy if exists "manual_topup_requests_select_own" on public.manual_topup_requests;
 create policy "manual_topup_requests_select_own" on public.manual_topup_requests
@@ -57,6 +59,27 @@ create policy "manual_topup_requests_select_own" on public.manual_topup_requests
 drop policy if exists "manual_topup_requests_admin_all" on public.manual_topup_requests;
 create policy "manual_topup_requests_admin_all" on public.manual_topup_requests
   for all to service_role using (true);
+
+alter table if exists public.contact_messages enable row level security;
+
+drop policy if exists "contact_messages_insert_any" on public.contact_messages;
+create policy "contact_messages_insert_any" on public.contact_messages
+  for insert
+  to anon, authenticated
+  with check (true);
+
+drop policy if exists "contact_messages_admin_select" on public.contact_messages;
+create policy "contact_messages_admin_select" on public.contact_messages
+  for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "contact_messages_admin_update" on public.contact_messages;
+create policy "contact_messages_admin_update" on public.contact_messages
+  for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
 
 create table if not exists public.wallets (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -88,14 +111,34 @@ create table if not exists public.razorpay_orders (
 create table if not exists public.razorpay_payments (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  razorpay_payment_id text unique,
+  razorpay_payment_id text not null unique,
   razorpay_order_id text,
-  amount_paise integer,
-  currency text,
-  status text not null default 'captured',
+  amount_paise integer not null,
+  currency text not null default 'INR',
+  status text not null,
+  method text,
+  email text,
+  contact text,
   created_at timestamptz not null default now(),
-  raw jsonb not null default '{}'::jsonb
+  raw jsonb
 );
+
+create table if not exists public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  name text not null,
+  email text not null,
+  phone text,
+  message text not null,
+  status text not null default 'open',
+  admin_reply text,
+  replied_at timestamptz,
+  replied_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists contact_messages_created_at_idx on contact_messages(created_at desc);
+create index if not exists contact_messages_status_idx on contact_messages(status);
 
 create table if not exists public.razorpay_webhook_events (
   id uuid primary key default gen_random_uuid(),
@@ -207,7 +250,8 @@ alter table public.tool_pricing enable row level security;
 alter table public.wallets enable row level security;
 alter table public.wallet_ledger enable row level security;
 alter table public.razorpay_orders enable row level security;
-alter table public.razorpay_payments enable row level security;
+alter table if exists public.razorpay_payments enable row level security;
+alter table if exists public.contact_messages enable row level security;
 alter table public.razorpay_webhook_events enable row level security;
 alter table public.files enable row level security;
 alter table public.tool_runs enable row level security;
