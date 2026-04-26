@@ -46,6 +46,9 @@ export default function LetterpadGeneratorPage() {
       if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
       else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
       else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
+      else if (vw <= 1200) scale = Math.max(0.8, (vw - 64) / 794);
+      else if (vw <= 1600) scale = Math.max(0.9, (vw - 96) / 794);
+      else                scale = 1;
       document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
     }
     updateScale();

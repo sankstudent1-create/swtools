@@ -55,6 +55,7 @@ export async function elementToPdfBlobA4(el: HTMLElement) {
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
+    compress: true
   })
 
   const pageWidth = pdf.internal.pageSize.getWidth()
@@ -110,14 +111,24 @@ export async function htmlPagesToPdfBase64A4(html: string, pageSelector: string)
     const pages = Array.from(doc.querySelectorAll(pageSelector)) as HTMLElement[]
     if (pages.length === 0) throw new Error('No pages found')
 
+    // Apply high-res styles to the iframe doc
+    const style = doc.createElement('style')
+    style.innerHTML = `
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .pdf-page { transform: none !important; margin: 0 !important; box-shadow: none !important; }
+    `
+    doc.head.appendChild(style)
+
     const { jsPDF } = await import('jspdf')
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true })
 
     for (let i = 0; i < pages.length; i++) {
       const canvas = await html2canvas(pages[i], {
-        scale: 2,
+        scale: 3, // High quality
         useCORS: true,
         backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 0,
       })
 
       const imgData = canvas.toDataURL('image/png')
