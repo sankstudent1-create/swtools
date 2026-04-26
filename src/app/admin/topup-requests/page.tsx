@@ -20,8 +20,12 @@ import {
   Upload,
   AlertTriangle,
   X,
-  ScanLine
+  ScanLine,
+  Maximize2,
+  Edit3,
+  Save
 } from 'lucide-react'
+import Tesseract from 'tesseract.js'
 
 type TopupRequest = {
   id: string
@@ -48,6 +52,10 @@ export default function AdminTopupRequestsPage() {
   const [activeTab, setActiveTab] = useState<'requests' | 'csv'>('requests')
 
   const [ocrBusyId, setOcrBusyId] = useState<string | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<TopupRequest | null>(null)
+  const [manualUtr, setManualUtr] = useState('')
+  const [isOcrRunning, setIsOcrRunning] = useState(false)
+  const [ocrProgress, setOcrProgress] = useState(0)
 
   const [csvBusy, setCsvBusy] = useState(false)
   const [csvMsg, setCsvMsg] = useState<string | null>(null)
@@ -242,6 +250,76 @@ export default function AdminTopupRequestsPage() {
       setCsvMsg(e?.message || 'Bulk approve failed')
     } finally {
       setCsvBusy(false)
+    }
+  }
+
+  const runClientSideOCR = async (imageUrl: string) => {
+    setIsOcrRunning(true)
+    setOcrProgress(0)
+    try {
+      const result = await Tesseract.recognize(
+        imageUrl,
+        'eng',
+        { 
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              setOcrProgress(Math.round(m.progress * 100))
+            }
+          }
+        }
+      )
+      
+      const text = result.data.text
+      const utrPatterns = [
+        /UTR\D*(\d{12})/i,
+        /Transaction\s*ID\D*(\d{12})/i,
+        /Ref\D*(\d{12})/i,
+        /\b\d{12}\b/
+      ]
+
+      let detected = null
+      for (const pattern of utrPatterns) {
+        const match = text.match(pattern)
+        if (match) {
+          detected = match[1] || match[0]
+          break
+        }
+      }
+
+      if (detected) {
+        setManualUtr(detected)
+      } else {
+        alert('Could not find 12-digit UTR automatically. Please enter it manually.')
+      }
+    } catch (err: any) {
+      console.error('Client OCR Error:', err)
+      alert('OCR failed to start. Please enter UTR manually.')
+    } finally {
+      setIsOcrRunning(false)
+    }
+  }
+
+  const saveManualUtr = async () => {
+    if (!selectedRequest || !manualUtr.trim()) return
+    setBusyId(selectedRequest.id)
+    try {
+      const res = await fetch('/api/admin/topup-requests/update-utr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: selectedRequest.id, utr: manualUtr.trim() })
+      })
+      if (res.ok) {
+        setRequests(prev => prev.map(r => r.id === selectedRequest.id ? { ...r, utr: manualUtr.trim() } : r))
+        setSelectedRequest(prev => prev ? { ...prev, utr: manualUtr.trim() } : null)
+        alert('UTR updated successfully')
+      } else {
+        const j = await res.json()
+        alert(j.error || 'Failed to update UTR')
+      }
+    } catch (err) {
+      alert('Update failed')
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -550,20 +628,12 @@ export default function AdminTopupRequestsPage() {
                           <button 
                             className="ui-btn-secondary py-3 px-6 text-[11px] font-black uppercase tracking-widest flex items-center gap-3 bg-white/5 hover:bg-white/10 transition-all border border-white/10"
                             onClick={() => {
-                              const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${request.screenshot_path}`
-                              window.open(url, '_blank')
+                              setSelectedRequest(request)
+                              setManualUtr(request.utr?.startsWith('pending_ocr') ? '' : request.utr)
                             }}
                           >
-                            <Eye className="w-4 h-4" />
-                            View Proof
-                          </button>
-                          <button 
-                            className="ui-btn-secondary py-3 px-6 text-[11px] font-black uppercase tracking-widest flex items-center gap-3 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20"
-                            onClick={() => runOCR(request.id, request.screenshot_path!)}
-                            disabled={ocrBusyId === request.id}
-                          >
-                            <ScanLine className={`w-4 h-4 ${ocrBusyId === request.id ? 'animate-spin' : ''}`} />
-                            {ocrBusyId === request.id ? 'Scanning...' : 'Run OCR'}
+                            <Maximize2 className="w-4 h-4 text-blue-400" />
+                            Verify Proof
                           </button>
                         </div>
                       )}
@@ -604,6 +674,130 @@ export default function AdminTopupRequestsPage() {
           </>
         )}
       </div>
+
+      {/* PROOF VERIFICATION MODAL */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] w-full max-w-6xl h-[90vh] overflow-hidden flex flex-col md:flex-row shadow-2xl shadow-blue-500/10">
+            {/* Left: Image Viewer */}
+            <div className="flex-1 bg-black/40 relative group flex items-center justify-center p-4 overflow-auto">
+              <img 
+                src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${selectedRequest.screenshot_path}`}
+                alt="Payment Proof"
+                className="max-w-full h-auto rounded-xl shadow-2xl"
+              />
+              <button 
+                onClick={() => setSelectedRequest(null)}
+                className="absolute top-6 left-6 p-3 rounded-full bg-black/60 text-white/60 hover:text-white hover:bg-black transition-all border border-white/5"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Right: Controls */}
+            <div className="w-full md:w-[400px] border-l border-white/10 p-8 flex flex-col justify-between bg-gradient-to-b from-white/[0.02] to-transparent">
+              <div>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <Edit3 className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black uppercase italic tracking-tight">Verify Details</h3>
+                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Manual Correction</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">User Email</label>
+                    <div className="text-sm font-bold text-white bg-white/5 p-4 rounded-2xl border border-white/5 truncate">
+                      {selectedRequest.profiles?.email}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">Amount & Credits</label>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black italic text-white">₹{selectedRequest.amount_inr}</span>
+                      <span className="text-xs font-bold text-white/40 uppercase tracking-tighter">/ {selectedRequest.credits_requested} Credits</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">UTR Number (Edit if needed)</label>
+                    <div className="relative group">
+                      <input 
+                        type="text"
+                        value={manualUtr}
+                        onChange={(e) => setManualUtr(e.target.value)}
+                        placeholder="Enter 12-digit UTR"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-4 pr-12 text-sm font-mono font-bold focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all"
+                      />
+                      <button 
+                        onClick={() => runClientSideOCR(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${selectedRequest.screenshot_path}`)}
+                        disabled={isOcrRunning}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20"
+                        title="Run Client-Side OCR"
+                      >
+                        {isOcrRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {isOcrRunning && (
+                      <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 transition-all duration-300"
+                          style={{ width: `${ocrProgress}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-8 border-t border-white/5">
+                <button 
+                  onClick={saveManualUtr}
+                  disabled={!!busyId || !manualUtr || manualUtr === selectedRequest.utr}
+                  className="w-full py-4 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs shadow-xl shadow-white/5 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 flex items-center justify-center gap-2"
+                >
+                  {busyId === selectedRequest.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save UTR Correction
+                </button>
+
+                {selectedRequest.status === 'pending' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => {
+                        handleAction(selectedRequest.id, 'reject')
+                        setSelectedRequest(null)
+                      }}
+                      className="py-4 rounded-2xl bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-[10px] border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleAction(selectedRequest.id, 'approve')
+                        setSelectedRequest(null)
+                      }}
+                      className="py-4 rounded-2xl bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                )}
+                
+                <button 
+                  onClick={() => setSelectedRequest(null)}
+                  className="w-full py-4 rounded-2xl bg-white/5 text-white/40 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-all"
+                >
+                  Close Viewer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
