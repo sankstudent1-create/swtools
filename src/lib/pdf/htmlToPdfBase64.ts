@@ -124,7 +124,7 @@ export async function htmlPagesToPdfBase64A4(html: string, pageSelector: string)
 
     for (let i = 0; i < pages.length; i++) {
       const canvas = await html2canvas(pages[i], {
-        scale: 3, // High quality
+        scale: 1, // Reduced to 1 to eliminate any scaling distortion
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
