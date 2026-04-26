@@ -133,8 +133,17 @@
 .paperWrap {
   width: 100%;
   max-width: 840px;
-  /* Scale the paper down smoothly on screen sizes < 840px */
+  display: flex;
+  justify-content: center;
+  overflow: visible;
+  /* Scale the paper down smoothly on screen sizes */
   transform-origin: top center;
+}
+.paperWrap > * {
+  transform: scale(var(--paper-scale, 1));
+  transform-origin: top center;
+  /* negative margin collapses the empty gap left by scaling */
+  margin-bottom: calc((var(--paper-scale, 1) - 1) * 1123px);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -221,8 +230,8 @@
   .sidebarCol {
     width: 100%;
     height: auto;
-    max-height: 50vh;
-    position: static;
+    max-height: none;
+    position: relative;
   }
 
   /* Paper scales to fit screen */
@@ -232,12 +241,7 @@
     justify-content: center;
     overflow: visible;
   }
-  .paperWrap > * {
-    transform: scale(var(--paper-scale, 0.7));
-    transform-origin: top center;
-    /* negative margin collapses the empty gap left by scaling */
-    margin-bottom: calc((var(--paper-scale, 0.7) - 1) * 1123px);
-  }
+
 
   .previewLabel { display: none; }
 }
@@ -249,7 +253,6 @@
   .sidebarCol {
     display: block;
     width: 100%;
-    max-height: calc(100vh - 104px);
   }
   .preview {
     width: 100%;
