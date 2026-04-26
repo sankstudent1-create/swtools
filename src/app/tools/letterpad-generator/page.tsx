@@ -161,8 +161,18 @@ export default function LetterpadGeneratorPage() {
               className={`${styles.mobileTab} ${mobileTab === 'preview' ? styles.mobileTabActive : ''}`}
               onClick={() => setMobileTab('preview')}
             >📄 Preview</button>
-            {/* Print & PDF accessible on mobile too */}
-            <button className={styles.mobileTabPrint} onClick={doWatermarkedPreview}>👁 Preview*</button>
+          </div>
+        )}
+
+        {/* ── Mobile action bar (keeps actions out of horizontal appbar) ── */}
+        {isMobile && mobileTab === 'preview' && (
+          <div className={styles.mobileTabBar}>
+            <button className={styles.mobileTabPrint} onClick={doWatermarkedPreview}>
+              👁 Preview*
+            </button>
+            <button className={`${styles.mobileTabPrint} ${styles.mobileTabPDF}`} onClick={doPrint}>
+              ⬇ PDF
+            </button>
           </div>
         )}
 
