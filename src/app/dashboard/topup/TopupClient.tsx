@@ -41,7 +41,88 @@ export default function TopupClient({ userId, userEmail }: Props) {
   const [amount, setAmount] = useState<number>(199)
   const [error, setError] = useState<string | null>(null)
 
-  const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
+  const [config, setConfig] = useState<{
+    method: 'manual' | 'razorpay' | 'both',
+    razorpay_enabled: boolean,
+    manual_enabled: boolean,
+    upi_id: string,
+    credits_per_inr: number,
+    razorpay_available: boolean
+  } | null>(null)
+
+  useEffect(() => {
+    async function loadConfig() {
+      const res = await fetch('/api/admin/payment-config')
+      const j = await res.json()
+      if (res.ok) {
+        setConfig(j)
+        if (j.credits_per_inr) setCreditsPerInr(j.credits_per_inr)
+      }
+    }
+    loadConfig()
+  }, [])
+
+  const startRazorpayPayment = async () => {
+    setSubmitBusy(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/wallet/topup/razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount_inr: amount })
+      })
+      const order = await res.json()
+      if (!res.ok) throw new Error(order.error || 'Failed to create order')
+
+      const options = {
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'SW Info Systems',
+        description: `Topup ${Math.floor(amount * credits_per_inr)} Credits`,
+        order_id: order.id,
+        handler: async function (response: any) {
+          setSubmitMsg('Verifying payment...')
+          const verifyRes = await fetch('/api/wallet/topup/razorpay-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount_inr: amount,
+              credits: Math.floor(amount * credits_per_inr)
+            })
+          })
+          const verifyData = await verifyRes.json()
+          if (verifyRes.ok) {
+            setSubmitMsg('Payment successful! Credits added to your wallet.')
+            // Trigger a balance refresh if needed or redirect
+          } else {
+            setError(verifyData.error || 'Payment verification failed')
+          }
+          setSubmitBusy(false)
+        },
+        prefill: {
+          email: userEmail,
+        },
+        theme: {
+          color: '#3b82f6'
+        },
+        modal: {
+          ondismiss: function() {
+            setSubmitBusy(false)
+          }
+        }
+      }
+
+      const rzp = new (window as any).Razorpay(options)
+      rzp.open()
+    } catch (err: any) {
+      setError(err.message)
+      setSubmitBusy(false)
+    }
+  }
   const [utr, setUtr] = useState('')
   const [submitBusy, setSubmitBusy] = useState(false)
   const [submitMsg, setSubmitMsg] = useState<string | null>(null)
@@ -199,6 +280,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
 
   return (
     <main className="min-h-screen px-4 py-24 bg-[#07090f]">
+      <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between mb-8">
           <Link
@@ -246,48 +328,72 @@ export default function TopupClient({ userId, userEmail }: Props) {
 
         <div className="ui-modal-shell p-8 max-w-xl mx-auto">
           <div className="space-y-6">
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-              <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Pay to UPI</div>
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="font-mono text-sm text-white/80 break-all">{UPI_ID}</div>
-                <button
-                  type="button"
-                  className="ui-btn-secondary px-3 py-2 text-xs inline-flex items-center gap-2"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(UPI_ID)
-                      setSubmitMsg('UPI ID copied')
-                    } catch {
-                      setSubmitMsg('Copy failed')
-                    }
-                  }}
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copy
-                </button>
+            {(!config || config.manual_enabled) && (
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+                <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Pay to UPI</div>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <div className="font-mono text-sm text-white/80 break-all">{config?.upi_id || UPI_ID}</div>
+                  <button
+                    type="button"
+                    className="ui-btn-secondary px-3 py-2 text-xs inline-flex items-center gap-2"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(config?.upi_id || UPI_ID)
+                        setSubmitMsg('UPI ID copied')
+                      } catch {
+                        setSubmitMsg('Copy failed')
+                      }
+                    }}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copy
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-white flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-white/60" />
-                  Dynamic QR (Scan to Pay)
+            {(!config || config.manual_enabled) && (
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold text-white flex items-center gap-2">
+                    <QrCode className="w-4 h-4 text-white/60" />
+                    Dynamic QR (Scan to Pay)
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                    <a className="text-xs text-blue-400 hover:text-blue-300 font-medium" href={upiLink}>
+                      Open UPI App
+                    </a>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-                  <a className="text-xs text-blue-400 hover:text-blue-300 font-medium" href={upiLink}>
-                    Open UPI App
-                  </a>
+                <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-white/10 shadow-2xl shadow-white/5">
+                  <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
+                  <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
+                    Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-white/10 shadow-2xl shadow-white/5">
-                <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
-                <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
-                  Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
+            )}
+
+            {config?.razorpay_enabled && config.razorpay_available && (
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+                 <div className="text-sm font-semibold text-white flex items-center gap-2 mb-4">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Instant Payment (Razorpay)
+                </div>
+                <button
+                  className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] hover:bg-emerald-600 transition-all disabled:opacity-50"
+                  onClick={startRazorpayPayment}
+                  disabled={submitBusy}
+                >
+                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
+                  Pay ₹{amount} Instantly
+                </button>
+                <div className="mt-3 text-[10px] text-white/30 text-center uppercase tracking-widest">
+                  Instant Credit Addition
                 </div>
               </div>
-            </div>
+            )}
 
             {error ? (
               <div className="p-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm">
@@ -302,52 +408,51 @@ export default function TopupClient({ userId, userEmail }: Props) {
               </div>
             ) : null}
 
-            <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-              <div className="text-sm font-semibold text-white flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 text-white/60" />
-                Submit Proof
-              </div>
+            {(!config || config.manual_enabled) && (
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+                <div className="text-sm font-semibold text-white flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 text-white/60" />
+                  Submit Manual Proof
+                </div>
 
-              <label className="block text-xs text-white/50 mb-2">UTR (optional if screenshot uploaded)</label>
-              <input
-                className="ui-input"
-                value={utr}
-                onChange={(e) => setUtr(e.target.value)}
-                placeholder="Enter 12-18 digit UTR"
-              />
-
-              <div className="mt-4">
-                <label className="block text-xs text-white/50 mb-2">Screenshot (optional if UTR provided)</label>
+                <label className="block text-xs text-white/50 mb-2">UTR (optional if screenshot uploaded)</label>
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
-                  className="block w-full text-xs text-white/60"
+                  className="ui-input"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value)}
+                  placeholder="Enter 12-18 digit UTR"
                 />
-                
-                {screenshotPreview ? (
-                  <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
-                    <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
-                  </div>
-                ) : null}
-              </div>
 
-              <button
-                className="ui-btn-primary w-full mt-5 inline-flex items-center justify-center gap-2"
-                onClick={submitTopupRequest}
-                disabled={submitBusy || (!utr.trim() && !screenshot)}
-              >
-                {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {submitBusy ? 'Submitting…' : 'Submit for Verification'}
-              </button>
+                <div className="mt-4">
+                  <label className="block text-xs text-white/50 mb-2">Screenshot (optional if UTR provided)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
+                    className="block w-full text-xs text-white/60"
+                  />
+                  
+                  {screenshotPreview ? (
+                    <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
+                      <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
+                    </div>
+                  ) : null}
+                </div>
 
-              <div className="mt-3 text-[11px] text-white/40">
-                You can submit:
-                <div>1) UTR only</div>
-                <div>2) Screenshot only (OCR by admin)</div>
-                <div>3) Both</div>
+                <button
+                  className="ui-btn-primary w-full mt-5 inline-flex items-center justify-center gap-2"
+                  onClick={submitTopupRequest}
+                  disabled={submitBusy || (!utr.trim() && !screenshot)}
+                >
+                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {submitBusy ? 'Submitting…' : 'Submit for Verification'}
+                </button>
+
+                <div className="mt-3 text-[11px] text-white/40 uppercase tracking-widest font-black">
+                  Manual Approval required
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="pt-2 text-center text-xs text-white/40">
               Credits are added after manual verification.

@@ -49,7 +49,7 @@ export default function AdminTopupRequestsPage() {
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState<'requests' | 'csv'>('requests')
+  const [activeTab, setActiveTab] = useState<'requests' | 'csv' | 'history' | 'config'>('requests')
 
   const [ocrBusyId, setOcrBusyId] = useState<string | null>(null)
   const [selectedRequest, setSelectedRequest] = useState<TopupRequest | null>(null)
@@ -59,15 +59,56 @@ export default function AdminTopupRequestsPage() {
 
   const [csvBusy, setCsvBusy] = useState(false)
   const [csvMsg, setCsvMsg] = useState<string | null>(null)
-  const [csvMatches, setCsvMatches] = useState<{ 
-    requestId: string; 
-    utr: string; 
-    csvAmount: number; 
-    dbAmount: number; 
-    amountMatch: boolean;
-    isEditing?: boolean;
-    newAmount?: number;
-  }[]>([])
+  const [config, setConfig] = useState({
+    method: 'manual',
+    razorpay_enabled: false,
+    manual_enabled: true,
+    upi_id: '',
+    credits_per_inr: 1
+  })
+  const [configLoading, setConfigLoading] = useState(false)
+
+  const [razorpayHistory, setRazorpayHistory] = useState<any[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  useEffect(() => {
+    if (activeTab === 'config') {
+      fetch('/api/admin/payment-config')
+        .then(res => res.json())
+        .then(data => setConfig(data))
+    }
+    if (activeTab === 'history') {
+      loadRazorpayHistory()
+    }
+  }, [activeTab])
+
+  const loadRazorpayHistory = async () => {
+    setHistoryLoading(true)
+    try {
+      // We'll reuse the existing admin topup-requests API but maybe add a type filter if needed
+      // Actually let's just fetch razorpay_payments table data
+      const res = await fetch('/api/admin/razorpay-history')
+      const data = await res.json()
+      if (res.ok) setRazorpayHistory(data.history || [])
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  const updateConfig = async () => {
+    setConfigLoading(true)
+    try {
+      const res = await fetch('/api/admin/payment-config/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config)
+      })
+      if (res.ok) alert('Settings updated successfully')
+      else alert('Failed to update settings')
+    } finally {
+      setConfigLoading(false)
+    }
+  }
 
   const [isBulkScanning, setIsBulkScanning] = useState(false)
   const [bulkScanProgress, setBulkScanProgress] = useState({ current: 0, total: 0 })
@@ -521,23 +562,152 @@ export default function AdminTopupRequestsPage() {
             </Link>
           </div>
           
-          <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10 w-fit">
-            <button 
-              onClick={() => setActiveTab('requests')}
-              className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
-            >
-              Requests List
-            </button>
-            <button 
-              onClick={() => setActiveTab('csv')}
-              className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'csv' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
-            >
-              CSV Verification
-            </button>
-          </div>
+    <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10 w-fit">
+      <button 
+        onClick={() => setActiveTab('requests')}
+        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
+      >
+        Requests List
+      </button>
+      <button 
+        onClick={() => setActiveTab('csv')}
+        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'csv' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
+      >
+        CSV Verification
+      </button>
+      <button 
+        onClick={() => setActiveTab('history')}
+        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
+      >
+        Success History
+      </button>
+      <button 
+        onClick={() => setActiveTab('config')}
+        className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'config' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
+      >
+        Settings
+      </button>
+    </div>
         </div>
 
-        {activeTab === 'csv' ? (
+        {activeTab === 'config' ? (
+          <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
+            <div className="p-8 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-xl">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                  <ShieldCheck className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black uppercase italic tracking-tight">Payment Configuration</h2>
+                  <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Global System Controls</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <div>
+                    <div className="text-sm font-bold">Manual UPI Payments</div>
+                    <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-1">QR & UTR Verification</div>
+                  </div>
+                  <button 
+                    onClick={() => setConfig(prev => ({ ...prev, manual_enabled: !prev.manual_enabled }))}
+                    className={`w-12 h-6 rounded-full transition-all relative ${config.manual_enabled ? 'bg-blue-500' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${config.manual_enabled ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <div>
+                    <div className="text-sm font-bold">Razorpay Gateway</div>
+                    <div className="text-[10px] text-white/30 uppercase font-black tracking-widest mt-1">Instant Automatic Credits</div>
+                  </div>
+                  <button 
+                    onClick={() => setConfig(prev => ({ ...prev, razorpay_enabled: !prev.razorpay_enabled }))}
+                    className={`w-12 h-6 rounded-full transition-all relative ${config.razorpay_enabled ? 'bg-emerald-500' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${config.razorpay_enabled ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Admin UPI ID (for QR)</label>
+                  <input 
+                    type="text"
+                    value={config.upi_id}
+                    onChange={e => setConfig(prev => ({ ...prev, upi_id: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-mono focus:outline-none focus:border-blue-500/50 transition-all"
+                    placeholder="example@upi"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Credits per 1 INR</label>
+                  <input 
+                    type="number"
+                    value={config.credits_per_inr}
+                    onChange={e => setConfig(prev => ({ ...prev, credits_per_inr: parseFloat(e.target.value) }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm font-bold focus:outline-none focus:border-blue-500/50 transition-all"
+                  />
+                </div>
+
+                <button 
+                  onClick={updateConfig}
+                  disabled={configLoading}
+                  className="w-full py-4 rounded-2xl bg-blue-500 text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {configLoading ? 'Saving...' : 'Update Configuration'}
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-start gap-4">
+              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-500/80 font-medium leading-relaxed">
+                <span className="font-black uppercase text-amber-500 block mb-1">Warning</span>
+                Razorpay requires <code className="bg-amber-500/10 px-1.5 py-0.5 rounded text-amber-400">RAZORPAY_KEY_ID</code> and <code className="bg-amber-500/10 px-1.5 py-0.5 rounded text-amber-400">RAZORPAY_KEY_SECRET</code> to be set in your environment variables. 
+              </div>
+            </div>
+          </div>
+        ) : activeTab === 'history' ? (
+          <div className="space-y-6">
+             <div className="grid grid-cols-1 gap-4">
+               {historyLoading ? (
+                 <div className="py-20 flex flex-col items-center gap-4 text-white/20">
+                   <Loader2 className="w-10 h-10 animate-spin" />
+                   <div className="text-xs font-black uppercase tracking-widest">Loading success history...</div>
+                 </div>
+               ) : razorpayHistory.map((item, idx) => (
+                 <div key={idx} className="p-6 rounded-3xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] transition-all flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white mb-1">{item.profiles?.email}</div>
+                        <div className="flex items-center gap-3">
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Order: {item.razorpay_order_id}</span>
+                           <span className="w-1 h-1 rounded-full bg-white/10" />
+                           <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">{new Date(item.created_at).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                       <div className="text-xl font-black italic text-emerald-400 leading-none mb-1">₹{item.amount_paise / 100}</div>
+                       <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">Automatic Approval</div>
+                    </div>
+                 </div>
+               ))}
+
+               {!historyLoading && razorpayHistory.length === 0 && (
+                 <div className="py-20 text-center rounded-[3rem] bg-white/[0.02] border border-dashed border-white/10">
+                   <Search className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                   <div className="text-sm font-black text-white/20 uppercase tracking-[0.2em]">No automated payment history yet</div>
+                 </div>
+               )}
+             </div>
+          </div>
+        ) : activeTab === 'csv' ? (
           <div className="mb-12 p-8 rounded-3xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-xl relative overflow-hidden group">
             {/* CSV Module Content */}
             <div className="relative z-10">

@@ -293,6 +293,18 @@ create policy "Admin Full Access manual-topup-proofs"
 on storage.objects for all
 using ( bucket_id = 'manual-topup-proofs' )
 with check ( bucket_id = 'manual-topup-proofs' );
+
+-- Admin Settings for Payment
+insert into public.admin_settings (key, value) values 
+('payment_config', '{
+  "method": "manual", 
+  "razorpay_enabled": false,
+  "manual_enabled": true,
+  "upi_id": "swinfosystems@nyes",
+  "credits_per_inr": 1
+}'::jsonb)
+on conflict (key) do nothing;
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
