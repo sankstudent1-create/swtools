@@ -13,20 +13,42 @@ export async function POST(req: NextRequest) {
   if (!imageUrl) return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 })
 
   try {
+    console.log('[ocr] Starting OCR for image:', imageUrl)
     const result = await Tesseract.recognize(
       imageUrl,
       'eng',
-      { logger: m => console.log(m) }
+      { logger: m => {
+        if (m.status === 'recognizing text' && Math.floor(m.progress * 100) % 20 === 0) {
+          console.log(`[ocr] Progress: ${Math.floor(m.progress * 100)}%`)
+        }
+      }}
     )
     
     const text = result.data.text
+    console.log('[ocr] Extracted text length:', text?.length)
+    
     // Regex to find 12-digit UTR (common in Indian UPI)
     // Matches patterns like "UTR: 123456789012" or just "123456789012"
     const utrMatch = text.match(/\b\d{12}\b/)
     const utr = utrMatch ? utrMatch[0] : null
+    
+    if (!utr) {
+      console.warn('[ocr] No 12-digit UTR found in text. Full text preview:', text.substring(0, 200))
+    } else {
+      console.log('[ocr] Successfully extracted UTR:', utr)
+    }
 
     return NextResponse.json({ text, utr })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[ocr] OCR processing error:', {
+      message: error.message,
+      stack: error.stack,
+      imageUrl
+    })
+    return NextResponse.json({ 
+      error: 'OCR processing failed', 
+      details: error.message,
+      imageUrl
+    }, { status: 500 })
   }
 }

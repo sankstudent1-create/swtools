@@ -153,19 +153,28 @@ export default function AdminTopupRequestsPage() {
         body: JSON.stringify({ imageUrl })
       })
       const j = await res.json()
-      if (res.ok && j.utr) {
-        setRequests(prev => prev.map(r => r.id === requestId ? { ...r, utr: j.utr } : r))
-        // Optionally update the DB with the detected UTR
-        await fetch('/api/admin/topup-requests/update-utr', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ request_id: requestId, utr: j.utr })
-        })
+      if (res.ok) {
+        if (j.utr) {
+          setRequests(prev => prev.map(r => r.id === requestId ? { ...r, utr: j.utr } : r))
+          // Optionally update the DB with the detected UTR
+          await fetch('/api/admin/topup-requests/update-utr', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ request_id: requestId, utr: j.utr })
+          })
+          alert(`Success! Extracted UTR: ${j.utr}`)
+        } else {
+          alert('OCR completed but no 12-digit UTR was found in the text. You may need to manually enter the UTR.')
+          console.warn('[admin] OCR found no UTR. Full text:', j.text)
+        }
       } else {
-        alert(j.utr ? `Detected UTR: ${j.utr}` : 'Could not detect UTR automatically')
+        const errMsg = j.details || j.error || 'OCR service failed'
+        alert(`OCR Failed: ${errMsg}`)
+        console.error('[admin] OCR Error:', j)
       }
-    } catch (e) {
-      alert('OCR failed')
+    } catch (e: any) {
+      alert(`OCR request failed: ${e.message || 'Connection error'}`)
+      console.error('[admin] OCR Fetch Exception:', e)
     } finally {
       setOcrBusyId(null)
     }

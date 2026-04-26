@@ -164,9 +164,15 @@ export default function TopupClient({ userId, userEmail }: Props) {
         )) as any
 
         if (uploadRes?.error) {
-          console.error('Upload error details:', uploadRes.error)
+          console.error('[topup] Upload error details:', {
+            error: uploadRes.error,
+            fileName,
+            fileSize: fileToUpload.size,
+            fileType: fileToUpload.type,
+            userId
+          })
           setError(
-            `Screenshot upload failed. You can submit just the UTR or try again. Error: ${uploadRes.error.message}`
+            `Screenshot upload failed. This could be due to a network issue or storage limit. Error: ${uploadRes.error.message || 'Unknown storage error'}`
           )
           return
         }
