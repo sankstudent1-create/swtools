@@ -290,13 +290,24 @@
     margin-bottom: calc((var(--paper-scale, 0.42) - 1) * 1123px);
   }
 
-  .previewTop {
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: flex-end;
+  .letterpadRoot {
+    justify-content: flex-start !important;
   }
-
-  /* Preview label too long on mobile */
-  .previewLabel { display: none; }
+  .workspace {
+    display: grid !important;
+    grid-template-columns: 320px 1fr !important;
+    max-width: none !important;
+  }
+  .sidebarCol {
+    display: block !important;
+    position: sticky !important;
+    top: 52px !important;
+  }
+  .preview {
+    display: flex !important;
+  }
+  .previewTop {
+    display: flex !important;
+  }
 }
 
