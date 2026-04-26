@@ -183,24 +183,38 @@ export default function AdminTopupRequestsPage() {
         
         const cols = line.split(',').map(c => c.trim())
         // Improved Amount Detection:
-        // 1. Skip columns that match date patterns (e.g. 26/04/2026, 2026-04-26)
-        // 2. Ignore numeric strings that are exactly 8 digits (often DDMMYYYY or YYYYMMDD)
-        // 3. Look for columns with decimal points (e.g. 199.00)
-        // 4. Fallback to first positive number that isn't the UTR and isn't a likely date
+        // 1. Look for columns starting with currency symbol ₹
+        // 2. Skip columns that match date patterns (e.g. 26/04/2026, 2026-04-26)
+        // 3. Ignore numeric strings that are exactly 8 digits (often DDMMYYYY or YYYYMMDD)
+        // 4. Look for columns with decimal points (e.g. 199.00)
+        // 5. Fallback to first positive number that isn't the UTR and isn't a likely date
         let amount = 0
         
-        // Priority 1: Columns with decimal points that aren't dates or UTR
+        // Priority 0: Columns starting with ₹ (User identified this as a strong signal)
         for (const col of cols) {
-          if (col === utr) continue
-          if (col.includes('/') || col.includes('-')) continue // Likely a date
-          
-          const cleanCol = col.replace(/[^\d.]/g, '')
-          if (cleanCol.includes('.')) {
+          if (col.startsWith('₹') || col.includes('₹')) {
+            const cleanCol = col.replace(/[^\d.]/g, '')
             const val = parseFloat(cleanCol)
-            // A transaction amount is unlikely to be exactly 8 digits without a decimal in this context
-            if (!isNaN(val) && val > 0 && val < 1000000 && cleanCol.length !== 8) { 
+            if (!isNaN(val) && val > 0) {
               amount = val
               break
+            }
+          }
+        }
+        
+        // Priority 1: Columns with decimal points that aren't dates or UTR
+        if (amount === 0) {
+          for (const col of cols) {
+            if (col === utr) continue
+            if (col.includes('/') || col.includes('-')) continue // Likely a date
+            
+            const cleanCol = col.replace(/[^\d.]/g, '')
+            if (cleanCol.includes('.')) {
+              const val = parseFloat(cleanCol)
+              if (!isNaN(val) && val > 0 && val < 1000000 && cleanCol.length !== 8) { 
+                amount = val
+                break
+              }
             }
           }
         }

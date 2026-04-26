@@ -20,6 +20,8 @@ export default function GDSLeavePage() {
   const [previewUrl, setPreviewUrl] = useState('');
   const prevUrlRef                  = useRef<string>('');
 
+  const [isCharging, setIsCharging] = useState(false);
+
   function handleChange(updated: FormData) {
     const autoSubj       = buildSubject(updated);
     const currentAutoSubj = buildSubject(data);
@@ -36,9 +38,37 @@ export default function GDSLeavePage() {
     setTimeout(() => setToast(''), 3500);
   }
 
-  function handlePrint() {
-    openPrintWindow(data);
-    showToast('✓ Print dialog opening… choose "Save as PDF" to download');
+  async function handlePrint() {
+    setIsCharging(true);
+    try {
+      const res = await fetch('/api/tools/gds-leave/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tab }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/gds-leave')}`;
+        return;
+      }
+      if (res.status === 402) {
+        const j = await res.json();
+        alert(`Insufficient credits. Required: ${j.required_credits}`);
+        return;
+      }
+      if (!res.ok) {
+        const j = await res.json();
+        alert(j.error || 'Failed to process request');
+        return;
+      }
+
+      openPrintWindow(data);
+      showToast('✓ Print dialog opening… choose "Save as PDF" to download');
+    } catch (e) {
+      alert('Connection error. Please check your internet.');
+    } finally {
+      setIsCharging(false);
+    }
   }
 
   function handlePreview() {
@@ -126,9 +156,13 @@ export default function GDSLeavePage() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           Preview
         </button>
-        <button onClick={handlePrint}   className={styles.btnPrimary}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-          Print / Save as PDF
+        <button onClick={handlePrint}   className={styles.btnPrimary} disabled={isCharging}>
+          {isCharging ? (
+            <svg className={styles.spinner} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" className="animate-spin" /></svg>
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          )}
+          {isCharging ? 'Processing...' : 'Print / Save as PDF'}
         </button>
       </div>
 

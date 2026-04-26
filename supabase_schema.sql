@@ -260,7 +260,12 @@ drop policy if exists "pricing_admin_write" on public.tool_pricing;
 create policy "pricing_admin_write" on public.tool_pricing
   for all using (public.is_admin()) with check (public.is_admin());
 
--- NEW STORAGE SETUP FOR PROOFS
+-- Tools Pricing
+insert into public.tool_pricing (tool_id, download_credits) values 
+('td_commission', 10),
+('gds_leave', 5),
+('letterpad_generator', 15)
+on conflict (tool_id) do update set download_credits = excluded.download_credits;
 -- Run this in Supabase SQL Editor
 
 -- 1. Create a NEW bucket 'manual-topup-proofs'

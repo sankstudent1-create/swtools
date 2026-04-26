@@ -28,6 +28,8 @@ export default function LetterpadGeneratorPage() {
     lastModel,
   } = useLetterState();
 
+  const [isCharging, setIsCharging] = useState(false);
+
   // ── Mobile tab: 'edit' | 'preview' ──────────
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('preview');
   const [isMobile, setIsMobile] = useState(false);
@@ -51,19 +53,47 @@ export default function LetterpadGeneratorPage() {
   }, []);
 
   // ── Print / PDF — reset scale to 1 then print then restore ──
-  function doPrint() {
-    // Force scale=1 for print so paper renders at full A4 size
-    document.documentElement.style.setProperty('--paper-scale', '1');
-    window.print();
-    // Restore after print dialog closes (slight delay)
-    setTimeout(() => {
-      const vw = window.innerWidth;
-      let scale = 1;
-      if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
-      else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
-      else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
-      document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
-    }, 800);
+  async function doPrint() {
+    setIsCharging(true);
+    try {
+      const res = await fetch('/api/tools/letterpad-generator/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'download' }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/letterpad-generator')}`;
+        return;
+      }
+      if (res.status === 402) {
+        const j = await res.json();
+        alert(`Insufficient credits. Required: ${j.required_credits}`);
+        return;
+      }
+      if (!res.ok) {
+        const j = await res.json();
+        alert(j.error || 'Failed to process request');
+        return;
+      }
+
+      // Force scale=1 for print so paper renders at full A4 size
+      document.documentElement.style.setProperty('--paper-scale', '1');
+      window.print();
+      // Restore after print dialog closes (slight delay)
+      setTimeout(() => {
+        const vw = window.innerWidth;
+        let scale = 1;
+        if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
+        else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
+        else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
+        document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
+      }, 800);
+    } catch (e) {
+      alert('Connection error');
+    } finally {
+      setIsCharging(false);
+    }
   }
 
   const handleLogoPos = useCallback((side: LogoSide, pos: object) => {
@@ -73,6 +103,38 @@ export default function LetterpadGeneratorPage() {
   const handleFormChange = useCallback((key: keyof LetterForm, value: string) => {
     updateForm(key, value);
   }, [updateForm]);
+
+  const handleFillAI = async (prompt: string) => {
+    setIsCharging(true);
+    try {
+      const res = await fetch('/api/tools/letterpad-generator/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ai_fill', meta: { promptLength: prompt.length } }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/letterpad-generator')}`;
+        return;
+      }
+      if (res.status === 402) {
+        const j = await res.json();
+        alert(`Insufficient credits for AI call. Required: ${j.required_credits}`);
+        return;
+      }
+      if (!res.ok) {
+        const j = await res.json();
+        alert(j.error || 'Failed to process request');
+        return;
+      }
+
+      await fillFromAI(prompt);
+    } catch (e) {
+      alert('AI processing failed');
+    } finally {
+      setIsCharging(false);
+    }
+  };
 
   return (
     <div className={styles.letterpadRoot}>
@@ -120,7 +182,7 @@ export default function LetterpadGeneratorPage() {
             onOffice={applyOfficePreset}
             onLogo={setLogo}
             onSigApply={setSigUrl}
-            onFillAI={fillFromAI}
+            onFillAI={handleFillAI}
             onToggleEncl={toggleEncl}
             onToggleCopy={toggleCopy}
             onToggleEndorse={toggleEndorse}
