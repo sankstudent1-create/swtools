@@ -23,7 +23,8 @@ import {
   ScanLine,
   Maximize2,
   Edit3,
-  Save
+  Save,
+  ShieldCheck
 } from 'lucide-react'
 import Tesseract from 'tesseract.js'
 
