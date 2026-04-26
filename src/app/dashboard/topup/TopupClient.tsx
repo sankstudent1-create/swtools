@@ -29,7 +29,14 @@ type Props = {
 }
 
 export default function TopupClient({ userId, userEmail }: Props) {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
+  const supabase = useMemo(() => {
+    const client = createSupabaseBrowserClient()
+    // TEMPORARY: Expose for console debugging
+    if (typeof window !== 'undefined') {
+      (window as any).supabase = client
+    }
+    return client
+  }, [])
 
   const [amount, setAmount] = useState<number>(199)
   const [error, setError] = useState<string | null>(null)
@@ -138,6 +145,16 @@ export default function TopupClient({ userId, userEmail }: Props) {
     try {
       let screenshotPath: string | null = null
       if (screenshot) {
+        setSubmitMsg('Verifying storage access...')
+        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('topup-screenshots')
+        
+        if (bucketError) {
+          console.error('[topup] Bucket access check FAILED:', bucketError)
+          setError(`Cannot access storage: ${bucketError.message}. Please ensure the 'topup-screenshots' bucket exists in Supabase.`)
+          return
+        }
+        console.log('[topup] Bucket access check SUCCESS:', bucketData)
+
         setSubmitMsg('Uploading screenshot...')
         let fileToUpload = screenshot
         try {
