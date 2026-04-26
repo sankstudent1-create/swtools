@@ -76,8 +76,15 @@ export async function POST(req: NextRequest) {
     })
   } catch (err) {
     console.error('[wallet topup] create-order failed', err)
+    const message = err instanceof Error ? err.message : 'Failed to create order'
+    const extra = (err as any)?.description || (err as any)?.error?.description || ''
+    
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Failed to create order' },
+      { 
+        error: message,
+        details: extra,
+        help: 'Check your Razorpay Dashboard for API logs or account status.'
+      },
       { status: 500 }
     )
   }
