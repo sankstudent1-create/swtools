@@ -71,6 +71,36 @@ export default function TopupClient({ userId, userEmail }: Props) {
     return () => URL.revokeObjectURL(url)
   }, [screenshot])
 
+  const normalizeScreenshot = async (file: File): Promise<File> => {
+    const MAX_DIM = 1600
+    const JPEG_QUALITY = 0.82
+
+    if (!file.type.startsWith('image/')) return file
+    if (file.size <= 700_000) return file
+
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height))
+    const w = Math.max(1, Math.round(bitmap.width * scale))
+    const h = Math.max(1, Math.round(bitmap.height * scale))
+
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, w, h)
+
+    const blob: Blob = await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        b => (b ? resolve(b) : reject(new Error('Image encode failed'))),
+        'image/jpeg',
+        JPEG_QUALITY
+      )
+    })
+
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+  }
+
   const UPI_ID = 'swinfosystems@nyes'
 
   const upiLink = useMemo(() => {
@@ -109,15 +139,27 @@ export default function TopupClient({ userId, userEmail }: Props) {
       let screenshotPath: string | null = null
       if (screenshot) {
         setSubmitMsg('Uploading screenshot...')
-        const fileExt = screenshot.name.split('.').pop()
+        let fileToUpload = screenshot
+        try {
+          fileToUpload = await normalizeScreenshot(screenshot)
+        } catch (e: any) {
+          console.error('[topup] screenshot normalize failed', e)
+        }
+
+        if (fileToUpload.size > 8_000_000) {
+          setError('Image is too large. Please upload a smaller screenshot (under 8MB).')
+          return
+        }
+
+        const fileExt = fileToUpload.name.split('.').pop()
         const fileName = `${userId}/${Date.now()}.${fileExt}`
 
         const uploadRes = (await withTimeout(
-          supabase.storage.from('topup-screenshots').upload(fileName, screenshot, {
+          supabase.storage.from('topup-screenshots').upload(fileName, fileToUpload, {
             cacheControl: '3600',
             upsert: false,
           }),
-          30000,
+          90000,
           'Screenshot upload'
         )) as any
 
