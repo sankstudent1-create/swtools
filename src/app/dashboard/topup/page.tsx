@@ -40,6 +40,12 @@ export default function TopupPage() {
   useEffect(() => {
     if (!supabase) return
     let cancelled = false
+
+    const safeSet = (fn: () => void) => {
+      if (cancelled) return
+      fn()
+    }
+
     const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
       return await Promise.race([
         p,
@@ -49,16 +55,26 @@ export default function TopupPage() {
       ])
     }
 
+    const sub: any = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      if (session?.user) {
+        safeSet(() => {
+          setUser(session.user)
+          setAuthReady(true)
+        })
+      }
+    })
+
     ;(async () => {
       try {
-        const res: any = await withTimeout(supabase.auth.getSession(), 8000, 'Auth check')
-        if (cancelled) return
-
+        const res: any = await withTimeout(supabase.auth.getSession(), 12000, 'Auth check')
         const data = res?.data
         const authError = res?.error
+
         if (authError) {
-          setError(authError?.message || 'Authentication error')
-          setAuthReady(true)
+          safeSet(() => {
+            setError(authError?.message || 'Authentication error')
+            setAuthReady(true)
+          })
           return
         }
 
@@ -68,17 +84,25 @@ export default function TopupPage() {
           return
         }
 
-        setUser(session.user)
-        setAuthReady(true)
+        safeSet(() => {
+          setUser(session.user)
+          setAuthReady(true)
+        })
       } catch (e: any) {
-        if (cancelled) return
-        setError(e?.message || 'Failed to load authentication')
-        setAuthReady(true)
+        safeSet(() => {
+          setError(e?.message || 'Failed to load authentication')
+          setAuthReady(true)
+        })
       }
     })()
 
     return () => {
       cancelled = true
+      try {
+        sub?.data?.subscription?.unsubscribe?.()
+      } catch {
+        // ignore
+      }
     }
   }, [supabase])
 
