@@ -104,52 +104,6 @@ export default function LetterpadGeneratorPage() {
     updateForm(key, value);
   }, [updateForm]);
 
-  const handleFillAI = async (prompt: string, isFull: boolean = false) => {
-    setIsCharging(true);
-    try {
-      const res = await fetch('/api/tools/letterpad-generator/charge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ai_fill', meta: { promptLength: prompt.length } }),
-      });
-
-      if (res.status === 401) {
-        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/letterpad-generator')}`;
-        return;
-      }
-      if (res.status === 402) {
-        const j = await res.json();
-        alert(`Insufficient credits for AI call. Required: ${j.required_credits}`);
-        return;
-      }
-      if (!res.ok) {
-        const j = await res.json();
-        alert(j.error || 'Failed to process request');
-        return;
-      }
-
-      // We need to call the actual AI generation API first to get the AILetterData
-      // Searching for where the AI generation happens...
-      const aiRes = await fetch('/api/tools/letterpad-generator/generate-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, isFull }),
-      });
-      
-      if (!aiRes.ok) {
-        throw new Error('AI Generation failed');
-      }
-      
-      const aiData = await aiRes.json();
-      await fillFromAI(aiData.data, isFull, aiData.model);
-    } catch (e) {
-      console.error('AI Error:', e);
-      alert('AI processing failed');
-    } finally {
-      setIsCharging(false);
-    }
-  };
-
   return (
     <div className={styles.letterpadRoot}>
       {/* Google Fonts */}
@@ -196,7 +150,7 @@ export default function LetterpadGeneratorPage() {
             onOffice={applyOfficePreset}
             onLogo={setLogo}
             onSigApply={setSigUrl}
-            onFillAI={handleFillAI}
+            onFillAI={fillFromAI}
             onToggleEncl={toggleEncl}
             onToggleCopy={toggleCopy}
             onToggleEndorse={toggleEndorse}
