@@ -1,10 +1,13 @@
-/* ── Page root ───────────────────────────────────────────────── */
 .letterpadRoot {
   background: #c0bbb2;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: flex-start;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ── Mobile tab bar ─────────────────────────────────────────── */
@@ -69,7 +72,10 @@
 .workspace {
   display: flex;
   min-height: calc(100vh - 52px);
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  flex: 1;
 }
 
 /* ── Sidebar column ─────────────────── */
