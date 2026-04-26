@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
-import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -17,6 +16,8 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
+  const { tab, pdfBase64, filename } = body
+
   const { data: pricingRow } = await supabase
     .from('tool_pricing')
     .select('download_credits,is_active')
@@ -50,19 +51,53 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // We return success so the client can proceed with the local PDF generation/print
-  // Since GDS Leave uses browser-side HTML-to-PDF, we just charge here.
-  
   const admin = createSupabaseAdminClient()
+  let fileId: string | null = null
+
+  if (pdfBase64) {
+    try {
+      const buffer = Buffer.from(pdfBase64, 'base64')
+      const path = `${auth.user.id}/${TOOL_ID}_${Date.now()}.pdf`
+      
+      const { data: uploadData, error: uploadError } = await admin.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, buffer, {
+          contentType: 'application/pdf',
+          upsert: true
+        })
+
+      if (!uploadError && uploadData) {
+        const { data: fileRow, error: fileError } = await admin
+          .from('files')
+          .insert({
+            user_id: auth.user.id,
+            tool_id: TOOL_ID,
+            storage_bucket: STORAGE_BUCKET,
+            storage_path: path,
+            filename: filename || `GDS_Leave_${Date.now()}.pdf`,
+            mime_type: 'application/pdf',
+            size_bytes: buffer.length
+          })
+          .select('id')
+          .single()
+        
+        if (!fileError) fileId = fileRow.id
+      }
+    } catch (e) {
+      console.error('File save error:', e)
+    }
+  }
+
   await admin.from('tool_runs').insert({
     user_id: auth.user.id,
     tool_id: TOOL_ID,
     action: 'download',
     credits_charged: downloadCredits,
-    meta: { tab: body.tab || 'app' },
+    file_id: fileId,
+    meta: { tab: tab || 'app' },
     ip: req.headers.get('x-forwarded-for') ?? null,
     user_agent: req.headers.get('user-agent') ?? null,
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, file_id: fileId })
 }

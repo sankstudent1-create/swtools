@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/admin'
+import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 
+const STORAGE_BUCKET = 'user-files'
 const TOOL_ID = 'letterpad_generator'
 
 export async function POST(req: NextRequest) {
@@ -15,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { action } = body // 'download' or 'ai_fill'
+  const { action, pdfBase64, filename } = body // action: 'download' or 'ai_fill'
 
   const { data: pricingRow } = await supabase
     .from('tool_pricing')
@@ -54,15 +56,53 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createSupabaseAdminClient()
+  let fileId: string | null = null
+
+  // If it's a download and we have PDF data, save it to storage
+  if (action === 'download' && pdfBase64) {
+    try {
+      const buffer = Buffer.from(pdfBase64, 'base64')
+      const path = `${auth.user.id}/${TOOL_ID}_${Date.now()}.pdf`
+      
+      const { data: uploadData, error: uploadError } = await admin.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, buffer, {
+          contentType: 'application/pdf',
+          upsert: true
+        })
+
+      if (!uploadError && uploadData) {
+        const { data: fileRow, error: fileError } = await admin
+          .from('files')
+          .insert({
+            user_id: auth.user.id,
+            tool_id: TOOL_ID,
+            storage_bucket: STORAGE_BUCKET,
+            storage_path: path,
+            filename: filename || `Letterpad_${Date.now()}.pdf`,
+            mime_type: 'application/pdf',
+            size_bytes: buffer.length
+          })
+          .select('id')
+          .single()
+        
+        if (!fileError) fileId = fileRow.id
+      }
+    } catch (e) {
+      console.error('File save error:', e)
+    }
+  }
+
   await admin.from('tool_runs').insert({
     user_id: auth.user.id,
     tool_id: TOOL_ID,
     action: action,
     credits_charged: cost,
+    file_id: fileId,
     meta: { ...body.meta },
     ip: req.headers.get('x-forwarded-for') ?? null,
     user_agent: req.headers.get('user-agent') ?? null,
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, file_id: fileId })
 }
