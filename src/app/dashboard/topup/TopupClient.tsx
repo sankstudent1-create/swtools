@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import {
   Wallet,
   ShieldCheck,
+  AlertTriangle,
   ArrowLeft,
   Loader2,
   QrCode,
@@ -345,7 +346,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
                         await navigator.clipboard.writeText(config?.upi_id || UPI_ID)
                         setSubmitMsg('UPI ID copied')
                       } catch {
-                        setMsg({ text: 'Copy failed', type: 'error' })
+                        setSubmitMsg('Copy failed')
                       }
                     }}
                   >
