@@ -266,14 +266,14 @@ export default function TopupClient({ userId, userEmail }: Props) {
     const am = Number.isFinite(amount) && amount > 0 ? amount.toFixed(2) : '0.00'
     const note = `Topup_${am}INR_${creditsPerInr}rate_${userEmail ?? ''}_${userId}`
     const params = new URLSearchParams({
-      pa: UPI_ID,
+      pa: config?.upi_id || UPI_ID,
       pn: 'SW Info Systems',
       am,
       cu: 'INR',
       tn: note,
     })
     return `upi://pay?${params.toString()}`
-  }, [amount, creditsPerInr, userEmail, userId])
+  }, [amount, creditsPerInr, userEmail, userId, config?.upi_id])
 
   const qrUrl = useMemo(() => {
     const data = encodeURIComponent(upiLink)
@@ -326,6 +326,49 @@ export default function TopupClient({ userId, userEmail }: Props) {
               <div className="text-sm text-white/60">{plan.credits} Credits</div>
             </button>
           ))}
+        </div>
+
+        <div className="ui-modal-shell p-6 max-w-xl mx-auto mb-8">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Custom Amount</div>
+              <div className="text-sm text-white/40 mt-1">
+                Choose any amount (min ₹1). Credits ≈ <span className="text-white/70 font-semibold">{Math.floor(Math.max(0, amount) * creditsPerInr)}</span>
+              </div>
+            </div>
+            <div className="w-44">
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={Number.isFinite(amount) ? amount : 0}
+                  onChange={(e) => {
+                    const v = Number(e.target.value)
+                    setAmount(Number.isFinite(v) ? v : 0)
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-lg font-black italic text-blue-400 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all"
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/10 uppercase tracking-widest">INR</div>
+              </div>
+              <div className="mt-2 flex gap-2 justify-end">
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-1.5 text-[10px] font-black uppercase tracking-widest"
+                  onClick={() => setAmount(1)}
+                >
+                  ₹1
+                </button>
+                <button
+                  type="button"
+                  className="ui-btn-secondary px-3 py-1.5 text-[10px] font-black uppercase tracking-widest"
+                  onClick={() => setAmount(50)}
+                >
+                  ₹50
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="ui-modal-shell p-8 max-w-xl mx-auto">
@@ -428,20 +471,6 @@ export default function TopupClient({ userId, userEmail }: Props) {
                 </div>
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 ml-1">Manual Amount (₹)</label>
-                    <div className="relative group">
-                      <input 
-                        type="number"
-                        min="1"
-                        value={amount}
-                        onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-xl font-black italic text-blue-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all"
-                      />
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/10 uppercase tracking-widest">INR</div>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 ml-1">UTR Number</label>
                     <input
