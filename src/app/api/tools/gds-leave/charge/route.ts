@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { tab, pdfBase64, filename } = body
+  const { tab, pdfBase64, filename, storagePath, sizeBytes } = body
 
   const { data: pricingRow } = await supabase
     .from('tool_pricing')
@@ -54,7 +54,31 @@ export async function POST(req: NextRequest) {
   const admin = createSupabaseAdminClient()
   let fileId: string | null = null
 
-  if (pdfBase64) {
+  const safeFilename = filename || `GDS_Leave_${Date.now()}.pdf`
+
+  if (storagePath) {
+    if (typeof storagePath !== 'string' || !storagePath.startsWith(`${auth.user.id}/`)) {
+      return NextResponse.json({ error: 'Invalid storagePath' }, { status: 400 })
+    }
+
+    const { data: fileRow, error: fileError } = await admin
+      .from('files')
+      .insert({
+        user_id: auth.user.id,
+        tool_id: TOOL_ID,
+        storage_bucket: STORAGE_BUCKET,
+        storage_path: storagePath,
+        filename: safeFilename,
+        mime_type: 'application/pdf',
+        size_bytes: typeof sizeBytes === 'number' ? sizeBytes : null,
+      })
+      .select('id')
+      .single()
+
+    if (!fileError) fileId = fileRow.id
+  }
+
+  if (!fileId && pdfBase64) {
     try {
       const buffer = Buffer.from(pdfBase64, 'base64')
       const path = `${auth.user.id}/${TOOL_ID}_${Date.now()}.pdf`
@@ -74,7 +98,7 @@ export async function POST(req: NextRequest) {
             tool_id: TOOL_ID,
             storage_bucket: STORAGE_BUCKET,
             storage_path: path,
-            filename: filename || `GDS_Leave_${Date.now()}.pdf`,
+            filename: safeFilename,
             mime_type: 'application/pdf',
             size_bytes: buffer.length
           })

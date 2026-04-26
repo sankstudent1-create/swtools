@@ -10,6 +10,7 @@ import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
 import { openWatermarkedPreviewWindow, buildPrintHTML } from '@/lib/gds/printBuilder';
 import { htmlPagesToPdfBase64A4 } from '@/lib/pdf/htmlToPdfBase64';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
@@ -45,10 +46,40 @@ export default function GDSLeavePage() {
       const html = buildPrintHTML(data, false)
       const pdfBase64 = await htmlPagesToPdfBase64A4(html, '.pdf-page')
 
+      const binary = atob(pdfBase64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+
+      const supabase = createSupabaseBrowserClient()
+      const { data: userRes } = await supabase.auth.getUser()
+      const user = userRes.user
+      if (!user) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/gds-leave')}`
+        return
+      }
+
+      const storagePath = `${user.id}/gds_leave_${Date.now()}.pdf`
+      const up = await supabase.storage.from('user-files').upload(storagePath, blob, {
+        contentType: 'application/pdf',
+        upsert: true,
+      })
+
+      if (up.error) {
+        console.error('Storage upload error', up.error)
+        alert('Could not upload PDF. Please try again.')
+        return
+      }
+
       const res = await fetch('/api/tools/gds-leave/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tab, pdfBase64, filename: `GDS_Leave_${new Date().toISOString().slice(0, 10)}.pdf` }),
+        body: JSON.stringify({
+          tab,
+          storagePath,
+          sizeBytes: blob.size,
+          filename: `GDS_Leave_${new Date().toISOString().slice(0, 10)}.pdf`,
+        }),
       });
 
       if (res.status === 401) {
@@ -66,10 +97,6 @@ export default function GDSLeavePage() {
         return;
       }
 
-      const binary = atob(pdfBase64)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-      const blob = new Blob([bytes], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

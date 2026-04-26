@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { action, pdfBase64, filename } = body // action: 'download' or 'ai_fill'
+  const { action, pdfBase64, filename, storagePath, sizeBytes } = body // action: 'download' or 'ai_fill'
 
   const { data: pricingRow } = await supabase
     .from('tool_pricing')
@@ -58,8 +58,32 @@ export async function POST(req: NextRequest) {
   const admin = createSupabaseAdminClient()
   let fileId: string | null = null
 
+  const safeFilename = filename || `Letterpad_${Date.now()}.pdf`
+
+  if (action === 'download' && storagePath) {
+    if (typeof storagePath !== 'string' || !storagePath.startsWith(`${auth.user.id}/`)) {
+      return NextResponse.json({ error: 'Invalid storagePath' }, { status: 400 })
+    }
+
+    const { data: fileRow, error: fileError } = await admin
+      .from('files')
+      .insert({
+        user_id: auth.user.id,
+        tool_id: TOOL_ID,
+        storage_bucket: STORAGE_BUCKET,
+        storage_path: storagePath,
+        filename: safeFilename,
+        mime_type: 'application/pdf',
+        size_bytes: typeof sizeBytes === 'number' ? sizeBytes : null,
+      })
+      .select('id')
+      .single()
+
+    if (!fileError) fileId = fileRow.id
+  }
+
   // If it's a download and we have PDF data, save it to storage
-  if (action === 'download' && pdfBase64) {
+  if (action === 'download' && !fileId && pdfBase64) {
     try {
       const buffer = Buffer.from(pdfBase64, 'base64')
       const path = `${auth.user.id}/${TOOL_ID}_${Date.now()}.pdf`
@@ -79,7 +103,7 @@ export async function POST(req: NextRequest) {
             tool_id: TOOL_ID,
             storage_bucket: STORAGE_BUCKET,
             storage_path: path,
-            filename: filename || `Letterpad_${Date.now()}.pdf`,
+            filename: safeFilename,
             mime_type: 'application/pdf',
             size_bytes: buffer.length
           })

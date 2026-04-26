@@ -11,6 +11,7 @@ import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
 import { elementToPdfBase64A4 } from '@/lib/pdf/htmlToPdfBase64';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function LetterpadGeneratorPage() {
   const {
@@ -65,10 +66,40 @@ export default function LetterpadGeneratorPage() {
 
       const pdfBase64 = await elementToPdfBase64A4(paper)
 
+      const binary = atob(pdfBase64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+
+      const supabase = createSupabaseBrowserClient()
+      const { data: userRes } = await supabase.auth.getUser()
+      const user = userRes.user
+      if (!user) {
+        window.location.href = `/auth/login?next=${encodeURIComponent('/tools/letterpad-generator')}`
+        return
+      }
+
+      const storagePath = `${user.id}/letterpad_generator_${Date.now()}.pdf`
+      const up = await supabase.storage.from('user-files').upload(storagePath, blob, {
+        contentType: 'application/pdf',
+        upsert: true,
+      })
+
+      if (up.error) {
+        console.error('Storage upload error', up.error)
+        alert('Could not upload PDF. Please try again.')
+        return
+      }
+
       const res = await fetch('/api/tools/letterpad-generator/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'download', pdfBase64, filename: `Letterpad_${new Date().toISOString().slice(0, 10)}.pdf` }),
+        body: JSON.stringify({
+          action: 'download',
+          storagePath,
+          sizeBytes: blob.size,
+          filename: `Letterpad_${new Date().toISOString().slice(0, 10)}.pdf`,
+        }),
       });
 
       if (res.status === 401) {
@@ -86,10 +117,6 @@ export default function LetterpadGeneratorPage() {
         return;
       }
 
-      const binary = atob(pdfBase64)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-      const blob = new Blob([bytes], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
