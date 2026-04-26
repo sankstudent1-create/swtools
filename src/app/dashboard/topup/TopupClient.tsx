@@ -329,10 +329,13 @@ export default function TopupClient({ userId, userEmail }: Props) {
 
         <div className="ui-modal-shell p-8 max-w-xl mx-auto">
           <div className="space-y-6">
-            {(!config || config.manual_enabled) && (
+            {config?.manual_enabled && (
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-                <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Pay to UPI</div>
-                <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-xs font-bold text-white/50 uppercase tracking-widest">Manual UPI Option</div>
+                  <div className="text-[10px] font-black text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-tighter">Verified Flow</div>
+                </div>
+                <div className="flex items-center justify-between gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
                   <div className="font-mono text-sm text-white/80 break-all">{config?.upi_id || UPI_ID}</div>
                   <button
                     type="button"
@@ -342,7 +345,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
                         await navigator.clipboard.writeText(config?.upi_id || UPI_ID)
                         setSubmitMsg('UPI ID copied')
                       } catch {
-                        setSubmitMsg('Copy failed')
+                        setMsg({ text: 'Copy failed', type: 'error' })
                       }
                     }}
                   >
@@ -350,28 +353,35 @@ export default function TopupClient({ userId, userEmail }: Props) {
                     Copy
                   </button>
                 </div>
-              </div>
-            )}
 
-            {(!config || config.manual_enabled) && (
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-white flex items-center gap-2">
-                    <QrCode className="w-4 h-4 text-white/60" />
-                    Dynamic QR (Scan to Pay)
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-                    <a className="text-xs text-blue-400 hover:text-blue-300 font-medium" href={upiLink}>
-                      Open UPI App
-                    </a>
+                <div className="mt-4 flex flex-col items-center justify-center p-6 bg-white rounded-3xl border border-white/10 shadow-2xl shadow-white/5 group transition-all hover:scale-[1.02]">
+                  <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="h-px w-8 bg-black/10" />
+                    <div className="text-[10px] font-mono text-black/40 uppercase tracking-widest">Scan with any App</div>
+                    <div className="h-px w-8 bg-black/10" />
                   </div>
                 </div>
-                <div className="mt-4 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-white/10 shadow-2xl shadow-white/5">
-                  <img src={qrUrl} alt="UPI QR" className="w-48 h-48" />
-                  <div className="mt-4 text-[10px] font-mono text-black/40 bg-black/5 px-2 py-1 rounded">
-                    Amount: ₹{amount} | Credits: {Math.floor(amount * creditsPerInr)}
-                  </div>
+                
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <a 
+                    href={upiLink}
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all"
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    Open App
+                  </a>
+                  <button 
+                    onClick={() => {
+                      const amountStr = amount.toFixed(2);
+                      const note = `Topup_${amountStr}INR_${creditsPerInr}rate_${userEmail ?? ''}_${userId}`;
+                      alert(`Manual Transfer Details:\n\nUPI ID: ${config?.upi_id || UPI_ID}\nAmount: ₹${amountStr}\nNote: ${note}\n\nPlease transfer exactly ₹${amountStr} and submit the UTR below.`);
+                    }}
+                    className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    Transfer Info
+                  </button>
                 </div>
               </div>
             )}
@@ -409,48 +419,84 @@ export default function TopupClient({ userId, userEmail }: Props) {
               </div>
             ) : null}
 
-            {(!config || config.manual_enabled) && (
+            {config?.manual_enabled && (
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
                 <div className="text-sm font-semibold text-white flex items-center gap-2 mb-3">
                   <FileText className="w-4 h-4 text-white/60" />
                   Submit Manual Proof
                 </div>
 
-                <label className="block text-xs text-white/50 mb-2">UTR (optional if screenshot uploaded)</label>
-                <input
-                  className="ui-input"
-                  value={utr}
-                  onChange={(e) => setUtr(e.target.value)}
-                  placeholder="Enter 12-18 digit UTR"
-                />
-
-                <div className="mt-4">
-                  <label className="block text-xs text-white/50 mb-2">Screenshot (optional if UTR provided)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
-                    className="block w-full text-xs text-white/60"
-                  />
-                  
-                  {screenshotPreview ? (
-                    <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
-                      <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 ml-1">Manual Amount (₹)</label>
+                    <div className="relative group">
+                      <input 
+                        type="number"
+                        min="1"
+                        value={amount}
+                        onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-xl font-black italic text-blue-500 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all"
+                      />
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-white/10 uppercase tracking-widest">INR</div>
                     </div>
-                  ) : null}
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 ml-1">UTR Number</label>
+                    <input
+                      className="ui-input"
+                      value={utr}
+                      onChange={(e) => setUtr(e.target.value)}
+                      placeholder="Enter 12-18 digit UTR"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 ml-1">Payment Screenshot</label>
+                    <div className="relative group cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
+                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                      />
+                      <div className={`w-full py-6 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center gap-2 ${screenshot ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-white/10 group-hover:border-blue-500/40 group-hover:bg-blue-500/5'}`}>
+                        {screenshot ? (
+                          <>
+                            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Proof Selected</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-white/20 group-hover:text-blue-500 transition-colors" />
+                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest group-hover:text-white transition-colors">Select Proof Image</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {screenshotPreview ? (
+                      <div className="mt-3 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+                        <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
 
                 <button
-                  className="ui-btn-primary w-full mt-5 inline-flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-6 rounded-[2rem] bg-blue-500 text-white font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] hover:bg-blue-600 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
                   onClick={submitTopupRequest}
-                  disabled={submitBusy || (!utr.trim() && !screenshot)}
+                  disabled={submitBusy || (!utr.trim() && !screenshot) || amount < 1}
                 >
                   {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {submitBusy ? 'Submitting…' : 'Submit for Verification'}
+                  {submitBusy ? 'Processing...' : 'Verify Manual Transfer'}
                 </button>
 
-                <div className="mt-3 text-[11px] text-white/40 uppercase tracking-widest font-black">
-                  Manual Approval required
+                <div className="mt-4 p-4 rounded-xl bg-amber-500/5 border border-amber-500/10 flex gap-3">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-amber-500/70 font-bold leading-relaxed uppercase tracking-tighter">
+                    Manual verification can take 5-30 minutes. Ensure the UTR and amount are exact for faster approval.
+                  </p>
                 </div>
               </div>
             )}
