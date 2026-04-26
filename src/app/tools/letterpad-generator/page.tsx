@@ -11,6 +11,8 @@ import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
 import { elementToPdfBlobA4 } from '@/lib/pdf/htmlToPdfBase64';
+import PremiumToolWrapper from '@/components/PremiumToolWrapper';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function LetterpadGeneratorPage() {
   const {
@@ -134,92 +136,99 @@ export default function LetterpadGeneratorPage() {
   }, [updateForm]);
 
   return (
-    <div className={styles.letterpadRoot}>
-      {/* Google Fonts */}
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link
-        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Tiro+Devanagari+Hindi:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
-        rel="stylesheet"
-      />
+    <PremiumToolWrapper
+      toolId="letterpad_generator"
+      toolName="Letterpad Generator"
+      requiredCredits={15}
+      onConfirmDownload={doPrint}
+      isProcessing={isCharging}
+    >
+      <div className={styles.letterpadRoot}>
+        {/* Google Fonts */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600&family=Tiro+Devanagari+Hindi:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
+          rel="stylesheet"
+        />
 
-      <Appbar
-        onPrint={doPrint}
-        onPDF={doPrint}
-        onToggleEndorse={toggleEndorse}
-        onToggleCopy={toggleCopy}
-        lastModel={lastModel}
-      />
+        <Appbar
+          onPrint={doPrint}
+          onPDF={doPrint}
+          onToggleEndorse={toggleEndorse}
+          onToggleCopy={toggleCopy}
+          lastModel={lastModel}
+        />
 
-      {/* ── Mobile tab bar ── */}
-      {isMobile && (
-        <div className={styles.mobileTabBar}>
-          <button
-            className={`${styles.mobileTab} ${mobileTab === 'edit' ? styles.mobileTabActive : ''}`}
-            onClick={() => setMobileTab('edit')}
-          >✏️ Edit</button>
-          <button
-            className={`${styles.mobileTab} ${mobileTab === 'preview' ? styles.mobileTabActive : ''}`}
-            onClick={() => setMobileTab('preview')}
-          >📄 Preview</button>
-          {/* Print & PDF accessible on mobile too */}
-          <button className={styles.mobileTabPrint} onClick={doWatermarkedPreview}>� Preview*</button>
-          <button className={`${styles.mobileTabPrint} ${styles.mobileTabPDF}`} onClick={doPrint}>⬇ Generate PDF</button>
-        </div>
-      )}
+        {/* ── Mobile tab bar ── */}
+        {isMobile && (
+          <div className={styles.mobileTabBar}>
+            <button
+              className={`${styles.mobileTab} ${mobileTab === 'edit' ? styles.mobileTabActive : ''}`}
+              onClick={() => setMobileTab('edit')}
+            >✏️ Edit</button>
+            <button
+              className={`${styles.mobileTab} ${mobileTab === 'preview' ? styles.mobileTabActive : ''}`}
+              onClick={() => setMobileTab('preview')}
+            >📄 Preview</button>
+            {/* Print & PDF accessible on mobile too */}
+            <button className={styles.mobileTabPrint} onClick={doWatermarkedPreview}>👁 Preview*</button>
+          </div>
+        )}
 
-      <div className={`${styles.workspace} ${isMobile ? styles.workspaceMobile : ''}`}>
+        <div className={`${styles.workspace} ${isMobile ? styles.workspaceMobile : ''}`}>
 
-        {/* ── SIDEBAR ── */}
-        <div className={`${styles.sidebarCol} ${isMobile && mobileTab !== 'edit' ? styles.hidden : ''}`}>
-          <Sidebar
-            state={state}
-            onUpdateForm={updateForm}
-            onTemplate={setTemplate}
-            onFont={setFont}
-            onOffice={applyOfficePreset}
-            onLogo={setLogo}
-            onSigApply={setSigUrl}
-            onFillAI={fillFromAI}
-            onToggleEncl={toggleEncl}
-            onToggleCopy={toggleCopy}
-            onToggleEndorse={toggleEndorse}
-          />
-        </div>
-
-        {/* ── PREVIEW AREA ── */}
-        <main className={`${styles.preview} ${isMobile && mobileTab !== 'preview' ? styles.hidden : ''}`}>
-          {/* Toolbar row — hidden on mobile (actions are in tab bar) */}
-          {!isMobile && (
-            <div className={styles.previewTop}>
-              <span className={styles.previewLabel}>
-                📄 A4 · Click paper to edit · AI fills all fields · Groq powered
-                {lastModel && <> · <span style={{color:'#4ade80'}}>⚡ {lastModel}</span></>}
-              </span>
-              <EditToolbar
-                showEncl={state.showEncl}
-                showCopy={state.showCopy}
-                showEndorse={state.showEndorse}
-                onToggleEncl={toggleEncl}
-                onToggleCopy={toggleCopy}
-                onToggleEndorse={toggleEndorse}
-                onPrint={doWatermarkedPreview}
-                onPDF={doPrint}
-              />
-            </div>
-          )}
-
-          {/* Paper */}
-          <div className={styles.paperWrap} id="print-area">
-            <LetterPaper
+          {/* ── SIDEBAR ── */}
+          <div className={`${styles.sidebarCol} ${isMobile && mobileTab !== 'edit' ? styles.hidden : ''}`}>
+            <Sidebar
               state={state}
-              onFormChange={handleFormChange}
-              onCopyChange={val => updateForm('copyTo', val)}
-              onLogoPos={handleLogoPos}
-              onLogoRemove={side => setLogo(side, null)}
+              onUpdateForm={updateForm}
+              onTemplate={setTemplate}
+              onFont={setFont}
+              onOffice={applyOfficePreset}
+              onLogo={setLogo}
+              onSigApply={setSigUrl}
+              onFillAI={fillFromAI}
+              onToggleEncl={toggleEncl}
+              onToggleCopy={toggleCopy}
+              onToggleEndorse={toggleEndorse}
             />
           </div>
-        </main>
+
+          {/* ── PREVIEW AREA ── */}
+          <main className={`${styles.preview} ${isMobile && mobileTab !== 'preview' ? styles.hidden : ''}`}>
+            {/* Toolbar row — hidden on mobile (actions are in tab bar) */}
+            {!isMobile && (
+              <div className={styles.previewTop}>
+                <span className={styles.previewLabel}>
+                  📄 A4 · Click paper to edit · AI fills all fields · Groq powered
+                  {lastModel && <> · <span style={{color:'#4ade80'}}>⚡ {lastModel}</span></>}
+                </span>
+                <EditToolbar
+                  showEncl={state.showEncl}
+                  showCopy={state.showCopy}
+                  showEndorse={state.showEndorse}
+                  onToggleEncl={toggleEncl}
+                  onToggleCopy={toggleCopy}
+                  onToggleEndorse={toggleEndorse}
+                  onPrint={doWatermarkedPreview}
+                  onPDF={doPrint}
+                />
+              </div>
+            )}
+
+            {/* Paper */}
+            <div className={styles.paperWrap} id="print-area">
+              <LetterPaper
+                state={state}
+                onFormChange={handleFormChange}
+                onCopyChange={val => updateForm('copyTo', val)}
+                onLogoPos={handleLogoPos}
+                onLogoRemove={side => setLogo(side, null)}
+              />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </PremiumToolWrapper>
   );
 }
