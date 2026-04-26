@@ -94,55 +94,35 @@ export default function TopupClient({ userId, userEmail }: Props) {
       const fileName = `${userId}/RAW_${Date.now()}_${fileToUpload.name.replace(/\s+/g, '_')}`
       addLog(`File ready: ${fileToUpload.size} bytes`)
 
-      // PHASE 4: UPLOAD (RAW FETCH BYPASS)
-      addLog(`PHASE 4: Raw Uploading ${fileToUpload.size} bytes...`)
+      // PHASE 4: UPLOAD (SERVER-SIDE BYPASS)
+      addLog('PHASE 4: Sending to Server-Side Upload...')
       const startUpload = Date.now()
       
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      const token = currentSession?.access_token
+      const formData = new FormData()
+      formData.append('file', fileToUpload)
+      formData.append('amount', amount.toString())
+      formData.append('utr', `PROOFO_ONLY_${Date.now()}`)
+      formData.append('credits', Math.floor(amount * creditsPerInr).toString())
 
-      // Direct fetch to bypass client wrapper logic
-      const uploadUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/manual-topup-proofs/${fileName}`
-      
-      const response = await fetch(uploadUrl, {
+      const response = await fetch('/api/wallet/topup/upload-proof', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-upsert': 'false'
-        },
-        body: fileToUpload
+        body: formData
       })
 
       const duration = Date.now() - startUpload
       
       if (!response.ok) {
-        const errJson = await response.json().catch(() => ({ message: response.statusText }))
-        addLog(`UPLOAD FAILED (${response.status}) after ${duration}ms: ${errJson.message}`)
-        throw new Error(errJson.message || 'Upload failed')
+        const errJson = await response.json().catch(() => ({ error: response.statusText }))
+        addLog(`SERVER UPLOAD FAILED (${response.status}) after ${duration}ms: ${errJson.error}`)
+        throw new Error(errJson.error || 'Server upload failed')
       }
 
-      const uploadData = await response.json()
-      addLog(`UPLOAD SUCCESS in ${duration}ms. Path: ${uploadData.Key}`)
+      const result = await response.json()
+      addLog(`SERVER UPLOAD SUCCESS in ${duration}ms. Path: ${result.path}`)
 
-      // PHASE 5: DB RECORD
-      addLog('PHASE 5: Creating DB Record')
-      const dbRes = await fetch('/api/wallet/topup/manual-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount_inr: amount,
-          utr: `TEST_UTR_${Date.now()}`,
-          credits_requested: Math.floor(amount * creditsPerInr),
-          screenshot_path: fileName, // Use the path we just created
-        }),
-      })
-
-      if (!dbRes.ok) {
-        const j = await dbRes.json()
-        throw new Error(`DB Insert failed: ${j.error || dbRes.statusText}`)
-      }
-      addLog('SUCCESS: Record created in manual_topup_requests')
-      setSubmitMsg('Proof uploaded and record created successfully!')
+      // PHASE 5: COMPLETE
+      addLog('PHASE 5: Request Completed')
+      setSubmitMsg('Proof uploaded and record created successfully via server!')
       
     } catch (e: any) {
       addLog(`CRITICAL ERROR: ${e.message}`)
