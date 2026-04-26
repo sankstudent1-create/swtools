@@ -59,27 +59,40 @@ export default function TopupClient({ userId, userEmail }: Props) {
     if (!screenshot) return
     setSubmitBusy(true)
     setError(null)
-    setDebugLog(['Starting isolated proof upload test...'])
+    setDebugLog(['DEBUG: Script started...'])
     
     try {
-      // PHASE 1: PRE-CHECK
-      addLog('PHASE 1: Client Pre-check')
-      const { data: { session }, error: authErr } = await supabase.auth.getSession()
-      if (authErr || !session) throw new Error(`Auth failed: ${authErr?.message || 'No session'}`)
-      addLog(`Authenticated as: ${session.user.id}`)
-
-      // PHASE 2: BUCKET CHECK
-      addLog('PHASE 2: Bucket Health Check')
-      const { data: bucket, error: bErr } = await supabase.storage.getBucket('manual-topup-proofs')
-      if (bErr) throw new Error(`Bucket check failed: ${bErr.message}`)
-      addLog(`Bucket 'manual-topup-proofs' found (Public: ${bucket.public})`)
+      // PHASE 1: PRE-CHECK (SIMPLIFIED)
+      addLog('PHASE 1: Client Pre-check (Native only)')
+      
+      // Use the props passed from server instead of calling getSession first
+      if (!userId) {
+        addLog('ERROR: No userId provided in props')
+        throw new Error('No user ID found')
+      }
+      addLog(`UserId from props: ${userId}`)
+      
+      // PHASE 2: BUCKET CHECK (NATIVE FETCH)
+      addLog('PHASE 2: Bucket Health Check (Native Fetch)')
+      const bucketUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket/manual-topup-proofs`
+      const bRes = await fetch(bucketUrl, {
+        headers: {
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+        }
+      })
+      
+      if (!bRes.ok) {
+        addLog(`Bucket check failed status: ${bRes.status}`)
+        // We proceed anyway because getBucket might be restricted but upload might work
+      } else {
+        addLog('Bucket is reachable')
+      }
 
       // PHASE 3: FILE PREP
-      addLog('PHASE 3: Image Processing (SKIPPING NORMALIZATION)')
-      // SKIP normalization to see if canvas/createImageBitmap is the hang
+      addLog('PHASE 3: Preparing file')
       const fileToUpload = screenshot
       const fileName = `${userId}/RAW_${Date.now()}_${fileToUpload.name.replace(/\s+/g, '_')}`
-      addLog(`File ready: ${fileToUpload.size} bytes, type: ${fileToUpload.type}`)
+      addLog(`File ready: ${fileToUpload.size} bytes`)
 
       // PHASE 4: UPLOAD (RAW FETCH BYPASS)
       addLog(`PHASE 4: Raw Uploading ${fileToUpload.size} bytes...`)
