@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { usePathname } from 'next/navigation'
 import { 
   X, 
   Wallet, 
@@ -55,6 +56,12 @@ export default function PremiumToolWrapper({
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
+
+  const pathname = usePathname()
+  const isFullscreenTool = useMemo(() => {
+    const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission']
+    return FULLSCREEN_TOOLS.some(p => pathname?.startsWith(p))
+  }, [pathname])
 
   const fetchBalance = useCallback(async (userId: string) => {
     try {
@@ -178,7 +185,9 @@ export default function PremiumToolWrapper({
   return (
     <div className="relative min-h-screen">
       {/* ── PREMIUM INTEGRATED BAR ── */}
-      <div className="sticky top-16 z-[45] w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl">
+      <div
+        className={`sticky ${isFullscreenTool ? 'top-[52px] z-[450]' : 'top-16 z-[45]'} w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl pointer-events-auto`}
+      >
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="flex items-center gap-3 group cursor-pointer" onClick={handleRefreshBalance}>
