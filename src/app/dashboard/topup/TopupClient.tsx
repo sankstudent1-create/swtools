@@ -146,11 +146,21 @@ export default function TopupClient({ userId, userEmail }: Props) {
       let screenshotPath: string | null = null
       if (screenshot) {
         setSubmitMsg('Verifying storage access...')
+        // 1. Check Auth state explicitly
+        const { data: { session }, error: authErr } = await supabase.auth.getSession()
+        if (authErr || !session) {
+          console.error('[topup] Auth check FAILED:', { authErr, session })
+          setError(`Authentication error: Please log in again. (Detail: ${authErr?.message || 'No session'})`)
+          return
+        }
+        console.log('[topup] Auth check SUCCESS:', { userId: session.user.id })
+
+        // 2. Check Bucket existence
         const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('topup-screenshots')
         
         if (bucketError) {
           console.error('[topup] Bucket access check FAILED:', bucketError)
-          setError(`Cannot access storage: ${bucketError.message}. Please ensure the 'topup-screenshots' bucket exists in Supabase.`)
+          setError(`Cannot access storage: ${bucketError.message}. Ensure the bucket 'topup-screenshots' exists and is Public.`)
           return
         }
         console.log('[topup] Bucket access check SUCCESS:', bucketData)
