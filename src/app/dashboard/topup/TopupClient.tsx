@@ -40,6 +40,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
 
   const [amount, setAmount] = useState<number>(199)
   const [error, setError] = useState<string | null>(null)
+  const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
 
   const [config, setConfig] = useState<{
     method: 'manual' | 'razorpay' | 'both',
@@ -75,11 +76,11 @@ export default function TopupClient({ userId, userEmail }: Props) {
       if (!res.ok) throw new Error(order.error || 'Failed to create order')
 
       const options = {
-        key: order.key,
+        key: order.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
         name: 'SW Info Systems',
-        description: `Topup ${Math.floor(amount * credits_per_inr)} Credits`,
+        description: `Topup ${Math.floor(amount * creditsPerInr)} Credits`,
         order_id: order.id,
         handler: async function (response: any) {
           setSubmitMsg('Verifying payment...')
@@ -91,7 +92,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               amount_inr: amount,
-              credits: Math.floor(amount * credits_per_inr)
+              credits: Math.floor(amount * creditsPerInr)
             })
           })
           const verifyData = await verifyRes.json()
