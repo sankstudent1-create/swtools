@@ -1,200 +1,184 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Tag, Save, ArrowLeft, Loader2, Power, Zap, ShieldCheck } from 'lucide-react'
+import Link from 'next/link'
+import { 
+  ArrowLeft, 
+  Loader2, 
+  Tag, 
+  Save, 
+  AlertTriangle,
+  RefreshCw,
+  Power
+} from 'lucide-react'
+
+type ToolPricing = {
+  tool_id: string
+  download_credits: number
+  is_active: boolean
+  updated_at: string
+}
 
 export default function AdminPricingPage() {
-  const [credits, setCredits] = useState<number>(10)
-  const [active, setActive] = useState(true)
-  const [busy, setBusy] = useState(false)
+  const [tools, setTools] = useState<ToolPricing[]>([])
   const [loading, setLoading] = useState(true)
-  const [msg, setMsg] = useState<{ text: string, type: 'success' | 'error' } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busyToolId, setBusyToolId] = useState<string | null>(null)
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch('/api/admin/pricing/td-commission', { method: 'GET' })
-        const j = await res.json().catch(() => null)
-
-        if (res.ok) {
-          const c = Number(j?.download_credits)
-          if (Number.isFinite(c) && c > 0) setCredits(c)
-          setActive(Boolean(j?.is_active))
-        } else {
-          setMsg({ text: j?.error || 'Failed to load current pricing', type: 'error' })
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    loadPricing()
   }, [])
 
-  const save = async () => {
-    setBusy(true)
-    setMsg(null)
+  const loadPricing = async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const res = await fetch('/api/admin/pricing/td-commission', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ download_credits: credits, is_active: active }),
-      })
-      const j = await res.json().catch(() => null)
-      if (!res.ok) {
-        setMsg({ text: j?.error || 'Failed to save', type: 'error' })
-        return
-      }
-      setMsg({ text: 'Tool pricing updated successfully', type: 'success' })
+      const res = await fetch('/api/admin/pricing')
+      const data = await res.json()
+      if (res.ok) setTools(data)
+      else setError(data.error || 'Failed to load pricing')
+    } catch (e) {
+      setError('Connection failed')
     } finally {
-      setBusy(false)
+      setLoading(false)
     }
   }
 
+  const updateTool = async (tool: ToolPricing) => {
+    setBusyToolId(tool.tool_id)
+    try {
+      const res = await fetch('/api/admin/pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tool)
+      })
+      if (!res.ok) {
+        const j = await res.json()
+        alert(j.error || 'Update failed')
+      }
+    } catch (e) {
+      alert('Network error')
+    } finally {
+      setBusyToolId(null)
+    }
+  }
+
+  const toggleStatus = (id: string) => {
+    const updated = tools.map(t => {
+      if (t.tool_id === id) {
+        const next = { ...t, is_active: !t.is_active }
+        updateTool(next)
+        return next
+      }
+      return t
+    })
+    setTools(updated)
+  }
+
+  const updateCredits = (id: string, val: number) => {
+    setTools(prev => prev.map(t => t.tool_id === id ? { ...t, download_credits: val } : t))
+  }
+
   return (
-    <main className="min-h-screen px-4 py-24 bg-[#07090f]">
-      <div className="mx-auto max-w-3xl">
-        {/* Breadcrumb & Badges */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <Link href="/admin" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-all group">
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            Back to Dashboard
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-              <Zap className="w-3 h-3" />
-              Dynamic Pricing
-            </div>
-            <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-              <ShieldCheck className="w-3 h-3" />
-              Live Config
-            </div>
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-purple-500/30">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter text-white mb-2 italic uppercase leading-none">
+              Tool <span className="text-purple-500">Pricing</span>
+            </h1>
+            <p className="text-white/40 text-sm font-medium tracking-tight uppercase tracking-widest">
+              Manage Credit Costs & Availability
+            </p>
           </div>
+          <Link 
+            href="/admin" 
+            className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-white transition-all uppercase tracking-widest bg-white/5 px-4 py-2 rounded-lg border border-white/5"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Back to Admin
+          </Link>
         </div>
 
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-black tracking-tight text-white">
-            Tool <span className="text-blue-400 italic">Pricing</span>
-          </h1>
-          <p className="text-white/40 mt-2 text-lg">Control usage costs and availability for every tool in the suite.</p>
-        </div>
+        {error && (
+          <div className="mb-8 p-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-bold flex items-center gap-3 animate-in fade-in">
+            <AlertTriangle className="w-4 h-4" />
+            {error}
+          </div>
+        )}
 
-        <div className="ui-modal-shell p-10 bg-white/[0.01] backdrop-blur-xl border-white/5 rounded-[3rem] shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
-          
-          {loading ? (
-            <div className="py-20 text-center flex flex-col items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center animate-pulse">
-                <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
-              </div>
-              <div className="text-white/20 font-bold uppercase tracking-widest text-xs">Synchronizing with Registry...</div>
-            </div>
-          ) : (
-            <div className="space-y-12 relative z-10">
-              {/* Tool Card */}
-              <div className="group relative p-8 rounded-[2rem] bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 transition-all hover:border-white/10 hover:shadow-xl">
+        {loading ? (
+          <div className="py-20 flex flex-col items-center gap-4 text-white/20">
+            <Loader2 className="w-10 h-10 animate-spin" />
+            <div className="text-xs font-black uppercase tracking-widest">Loading Tool configurations...</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {tools.map((tool) => (
+              <div 
+                key={tool.tool_id} 
+                className={`group relative p-8 rounded-[2.5rem] bg-white/[0.03] border transition-all duration-500 hover:bg-white/[0.05] ${tool.is_active ? 'border-white/10' : 'border-red-500/10 grayscale-[0.5] opacity-60'}`}
+              >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                   <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-inner group-hover:scale-110 transition-transform">
-                      <Tag className="w-8 h-8" />
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border transition-all ${tool.is_active ? 'bg-purple-500/10 border-purple-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                      <Tag className={`w-7 h-7 ${tool.is_active ? 'text-purple-400' : 'text-red-400'}`} />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">TD Commission Generator</h2>
-                      <div className="flex items-center gap-3">
-                        <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest ${active ? 'text-emerald-400' : 'text-red-400'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
-                          {active ? 'Operational' : 'System Offline'}
-                        </span>
-                        <div className="w-1 h-1 rounded-full bg-white/10" />
-                        <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">ID: td_commission</span>
+                      <h3 className="text-2xl font-black italic tracking-tight uppercase text-white">{tool.tool_id.replace(/_/g, ' ')}</h3>
+                      <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest mt-1">
+                        Last Updated: {new Date(tool.updated_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="text-[10px] text-white/20 font-black uppercase tracking-widest text-right">Current Rate</div>
-                    <div className="text-3xl font-mono font-black text-white">{credits} <span className="text-sm font-bold text-white/20">CREDITS</span></div>
+                  <div className="flex items-center gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase tracking-widest block ml-1">Credits Cost</label>
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="number"
+                          value={tool.download_credits}
+                          onChange={(e) => updateCredits(tool.tool_id, parseInt(e.target.value))}
+                          className="w-24 bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-lg font-black italic text-purple-400 focus:outline-none focus:border-purple-500/50 transition-all"
+                        />
+                        <button 
+                          onClick={() => updateTool(tool)}
+                          disabled={busyToolId === tool.tool_id}
+                          className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white/40 hover:text-white"
+                        >
+                          {busyToolId === tool.tool_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="h-12 w-[1px] bg-white/5 hidden md:block" />
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-white/20 uppercase tracking-widest block ml-1">Status</label>
+                      <button 
+                        onClick={() => toggleStatus(tool.tool_id)}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border ${tool.is_active ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:bg-emerald-500 hover:text-white' : 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white'}`}
+                      >
+                        <Power className="w-3 h-3" />
+                        {tool.is_active ? 'Active' : 'Disabled'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              {/* Edit Form */}
-              <div className="grid gap-10">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Usage Cost Configuration</label>
-                    <span className="text-[10px] text-blue-400/50 font-mono italic">per successful download</span>
-                  </div>
-                  <div className="relative group">
-                    <input 
-                      className="ui-input text-2xl font-mono py-6 pl-8 bg-white/[0.02] border-white/5 transition-all group-hover:border-white/10 focus:border-blue-500/50 rounded-3xl" 
-                      type="number" 
-                      min={1} 
-                      value={credits} 
-                      onChange={(e: any) => setCredits(Number(e.target.value))} 
-                    />
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                      <div className="w-px h-8 bg-white/5" />
-                      <div className="text-xs font-black text-white/20 uppercase tracking-tighter">Credits</div>
-                    </div>
-                  </div>
-                  <p className="text-xs text-white/30 leading-relaxed max-w-md px-2">
-                    Increasing this value will charge users more for each PDF generated. The change is applied immediately to all future tool runs.
-                  </p>
-                </div>
-
-                <div 
-                  className="flex items-center justify-between p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 group hover:bg-white/[0.04] transition-all cursor-pointer"
-                  onClick={() => setActive(!active)}
-                >
-                  <div className="flex items-center gap-5">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                      <Power className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-white">Maintenance Mode</div>
-                      <div className="text-sm text-white/40">Toggle tool visibility for end-users</div>
-                    </div>
-                  </div>
-                  <div className={`w-14 h-7 rounded-full relative transition-all duration-500 ${active ? 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-white/10'}`}>
-                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-lg transition-all duration-500 ${active ? 'left-8' : 'left-1'}`} />
-                  </div>
-                </div>
-              </div>
-
-              {msg && (
-                <div className={`p-6 rounded-3xl border flex items-center gap-4 text-sm font-medium animate-in zoom-in-95 ${
-                  msg.type === 'success' 
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                    : 'bg-red-500/10 border-red-500/20 text-red-400'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full ${msg.type === 'success' ? 'bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-red-400 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`} />
-                  {msg.text}
-                </div>
-              )}
-
-              <button 
-                className="ui-btn-primary w-full py-6 text-lg font-bold flex items-center justify-center gap-3 relative overflow-hidden group shadow-2xl shadow-blue-500/20 rounded-3xl hover:scale-[1.01] active:scale-100 transition-all" 
-                onClick={save} 
-                disabled={busy || credits <= 0}
-              >
-                {busy ? (
-                  <>
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    Propagating Changes...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    Commit Pricing Policy
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+        <div className="mt-12 p-8 rounded-[2.5rem] bg-amber-500/5 border border-amber-500/10 flex items-start gap-4">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-500/80 font-medium leading-relaxed">
+            <span className="font-black uppercase text-amber-500 block mb-1">Global Impact</span>
+            Changes to tool pricing and availability take effect immediately for all users. Disabling a tool will hide it from the tools directory and prevent new runs.
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
