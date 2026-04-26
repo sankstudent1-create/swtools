@@ -154,6 +154,15 @@ export default function TopupClient({ userId, userEmail }: Props) {
         const fileExt = fileToUpload.name.split('.').pop()
         const fileName = `${userId}/${Date.now()}.${fileExt}`
 
+        // 1. Storage Upload
+        const startTime = Date.now()
+        console.log('[topup] Starting upload:', {
+          fileName,
+          fileSize: fileToUpload.size,
+          fileType: fileToUpload.type,
+          timestamp: new Date().toISOString()
+        })
+
         const uploadRes = (await withTimeout(
           supabase.storage.from('topup-screenshots').upload(fileName, fileToUpload, {
             cacheControl: '3600',
@@ -163,19 +172,36 @@ export default function TopupClient({ userId, userEmail }: Props) {
           'Screenshot upload'
         )) as any
 
+        const duration = Date.now() - startTime
+
         if (uploadRes?.error) {
-          console.error('[topup] Upload error details:', {
+          console.error('[topup] Upload FAILED:', {
             error: uploadRes.error,
+            code: uploadRes.error?.code,
+            statusCode: uploadRes.error?.status,
+            message: uploadRes.error?.message,
+            durationMs: duration,
             fileName,
             fileSize: fileToUpload.size,
-            fileType: fileToUpload.type,
-            userId
+            networkStatus: navigator.onLine ? 'online' : 'offline',
           })
+          
+          let userMsg = `Upload failed (${uploadRes.error.message || 'Unknown error'}).`
+          if (duration >= 90000) {
+            userMsg = `Upload timed out after 90s. Even small files can fail if the connection to storage is blocked.`
+          }
+          
           setError(
-            `Screenshot upload failed. This could be due to a network issue or storage limit. Error: ${uploadRes.error.message || 'Unknown storage error'}`
+            `${userMsg} Please check if you have an ad-blocker or firewall blocking supabase.co, or try just submitting the UTR.`
           )
           return
         }
+
+        console.log('[topup] Upload SUCCESS:', {
+          durationMs: duration,
+          path: uploadRes.data?.path,
+          size: fileToUpload.size
+        })
 
         screenshotPath = uploadRes?.data?.path ?? null
       }
