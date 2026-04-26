@@ -41,12 +41,15 @@ export async function elementToPdfBlobA4(el: HTMLElement) {
   const { jsPDF } = await import('jspdf')
 
   const canvas = await html2canvas(el, {
-    scale: 1.35,
+    scale: 3,
     useCORS: true,
     backgroundColor: '#ffffff',
+    logging: false,
+    imageTimeout: 0,
+    allowTaint: true
   })
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.92)
+  const imgData = canvas.toDataURL('image/jpeg', 1.0)
 
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -177,12 +180,15 @@ export async function htmlPagesToPdfBlobA4(html: string, pageSelector: string) {
 
     for (let i = 0; i < pages.length; i++) {
       const canvas = await html2canvas(pages[i], {
-        scale: 1.35,
+        scale: 3,
         useCORS: true,
         backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 0,
+        allowTaint: true
       })
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.92)
+      const imgData = canvas.toDataURL('image/jpeg', 1.0)
       const pageWidth = pdf.internal.pageSize.getWidth()
       const pageHeight = pdf.internal.pageSize.getHeight()
       const imgWidth = pageWidth
