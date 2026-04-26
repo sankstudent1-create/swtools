@@ -84,8 +84,8 @@ export default function TopupClient({ userId, userEmail }: Props) {
       addLog(`PHASE 4: Raw Uploading ${fileToUpload.size} bytes...`)
       const startUpload = Date.now()
       
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      const token = currentSession?.access_token
 
       // Direct fetch to bypass client wrapper logic
       const uploadUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/manual-topup-proofs/${fileName}`
