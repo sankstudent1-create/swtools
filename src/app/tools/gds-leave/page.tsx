@@ -10,7 +10,6 @@ import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
 import { openWatermarkedPreviewWindow, buildPrintHTML } from '@/lib/gds/printBuilder';
 import { htmlPagesToPdfBlobA4 } from '@/lib/pdf/htmlToPdfBase64';
-import PremiumToolWrapper from '@/components/PremiumToolWrapper';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
@@ -108,14 +107,7 @@ export default function GDSLeavePage() {
   }, []);
 
   return (
-    <PremiumToolWrapper
-      toolId="gds_leave"
-      toolName="GDS Leave Application"
-      requiredCredits={5}
-      onConfirmDownload={handlePrint}
-      isProcessing={isCharging}
-    >
-      <div className={styles.root}>
+    <div className={styles.root}>
         {/* ── Header ── */}
         <header className={styles.header}>
           <div className={styles.headerBrand}>
@@ -196,6 +188,5 @@ export default function GDSLeavePage() {
           <div className={styles.toast}>{toast}</div>
         )}
       </div>
-    </PremiumToolWrapper>
   );
 }

@@ -11,8 +11,6 @@ import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
 import { elementToPdfBlobA4 } from '@/lib/pdf/htmlToPdfBase64';
-import PremiumToolWrapper from '@/components/PremiumToolWrapper';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function LetterpadGeneratorPage() {
   const {
@@ -136,14 +134,7 @@ export default function LetterpadGeneratorPage() {
   }, [updateForm]);
 
   return (
-    <PremiumToolWrapper
-      toolId="letterpad_generator"
-      toolName="Letterpad Generator"
-      requiredCredits={15}
-      onConfirmDownload={doPrint}
-      isProcessing={isCharging}
-    >
-      <div className={styles.letterpadRoot}>
+    <div className={styles.letterpadRoot}>
         {/* Google Fonts */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
@@ -228,7 +219,6 @@ export default function LetterpadGeneratorPage() {
             </div>
           </main>
         </div>
-      </div>
-    </PremiumToolWrapper>
+    </div>
   );
 }

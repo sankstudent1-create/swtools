@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { usePathname } from 'next/navigation'
 import { 
   X, 
   Wallet, 
@@ -56,12 +55,6 @@ export default function PremiumToolWrapper({
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-
-  const pathname = usePathname()
-  const isFullscreenTool = useMemo(() => {
-    const FULLSCREEN_TOOLS = ['/tools/letterpad-generator', '/tools/gds-leave', '/tools/td-commission']
-    return FULLSCREEN_TOOLS.some(p => pathname?.startsWith(p))
-  }, [pathname])
 
   const fetchBalance = useCallback(async (userId: string) => {
     try {
@@ -184,66 +177,6 @@ export default function PremiumToolWrapper({
 
   return (
     <div className="relative min-h-screen">
-      {/* ── PREMIUM INTEGRATED BAR ── */}
-      <div
-        className={`sticky ${isFullscreenTool ? 'top-[52px] z-[450]' : 'top-16 z-[45]'} w-full border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl pointer-events-auto`}
-      >
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-3 group cursor-pointer" onClick={handleRefreshBalance}>
-              <div className={`p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20 transition-all ${isRefreshing ? 'ring-2 ring-blue-500/40' : ''}`}>
-                <Wallet className={`w-4 h-4 text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em] leading-none mb-1.5 flex items-center gap-1.5">
-                  Credits 
-                  {isRefreshing && <RefreshCcw className="w-2 h-2 animate-spin" />}
-                </span>
-                <span className="text-[13px] font-bold text-white leading-none tracking-tight font-mono">
-                  {balance !== null ? balance.toLocaleString() : user === undefined ? '···' : '—'}
-                </span>
-              </div>
-            </div>
-
-            <div className="h-6 w-px bg-white/5" />
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/5 border border-amber-500/10">
-              <Sparkles className="w-3 h-3 text-amber-500/60" />
-              <span className="text-[9px] font-bold text-amber-500/60 uppercase tracking-widest hidden xs:inline">Premium Service</span>
-              <span className="text-[9px] font-bold text-amber-500/60 uppercase tracking-widest xs:hidden">Premium</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={fetchHistory}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-white/10 text-white/60 hover:text-white transition-all text-xs font-bold active:scale-95"
-            >
-              <History className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">My History</span>
-            </button>
-            
-            <button 
-              onClick={handleDownloadClick}
-              disabled={isProcessing || user === undefined}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-500 text-white transition-all text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 active:scale-95 group"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Preparing...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" />
-                  <span>Download PDF</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Actual Tool UI */}
       <div className={`relative ${isProcessing ? 'pointer-events-none' : ''}`}>
         {isProcessing && (

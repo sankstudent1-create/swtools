@@ -5,7 +5,6 @@ import Link from 'next/link'
 import type { EntryRow, OfficeDetails, TermKey } from '@/types/td-commission'
 import { numToWords, formatINR, RATES } from '@/lib/td-commission/pdf'
 import { useLS } from '@/hooks/useLS'
-import PremiumToolWrapper from '@/components/PremiumToolWrapper'
 import AutocompleteInput from '@/components/td-commission/AutocompleteInput'
 import EntryRowComponent from '@/components/td-commission/EntryRow'
 import PreviewModal from '@/components/td-commission/PreviewModal'
@@ -173,14 +172,7 @@ export default function TDCommissionPage() {
   }
 
   return (
-    <PremiumToolWrapper
-      toolId="td_commission"
-      toolName="TD Commission / BPM"
-      requiredCredits={5}
-      onConfirmDownload={handleDownload}
-      isProcessing={isPdfBusy}
-    >
-      <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30 relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30 relative overflow-x-hidden font-sans">
         
         {/* GLASSMORPHISM BACKGROUND */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -388,12 +380,16 @@ export default function TDCommissionPage() {
             <Printer className="w-4 h-4" />
             Print
           </button>
+          <button onClick={handleDownload}
+            disabled={isPdfBusy}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white transition-all text-[13px] font-semibold shadow-xl shadow-emerald-500/20 active:scale-95">
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
         </div>
 
         <PreviewModal blobUrl={previewUrl} onClose={() => { setPreviewUrl(null) }} />
 
       </div>
-    </PremiumToolWrapper>
   )
 }
-
