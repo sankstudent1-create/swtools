@@ -27,13 +27,25 @@ export async function POST(req: NextRequest) {
       key_secret: razorpaySecret,
     })
 
+    // Fetch rate from DB to ensure credits are consistent
+    const { data: config } = await supabase
+      .from('site_config')
+      .select('value')
+      .eq('key', 'credits_per_inr')
+      .maybeSingle()
+    
+    const rate = config?.value ? Number(config.value) : 1
+    const expectedCredits = Math.floor(amount_inr * rate)
+
     const options = {
       amount: Math.round(amount_inr * 100), // paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`,
       notes: {
         userId: user.id,
-        userEmail: user.email
+        userEmail: user.email,
+        expectedCredits: String(expectedCredits),
+        rate: String(rate)
       }
     }
 
@@ -46,6 +58,7 @@ export async function POST(req: NextRequest) {
       amount_paise: options.amount,
       currency: 'INR',
       status: 'created',
+      credits_expected: expectedCredits,
       raw: order
     })
 

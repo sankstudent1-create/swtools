@@ -35,27 +35,48 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 2. Log Payment
+    // 2. Fetch Order from DB to verify amount and expected credits
+    const { data: dbOrder, error: dbOrderErr } = await supabase
+      .from('razorpay_orders')
+      .select('*')
+      .eq('razorpay_order_id', razorpay_order_id)
+      .single()
+
+    if (dbOrderErr || !dbOrder) {
+      return NextResponse.json({ error: 'Order not found in records' }, { status: 404 })
+    }
+
+    if (dbOrder.status === 'paid') {
+      return NextResponse.json({ error: 'Order already processed' }, { status: 400 })
+    }
+
+    // Verify amount in paise matches our record
+    const expectedPaise = Math.round(amount_inr * 100)
+    if (dbOrder.amount_paise !== expectedPaise) {
+       return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
+    }
+
+    // 3. Log Payment
     await supabase.from('razorpay_payments').insert({
       user_id: user.id,
       razorpay_payment_id,
       razorpay_order_id,
-      amount_paise: Math.round(amount_inr * 100),
+      amount_paise: dbOrder.amount_paise,
       currency: 'INR',
       status: 'captured',
-      raw: { signature: razorpay_signature }
+      raw: { signature: razorpay_signature, client_credits: credits }
     })
 
-    // 3. Update Order Status
+    // 4. Update Order Status
     await supabase
       .from('razorpay_orders')
       .update({ status: 'paid' })
       .eq('razorpay_order_id', razorpay_order_id)
 
-    // 4. Add Credits via RPC
+    // 5. Add Credits via RPC - ALWAYS use server-calculated expected credits
     const { error: creditErr } = await supabase.rpc('wallet_add_credits', {
       p_user_id: user.id,
-      p_delta_credits: credits,
+      p_delta_credits: dbOrder.credits_expected || 0,
       p_reason: 'razorpay_topup',
       p_ref_type: 'razorpay_payment',
       p_ref_id: razorpay_payment_id
