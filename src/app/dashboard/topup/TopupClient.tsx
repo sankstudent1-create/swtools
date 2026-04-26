@@ -48,6 +48,87 @@ export default function TopupClient({ userId, userEmail }: Props) {
   const [screenshot, setScreenshot] = useState<File | null>(null)
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
+  // --- NEW SCRATCH SCREENSHOT UPLOAD LOGIC ---
+  const [debugLog, setDebugLog] = useState<string[]>([])
+  const addLog = (msg: string) => {
+    console.log(`[PROOF_DEBUG] ${msg}`)
+    setDebugLog(prev => [...prev.slice(-19), `${new Date().toLocaleTimeString()}: ${msg}`])
+  }
+
+  const handleIsolatedUpload = async () => {
+    if (!screenshot) return
+    setSubmitBusy(true)
+    setError(null)
+    setDebugLog(['Starting isolated proof upload test...'])
+    
+    try {
+      // PHASE 1: PRE-CHECK
+      addLog('PHASE 1: Client Pre-check')
+      const { data: { session }, error: authErr } = await supabase.auth.getSession()
+      if (authErr || !session) throw new Error(`Auth failed: ${authErr?.message || 'No session'}`)
+      addLog(`Authenticated as: ${session.user.id}`)
+
+      // PHASE 2: BUCKET CHECK
+      addLog('PHASE 2: Bucket Health Check')
+      const { data: bucket, error: bErr } = await supabase.storage.getBucket('manual-topup-proofs')
+      if (bErr) throw new Error(`Bucket check failed: ${bErr.message}`)
+      addLog(`Bucket 'manual-topup-proofs' found (Public: ${bucket.public})`)
+
+      // PHASE 3: FILE PREP
+      addLog('PHASE 3: Image Processing')
+      const fileToUpload = await normalizeScreenshot(screenshot)
+      const fileName = `${userId}/TEST_${Date.now()}_${fileToUpload.name}`
+      addLog(`Processed file: ${fileToUpload.size} bytes, type: ${fileToUpload.type}`)
+
+      // PHASE 4: UPLOAD (THE CULPRIT)
+      addLog(`PHASE 4: Uploading ${fileToUpload.size} bytes...`)
+      const startUpload = Date.now()
+      
+      // We use a clean fetch-based approach for maximum transparency if the client fails
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('manual-topup-proofs')
+        .upload(fileName, fileToUpload, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      const duration = Date.now() - startUpload
+      if (uploadErr) {
+        addLog(`UPLOAD FAILED after ${duration}ms: ${uploadErr.message}`)
+        console.error('[PROOF_DEBUG] Full Upload Error:', uploadErr)
+        throw uploadErr
+      }
+      addLog(`UPLOAD SUCCESS in ${duration}ms. Path: ${uploadData.path}`)
+
+      // PHASE 5: DB RECORD
+      addLog('PHASE 5: Creating DB Record')
+      const dbRes = await fetch('/api/wallet/topup/manual-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount_inr: amount,
+          utr: `TEST_UTR_${Date.now()}`,
+          credits_requested: Math.floor(amount * creditsPerInr),
+          screenshot_path: uploadData.path,
+        }),
+      })
+
+      if (!dbRes.ok) {
+        const j = await dbRes.json()
+        throw new Error(`DB Insert failed: ${j.error || dbRes.statusText}`)
+      }
+      addLog('SUCCESS: Record created in manual_topup_requests')
+      setSubmitMsg('Proof uploaded and record created successfully!')
+      
+    } catch (e: any) {
+      addLog(`CRITICAL ERROR: ${e.message}`)
+      setError(e.message)
+    } finally {
+      setSubmitBusy(false)
+    }
+  }
+  // --- END NEW LOGIC ---
+
   useEffect(() => {
     let cancelled = false
     async function loadRate() {
@@ -399,6 +480,22 @@ export default function TopupClient({ userId, userEmail }: Props) {
                   onChange={(e) => setScreenshot(e.target.files?.[0] ?? null)}
                   className="block w-full text-xs text-white/60"
                 />
+                
+                {/* NEW DEBUG LOG WINDOW */}
+                {debugLog.length > 0 && (
+                  <div className="mt-3 p-3 bg-black rounded-lg border border-white/10 font-mono text-[10px] space-y-1">
+                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-1">
+                      <span className="text-blue-400 font-bold uppercase">Upload Diagnostics</span>
+                      <button onClick={() => setDebugLog([])} className="text-white/30 hover:text-white">Clear</button>
+                    </div>
+                    {debugLog.map((log, i) => (
+                      <div key={i} className={log.includes('ERROR') || log.includes('FAILED') ? 'text-red-400' : log.includes('SUCCESS') ? 'text-emerald-400' : 'text-white/60'}>
+                        {log}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {screenshotPreview ? (
                   <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
                     <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
@@ -406,14 +503,24 @@ export default function TopupClient({ userId, userEmail }: Props) {
                 ) : null}
               </div>
 
-              <button
-                className="ui-btn-primary w-full mt-5 inline-flex items-center justify-center gap-2"
-                onClick={submitUtr}
-                disabled={submitBusy || (!utr.trim() && !screenshot)}
-              >
-                {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                {submitBusy ? 'Submitting…' : 'Submit for Verification'}
-              </button>
+              <div className="grid grid-cols-2 gap-3 mt-5">
+                <button
+                  className="ui-btn-secondary w-full inline-flex items-center justify-center gap-2"
+                  onClick={submitUtr}
+                  disabled={submitBusy || !utr.trim()}
+                >
+                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  UTR Only
+                </button>
+                <button
+                  className="ui-btn-primary w-full inline-flex items-center justify-center gap-2"
+                  onClick={handleIsolatedUpload}
+                  disabled={submitBusy || !screenshot}
+                >
+                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  Proof + DB
+                </button>
+              </div>
 
               <div className="mt-3 text-[11px] text-white/40">
                 You can submit:
