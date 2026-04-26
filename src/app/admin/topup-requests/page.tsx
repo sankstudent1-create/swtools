@@ -69,6 +69,78 @@ export default function AdminTopupRequestsPage() {
     newAmount?: number;
   }[]>([])
 
+  const [isBulkScanning, setIsBulkScanning] = useState(false)
+  const [bulkScanProgress, setBulkScanProgress] = useState({ current: 0, total: 0 })
+
+  const handleBulkScan = async () => {
+    const pendingWithProof = requests.filter(r => 
+      r.status === 'pending' && 
+      r.screenshot_path && 
+      (!r.utr || r.utr.startsWith('pending_ocr'))
+    )
+
+    if (pendingWithProof.length === 0) {
+      alert('No pending requests found that need scanning.')
+      return
+    }
+
+    if (!confirm(`Start scanning ${pendingWithProof.length} requests? This will use your browser's OCR and may take a moment.`)) return
+
+    setIsBulkScanning(true)
+    setBulkScanProgress({ current: 0, total: pendingWithProof.length })
+
+    const worker = await Tesseract.createWorker('eng', 1, {
+      logger: m => console.log(`[bulk-scan] ${m.status}: ${Math.round(m.progress * 100)}%`)
+    })
+
+    try {
+      for (let i = 0; i < pendingWithProof.length; i++) {
+        const req = pendingWithProof[i]
+        setBulkScanProgress(prev => ({ ...prev, current: i + 1 }))
+        
+        const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${req.screenshot_path}`
+        const { data: { text } } = await worker.recognize(imageUrl)
+        
+        const utrPatterns = [
+          /UTR\D*(\d{12})/i,
+          /Transaction\s*ID\D*(\d{12})/i,
+          /Ref\D*(\d{12})/i,
+          /\b\d{12}\b/
+        ]
+
+        let detected = null
+        for (const pattern of utrPatterns) {
+          const match = text.match(pattern)
+          if (match) {
+            detected = match[1] || match[0]
+            break
+          }
+        }
+
+        if (detected) {
+          // Update Backend
+          const res = await fetch('/api/admin/topup-requests/update-utr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: req.id, utr: detected })
+          })
+          
+          if (res.ok) {
+            setRequests(prev => prev.map(p => p.id === req.id ? { ...p, utr: detected } : p))
+          }
+        }
+      }
+      alert(`Bulk scan completed! Processed ${pendingWithProof.length} requests.`)
+    } catch (err: any) {
+      console.error('Bulk Scan Error:', err)
+      alert('Bulk scan encountered an error.')
+    } finally {
+      await worker.terminate()
+      setIsBulkScanning(false)
+      setBulkScanProgress({ current: 0, total: 0 })
+    }
+  }
+
   async function loadRequests() {
     setLoading(true)
     try {
@@ -552,6 +624,26 @@ export default function AdminTopupRequestsPage() {
                     {f}
                   </button>
                 ))}
+
+                {filter === 'pending' && (
+                  <button
+                    onClick={handleBulkScan}
+                    disabled={isBulkScanning}
+                    className="ml-4 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isBulkScanning ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Scanning {bulkScanProgress.current}/{bulkScanProgress.total}...
+                      </>
+                    ) : (
+                      <>
+                        <ScanLine className="w-3 h-3" />
+                        Scan All Pending
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
 
               <div className="relative group min-w-[300px]">
