@@ -75,10 +75,11 @@ export default function TopupClient({ userId, userEmail }: Props) {
       addLog(`Bucket 'manual-topup-proofs' found (Public: ${bucket.public})`)
 
       // PHASE 3: FILE PREP
-      addLog('PHASE 3: Image Processing')
-      const fileToUpload = await normalizeScreenshot(screenshot)
-      const fileName = `${userId}/TEST_${Date.now()}_${fileToUpload.name}`
-      addLog(`Processed file: ${fileToUpload.size} bytes, type: ${fileToUpload.type}`)
+      addLog('PHASE 3: Image Processing (SKIPPING NORMALIZATION)')
+      // SKIP normalization to see if canvas/createImageBitmap is the hang
+      const fileToUpload = screenshot
+      const fileName = `${userId}/RAW_${Date.now()}_${fileToUpload.name.replace(/\s+/g, '_')}`
+      addLog(`File ready: ${fileToUpload.size} bytes, type: ${fileToUpload.type}`)
 
       // PHASE 4: UPLOAD (RAW FETCH BYPASS)
       addLog(`PHASE 4: Raw Uploading ${fileToUpload.size} bytes...`)
