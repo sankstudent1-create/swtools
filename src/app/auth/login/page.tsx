@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
-import { LogIn, Key, Mail, ArrowRight, ShieldCheck, Github } from 'lucide-react'
+import { LogIn, Key, Mail, ArrowRight, ShieldCheck } from 'lucide-react'
 
 export default function LoginPage() {
   const searchParams = useSearchParams()
