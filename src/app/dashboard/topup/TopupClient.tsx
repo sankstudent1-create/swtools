@@ -19,9 +19,7 @@ import {
 } from 'lucide-react'
 
 const PRICING_PLANS = [
-  { amount: 99, tag: 'Starter' },
-  { amount: 199, tag: 'Best Value', popular: true },
-  { amount: 499, tag: 'Pro' },
+  { amount: 10, tag: 'Starter' },
 ]
 
 type Props = {
@@ -39,7 +37,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
     return client
   }, [])
 
-  const [amount, setAmount] = useState<number>(199)
+  const [amount, setAmount] = useState<number>(10)
   const [error, setError] = useState<string | null>(null)
   const [creditsPerInr, setCreditsPerInr] = useState<number>(1)
 
@@ -316,11 +314,6 @@ export default function TopupClient({ userId, userEmail }: Props) {
                   : 'hover:border-white/20'
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-500/20">
-                  Most Popular
-                </div>
-              )}
               <div className="text-xs font-bold text-white/40 uppercase mb-1">{plan.tag}</div>
               <div className="text-2xl font-bold mb-1">₹{plan.amount}</div>
               <div className="text-sm text-white/60">{Math.floor(plan.amount * creditsPerInr)} Credits</div>

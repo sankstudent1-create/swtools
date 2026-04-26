@@ -176,7 +176,7 @@ export default function PremiumToolWrapper({
   }
 
   return (
-    <div className="relative min-h-screen">
+    <>
       {/* Actual Tool UI */}
       <div className={`relative ${isProcessing ? 'pointer-events-none' : ''}`}>
         {isProcessing && (
@@ -292,7 +292,7 @@ export default function PremiumToolWrapper({
                     className="flex items-center justify-center gap-4 w-full py-5 rounded-[1.5rem] bg-blue-500 hover:bg-blue-600 text-white font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl shadow-blue-500/30 transition-all hover:scale-[1.05] active:scale-[0.95]"
                   >
                     <Wallet className="w-4 h-4" />
-                    Refill Wallet
+                    Topup ₹{Math.max(1, Math.ceil((requiredCredits - (balance || 0)) / creditsPerInr))} Now
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <button 
@@ -345,6 +345,6 @@ export default function PremiumToolWrapper({
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

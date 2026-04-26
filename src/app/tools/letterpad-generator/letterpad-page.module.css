@@ -2,6 +2,8 @@
 .letterpadRoot {
   background: #c0bbb2;
   min-height: 100vh;
+  display: flex;
+  justify-content: center;
 }
 
 /* ── Mobile tab bar ─────────────────────────────────────────── */
@@ -67,6 +69,8 @@
   display: grid;
   grid-template-columns: 310px 1fr;
   min-height: calc(100vh - 52px);
+  width: 100%;
+  max-width: 1440px;
 }
 
 /* ── Sidebar column is scrollable on its own ─────────────────── */
