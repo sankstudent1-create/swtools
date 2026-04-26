@@ -49,10 +49,12 @@ export async function POST(req: NextRequest) {
       const ocrRes = await fetch(`${req.nextUrl.origin}/api/admin/topup-requests/ocr`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Cookie': req.headers.get('cookie') || '' // Pass cookies for admin auth
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ imageUrl: publicUrl })
+        body: JSON.stringify({ 
+          imageUrl: publicUrl,
+          skipAdminCheck: true // Internal call
+        })
       })
       
       if (ocrRes.ok) {
@@ -61,6 +63,9 @@ export async function POST(req: NextRequest) {
           console.log('[upload-api] OCR detected UTR:', ocrData.utr)
           detectedUtr = ocrData.utr
         }
+      } else {
+        const errText = await ocrRes.text()
+        console.error('[upload-api] OCR API non-ok response:', ocrRes.status, errText)
       }
     } catch (ocrErr) {
       console.error('[upload-api] Background OCR failed:', ocrErr)

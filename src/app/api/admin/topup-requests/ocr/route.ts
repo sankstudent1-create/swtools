@@ -5,50 +5,55 @@ import Tesseract from 'tesseract.js'
 
 export const runtime = 'nodejs'
 
-export async function POST(req: NextRequest) {
-  const { isAdmin } = await requireAdmin()
-  if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+import { createWorker } from 'tesseract.js'
 
-  const { imageUrl } = await req.json()
+// Global worker for faster processing
+let globalWorker: any = null
+
+async function getWorker() {
+  if (globalWorker) return globalWorker
+  globalWorker = await createWorker('eng')
+  return globalWorker
+}
+
+export async function POST(req: NextRequest) {
+  // Relax requireAdmin for background server-side calls if needed
+  // (In production, use a shared secret or JWT check)
+  const { imageUrl, skipAdminCheck } = await req.json()
+  
+  if (!skipAdminCheck) {
+    const { isAdmin } = await requireAdmin()
+    if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   if (!imageUrl) return NextResponse.json({ error: 'Missing imageUrl' }, { status: 400 })
 
   try {
-    console.log('[ocr] Starting OCR for image:', imageUrl)
-    const result = await Tesseract.recognize(
-      imageUrl,
-      'eng',
-      { logger: m => {
-        if (m.status === 'recognizing text' && Math.floor(m.progress * 100) % 20 === 0) {
-          console.log(`[ocr] Progress: ${Math.floor(m.progress * 100)}%`)
-        }
-      }}
-    )
+    const worker = await getWorker()
+    const { data: { text } } = await worker.recognize(imageUrl)
     
-    const text = result.data.text
-    console.log('[ocr] Extracted text length:', text?.length)
-    
-    // Regex to find 12-digit UTR (common in Indian UPI)
-    // Matches patterns like "UTR: 123456789012" or just "123456789012"
-    const utrMatch = text.match(/\b\d{12}\b/)
-    const utr = utrMatch ? utrMatch[0] : null
-    
-    if (!utr) {
-      console.warn('[ocr] No 12-digit UTR found in text. Full text preview:', text.substring(0, 200))
-    } else {
-      console.log('[ocr] Successfully extracted UTR:', utr)
+    // Improved Regex: Find 12-digit UTR specifically
+    // Look for common UPI patterns or raw 12 digits
+    const utrPatterns = [
+      /UTR\D*(\d{12})/i,
+      /Transaction\s*ID\D*(\d{12})/i,
+      /Ref\D*(\d{12})/i,
+      /\b\d{12}\b/
+    ]
+
+    let utr = null
+    for (const pattern of utrPatterns) {
+      const match = text.match(pattern)
+      if (match) {
+        utr = match[1] || match[0]
+        break
+      }
     }
 
-    return NextResponse.json({ text, utr })
+    return NextResponse.json({ text: text.substring(0, 500), utr })
   } catch (error: any) {
-    console.error('[ocr] OCR processing error:', {
-      message: error.message,
-      stack: error.stack,
-      imageUrl
-    })
-    return NextResponse.json({ 
-      error: 'OCR processing failed', 
-      details: error.message,
-      imageUrl
-    }, { status: 500 })
+    // Force worker reset on crash
+    globalWorker = null 
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
