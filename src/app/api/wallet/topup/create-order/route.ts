@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const order = await razorpay.orders.create({
       amount: amountPaise,
       currency: 'INR',
-      receipt: `wallet_${auth.user.id}_${Date.now()}`,
+      receipt: `topup_${Date.now()}`,
       notes: {
         user_id: auth.user.id,
         purpose: 'wallet_topup',
