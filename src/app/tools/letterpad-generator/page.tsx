@@ -10,6 +10,7 @@ import EditToolbar from '@/components/letterpad/EditToolbar';
 import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
+import { elementToPdfBase64A4 } from '@/lib/pdf/htmlToPdfBase64';
 
 export default function LetterpadGeneratorPage() {
   const {
@@ -56,10 +57,18 @@ export default function LetterpadGeneratorPage() {
   async function doPrint() {
     setIsCharging(true);
     try {
+      const paper = document.getElementById('print-area') as HTMLElement | null
+      if (!paper) {
+        alert('Preview not ready')
+        return
+      }
+
+      const pdfBase64 = await elementToPdfBase64A4(paper)
+
       const res = await fetch('/api/tools/letterpad-generator/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'download' }),
+        body: JSON.stringify({ action: 'download', pdfBase64, filename: `Letterpad_${new Date().toISOString().slice(0, 10)}.pdf` }),
       });
 
       if (res.status === 401) {
@@ -77,23 +86,45 @@ export default function LetterpadGeneratorPage() {
         return;
       }
 
-      // Force scale=1 for print so paper renders at full A4 size
-      document.documentElement.style.setProperty('--paper-scale', '1');
-      window.print();
-      // Restore after print dialog closes (slight delay)
-      setTimeout(() => {
-        const vw = window.innerWidth;
-        let scale = 1;
-        if (vw <= 480)       scale = Math.max(0.35, (vw - 12) / 794);
-        else if (vw <= 640)  scale = Math.max(0.42, (vw - 16) / 794);
-        else if (vw <= 900)  scale = Math.max(0.65, (vw - 32) / 794);
-        document.documentElement.style.setProperty('--paper-scale', String(scale.toFixed(3)));
-      }, 800);
+      const binary = atob(pdfBase64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Letterpad_${new Date().toISOString().slice(0, 10)}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
     } catch (e) {
       alert('Connection error');
     } finally {
       setIsCharging(false);
     }
+  }
+
+  function doWatermarkedPreview() {
+    const paper = document.getElementById('print-area') as HTMLElement | null
+    if (!paper) {
+      alert('Preview not ready')
+      return
+    }
+
+    const html = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        body{margin:0;background:#111;color:#000;display:flex;justify-content:center;align-items:flex-start;padding:24px;}
+        .wrap{position:relative;}
+        .wrap::before{content:'PREVIEW';position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);font-size:96px;font-weight:800;letter-spacing:0.25em;color:rgba(255,255,255,0.08);z-index:9999;pointer-events:none;}
+        .wrap::after{content:'WATERMARKED PREVIEW';position:fixed;left:50%;top:calc(50% + 86px);transform:translateX(-50%);font-size:14px;font-weight:700;letter-spacing:0.35em;color:rgba(255,255,255,0.10);z-index:9999;pointer-events:none;}
+      </style></head><body><div class="wrap">${paper.outerHTML}</div></body></html>`
+
+    const blob = new Blob([html], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const w = window.open(url, '_blank')
+    if (!w) alert('Please allow popups to preview')
+    setTimeout(() => URL.revokeObjectURL(url), 15000)
   }
 
   const handleLogoPos = useCallback((side: LogoSide, pos: object) => {
@@ -133,8 +164,8 @@ export default function LetterpadGeneratorPage() {
             onClick={() => setMobileTab('preview')}
           >📄 Preview</button>
           {/* Print & PDF accessible on mobile too */}
-          <button className={styles.mobileTabPrint} onClick={doPrint}>🖨 Print</button>
-          <button className={`${styles.mobileTabPrint} ${styles.mobileTabPDF}`} onClick={doPrint}>⬇ PDF</button>
+          <button className={styles.mobileTabPrint} onClick={doWatermarkedPreview}>� Preview*</button>
+          <button className={`${styles.mobileTabPrint} ${styles.mobileTabPDF}`} onClick={doPrint}>⬇ Generate PDF</button>
         </div>
       )}
 
@@ -173,7 +204,7 @@ export default function LetterpadGeneratorPage() {
                 onToggleEncl={toggleEncl}
                 onToggleCopy={toggleCopy}
                 onToggleEndorse={toggleEndorse}
-                onPrint={doPrint}
+                onPrint={doWatermarkedPreview}
                 onPDF={doPrint}
               />
             </div>

@@ -235,3 +235,16 @@ export function openPreviewWindow(data: FormData): string {
   const blob = new Blob([html], { type: 'text/html' });
   return URL.createObjectURL(blob);
 }
+
+export function openWatermarkedPreviewWindow(data: FormData): string {
+  const html = buildPrintHTML(data, false);
+  const injected = html.replace(
+    '</head>',
+    `<style>
+      body::before{content:'PREVIEW';position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-24deg);font-size:96px;font-weight:800;letter-spacing:0.25em;color:rgba(0,0,0,0.08);z-index:9999;pointer-events:none;}
+      body::after{content:'WATERMARKED PREVIEW';position:fixed;left:50%;top:calc(50% + 86px);transform:translateX(-50%);font-size:14px;font-weight:700;letter-spacing:0.35em;color:rgba(0,0,0,0.10);z-index:9999;pointer-events:none;}
+    </style></head>`
+  )
+  const blob = new Blob([injected], { type: 'text/html' })
+  return URL.createObjectURL(blob)
+}

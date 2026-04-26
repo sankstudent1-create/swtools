@@ -39,8 +39,8 @@ export default function Appbar({ onPrint, onPDF, onToggleEndorse, onToggleCopy, 
       <div className={styles.right}>
         <button className={`${styles.btn} ${styles.btnGhost}`} onClick={onToggleEndorse}>+ Endorse</button>
         <button className={`${styles.btn} ${styles.btnGhost}`} onClick={onToggleCopy}>+ Copy To</button>
-        <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnPrint}`} onClick={onPrint}>🖨 Print</button>
-        <button className={`${styles.btn} ${styles.btnSaffron}`} onClick={onPDF}>⬇ PDF</button>
+        <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnPrint}`} onClick={onPrint}>� Preview*</button>
+        <button className={`${styles.btn} ${styles.btnSaffron}`} onClick={onPDF}>⬇ Generate PDF</button>
       </div>
     </header>
   );

@@ -8,7 +8,8 @@ import { LetterTab } from '@/components/gds/LetterTab';
 import type { FormData } from '@/types/gds';
 import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
-import { openPrintWindow, openPreviewWindow } from '@/lib/gds/printBuilder';
+import { openWatermarkedPreviewWindow, buildPrintHTML } from '@/lib/gds/printBuilder';
+import { htmlPagesToPdfBase64A4 } from '@/lib/pdf/htmlToPdfBase64';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
@@ -41,10 +42,13 @@ export default function GDSLeavePage() {
   async function handlePrint() {
     setIsCharging(true);
     try {
+      const html = buildPrintHTML(data, false)
+      const pdfBase64 = await htmlPagesToPdfBase64A4(html, '.pdf-page')
+
       const res = await fetch('/api/tools/gds-leave/charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tab }),
+        body: JSON.stringify({ tab, pdfBase64, filename: `GDS_Leave_${new Date().toISOString().slice(0, 10)}.pdf` }),
       });
 
       if (res.status === 401) {
@@ -62,8 +66,19 @@ export default function GDSLeavePage() {
         return;
       }
 
-      openPrintWindow(data);
-      showToast('✓ Print dialog opening… choose "Save as PDF" to download');
+      const binary = atob(pdfBase64)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `GDS_Leave_${new Date().toISOString().slice(0, 10)}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1500)
+      showToast('✓ PDF generated and saved to your account');
     } catch (e) {
       alert('Connection error. Please check your internet.');
     } finally {
@@ -73,7 +88,7 @@ export default function GDSLeavePage() {
 
   function handlePreview() {
     if (prevUrlRef.current) URL.revokeObjectURL(prevUrlRef.current);
-    const url = openPreviewWindow(data);
+    const url = openWatermarkedPreviewWindow(data);
     prevUrlRef.current = url;
     setPreviewUrl(url);
   }
@@ -162,7 +177,7 @@ export default function GDSLeavePage() {
           ) : (
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           )}
-          {isCharging ? 'Processing...' : 'Print / Save as PDF'}
+          {isCharging ? 'Processing...' : 'Generate PDF'}
         </button>
       </div>
 
