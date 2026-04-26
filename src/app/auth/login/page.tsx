@@ -56,8 +56,20 @@ export default function LoginPage() {
 
         <div className="relative z-10 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-3xl shadow-2xl">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 mb-6 shadow-xl shadow-blue-500/20 rotate-3 group hover:rotate-0 transition-all duration-500">
-              <img src="/brand/sw-logo-mark.svg" alt="SW Logo" className="w-10 h-10" />
+            <div className="flex justify-center mb-6">
+              <div className="flex items-center gap-3.5 group">
+                <div className="relative w-14 h-14 rounded-[1.25rem] bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_0_30px_rgba(59,130,246,0.1)]">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <img 
+                    src="/icon-192.png" 
+                    alt="SW Tools Logo" 
+                    className="w-8 h-8 object-contain relative z-10 transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <span className="font-heading font-bold text-4xl tracking-tighter text-white flex items-center italic">
+                  SW<span className="text-white/20 font-light ml-1 not-italic">Tools</span>
+                </span>
+              </div>
             </div>
             <h1 className="text-4xl font-black tracking-tighter text-white mb-3 italic uppercase leading-none">
               Welcome <span className="text-blue-500">Back</span>
