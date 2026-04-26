@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Settings, Save, ArrowLeft, Loader2, Cpu, Globe, Zap, ShieldCheck, AlertTriangle, CreditCard } from 'lucide-react'
+import { Settings, Save, ArrowLeft, Loader2, Cpu, Globe, Zap, ShieldCheck, CreditCard } from 'lucide-react'
 
 export default function AdminSettingsPage() {
   const [config, setConfig] = useState({
@@ -219,3 +219,5 @@ export default function AdminSettingsPage() {
         </div>
       </div>
     </main>
+  )
+}
