@@ -12,7 +12,7 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
     `<div class="t ${cls}" style="${style}">${content}</div>`;
   const UL = (style: string) => `<div class="ul" style="${style}"></div>`;
   const UV = (id: string, style: string, content: string) =>
-    `<div class="ulv" style="${style}">${content}</div>`;
+    `<div class="ulv" style="display:flex;align-items:flex-end;${style}">${content}</div>`;
 
   return `
 <div class="pdf-page">
@@ -25,48 +25,48 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
   ${T('left:19mm;top:25mm','sz12','Name')}
   ${T('left:52mm;top:25mm','sz12',':')}
   ${UL('left:55mm;top:29.5mm;right:11.5mm')}
-  ${UV('','left:55.5mm;top:25.7mm;right:12mm',a.name)}
+  ${UV('','left:55.5mm;top:24.2mm;right:12mm;height:5mm',a.name)}
 
   ${T('left:11.5mm;top:33.5mm','sz12','2.')}
   ${T('left:19mm;top:33.5mm','sz12','Designation')}
   ${T('left:52mm;top:33.5mm','sz12',':')}
   ${UL('left:55mm;top:38mm;right:11.5mm')}
-  ${UV('','left:55.5mm;top:34.2mm;right:12mm',a.desig)}
+  ${UV('','left:55.5mm;top:32.7mm;right:12mm;height:5mm',a.desig)}
 
   ${T('left:11.5mm;top:42mm','sz12','3.')}
   ${T('left:19mm;top:42mm','sz12','Nature and period of leave required (Paid leave/LWA)')}
   ${T('left:138mm;top:42mm','sz12',':')}
   ${UL('left:141mm;top:46.5mm;right:11.5mm')}
-  ${UV('','left:141.5mm;top:42.7mm;right:12mm',l.leaveType)}
+  ${UV('','left:141.5mm;top:41.2mm;right:12mm;height:5mm',l.leaveType)}
 
   ${T('left:11.5mm;top:50mm','sz12','4.')}
   ${T('left:19mm;top:50mm','sz12','Date for which leave is required')}
   ${T('left:88mm;top:50mm','sz12',':')}
   ${UL('left:91mm;top:54.5mm;right:11.5mm')}
-  ${UV('','left:91.5mm;top:50.7mm;right:12mm',d.dateStr)}
+  ${UV('','left:91.5mm;top:49.2mm;right:12mm;height:5mm',d.dateStr)}
 
   ${T('left:11.5mm;top:58mm','sz12','5.')}
   ${T('left:19mm;top:58mm','sz12','Grounds on which leave applied (Personal affairs / Medical')}
   ${T('left:19mm;top:63mm','sz12','ground / to officiate in a departmental post)')}
   ${T('left:113mm;top:63mm','sz12',':')}
   ${UL('left:116mm;top:67.5mm;right:11.5mm')}
-  ${UV('','left:116.5mm;top:63.7mm;right:12mm',l.ground)}
+  ${UV('','left:116.5mm;top:62.2mm;right:12mm;height:5mm',l.ground)}
 
   ${T('left:11.5mm;top:73mm','sz12','6.')}
   ${T('left:19mm;top:73mm','sz12','Full address while on leave')}
   ${T('left:76mm;top:73mm','sz12',':')}
   ${UL('left:79mm;top:77.5mm;right:11.5mm')}
-  ${UV('','left:79.5mm;top:73.7mm;right:12mm', addrLines[0] || '')}
+  ${UV('','left:79.5mm;top:72.2mm;right:12mm;height:5mm', addrLines[0] || '')}
   ${UL('left:19mm;top:87.5mm;right:11.5mm')}
-  ${UV('','left:19.5mm;top:83.7mm;right:12mm', addrLines[1] || '')}
+  ${UV('','left:19.5mm;top:82.2mm;right:12mm;height:5mm', addrLines[1] || '')}
 
   ${T('left:11.5mm;top:93mm','sz12','7.')}
   ${T('left:19mm;top:93mm','sz12','Name, Age and address of the substitute')}
   ${T('left:107mm;top:93mm','sz12',':')}
   ${UL('left:110mm;top:97.5mm;right:11.5mm')}
-  ${UV('','left:110.5mm;top:93.7mm;right:12mm', d.subLine1)}
+  ${UV('','left:110.5mm;top:92.2mm;right:12mm;height:5mm', d.subLine1)}
   ${UL('left:19mm;top:107.5mm;right:11.5mm')}
-  ${UV('','left:19.5mm;top:103.7mm;right:12mm', s.address)}
+  ${UV('','left:19.5mm;top:102.2mm;right:12mm;height:5mm', s.address)}
 
   ${T('left:11.5mm;top:113mm','sz12','8.')}
   ${T('left:19mm;top:113mm','sz12','Specimen signature of the substitute')}
@@ -87,9 +87,9 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
   </div>
 
   ${T('left:11.5mm;top:159mm','sz12','Station :')}
-  <div class="ulv" style="left:33mm;top:159mm;font-size:12pt;max-width:60mm;">${a.station}</div>
+  <div class="ulv" style="left:33mm;top:157.5mm;font-size:12pt;max-width:60mm;height:5mm;display:flex;align-items:flex-end;">${a.station}</div>
   ${T('left:11.5mm;top:165mm','sz12','Date &nbsp;&nbsp;&nbsp;&nbsp; :')}
-  <div class="ulv" style="left:31mm;top:165mm;font-size:12pt;">${d.appDateFormatted}</div>
+  <div class="ulv" style="left:31mm;top:163.5mm;font-size:12pt;height:5mm;display:flex;align-items:flex-end;">${d.appDateFormatted}</div>
   ${T('right:11.5mm;top:165mm','bold sz12','Signature of the Gramin Dak Sevak')}
 
   ${T('left:50%;transform:translateX(-50%);top:174mm','bold sz12','LEAVE SANCTION ORDERS')}
@@ -136,19 +136,19 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
   ${T('left:22mm;top:252mm','sz12','1.')}
   ${T('left:28mm;top:252mm','sz12','Shri/Smt/Kum.')}
   ${UL('left:60mm;top:256.5mm;width:82mm')}
-  ${UV('','left:60.5mm;top:252.7mm;width:81mm', a.name)}
+  ${UV('','left:60.5mm;top:251.2mm;width:81mm;height:5mm', a.name)}
   ${T('left:144mm;top:252mm','sz12','GDS.')}
 
   ${T('left:22mm;top:257.5mm','sz12','2.')}
   ${T('left:28mm;top:257.5mm','sz12','Shri/Smt/Kum.')}
   ${UL('left:60mm;top:262mm;width:82mm')}
-  ${UV('','left:60.5mm;top:258.2mm;width:81mm', s.name)}
+  ${UV('','left:60.5mm;top:256.7mm;width:81mm;height:5mm', s.name)}
   ${T('left:144mm;top:257.5mm','sz12','(Substitute).')}
 
   ${T('left:22mm;top:263mm','sz12','3.')}
   ${T('left:28mm;top:263mm','sz12','Postmaster')}
   ${UL('left:47mm;top:267.5mm;width:110mm')}
-  ${UV('','left:47.5mm;top:263.7mm;width:109mm', sn.postmaster)}
+  ${UV('','left:47.5mm;top:262.2mm;width:109mm;height:5mm', sn.postmaster)}
   ${T('left:158.5mm;top:263mm','sz12','.')}
 </div>`;
 }
