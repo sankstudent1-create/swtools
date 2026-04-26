@@ -27,6 +27,7 @@ export default function TopupPage() {
 
   const [user, setUser] = useState<any>(null)
   const [authReady, setAuthReady] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -53,6 +54,28 @@ export default function TopupPage() {
           setTimeout(() => reject(new Error(`${label} timed out`)), ms)
         ),
       ])
+    }
+
+    const buildDiag = (extra?: Record<string, any>) => {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      const base = {
+        hasSupabaseUrl: Boolean(url),
+        hasAnonKey: Boolean(anon),
+        online: typeof navigator !== 'undefined' ? navigator.onLine : null,
+        cookieEnabled: typeof navigator !== 'undefined' ? (navigator as any).cookieEnabled : null,
+        hasLocalStorage: typeof window !== 'undefined' ? (() => {
+          try {
+            const k = '__swtools_test__'
+            window.localStorage.setItem(k, '1')
+            window.localStorage.removeItem(k)
+            return true
+          } catch {
+            return false
+          }
+        })() : null,
+      }
+      return JSON.stringify({ ...base, ...extra }, null, 2)
     }
 
     const sub: any = supabase.auth.onAuthStateChange((_event: any, session: any) => {
@@ -96,8 +119,18 @@ export default function TopupPage() {
           setAuthReady(true)
         })
       } catch (e: any) {
+        const msg = e?.message || 'Failed to load authentication'
+        const diag = buildDiag({ error: msg })
+        console.error('[topup] auth bootstrap failed', msg, diag)
         safeSet(() => {
-          setError(e?.message || 'Failed to load authentication')
+          setDebugInfo(diag)
+          if (String(msg).includes('timed out')) {
+            setError(
+              'Auth is taking too long on this page. This is usually caused by missing Supabase environment variables on this deployment, blocked cookies/storage (privacy/adblock), or unstable network. Please check the debug details below.'
+            )
+          } else {
+            setError(msg)
+          }
           setAuthReady(true)
         })
       }
@@ -403,9 +436,13 @@ export default function TopupPage() {
             </div>
 
             {error ? (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              <div className="mb-6 p-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm">
                 {error}
+                {debugInfo ? (
+                  <pre className="mt-3 text-[10px] leading-relaxed whitespace-pre-wrap text-red-300/80">
+                    {debugInfo}
+                  </pre>
+                ) : null}
               </div>
             ) : null}
 
