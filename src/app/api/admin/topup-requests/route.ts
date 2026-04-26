@@ -9,22 +9,34 @@ export async function GET(req: NextRequest) {
   if (!isAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const admin = createSupabaseAdminClient()
-  const { data, error } = await admin
+  const { data: requests, error } = await admin
     .from('manual_topup_requests')
-    .select(`
-      *,
-      profiles:user_id (
-        email,
-        full_name
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ requests: data })
+  const userIds = Array.from(new Set((requests ?? []).map((r: any) => r.user_id).filter(Boolean)))
+  let profilesById = new Map<string, any>()
+  if (userIds.length > 0) {
+    const { data: profiles, error: profErr } = await admin
+      .from('profiles')
+      .select('id,email,full_name')
+      .in('id', userIds)
+
+    if (!profErr && profiles) {
+      profilesById = new Map(profiles.map((p: any) => [p.id, p]))
+    }
+  }
+
+  const merged = (requests ?? []).map((r: any) => ({
+    ...r,
+    profiles: profilesById.get(r.user_id) ?? null,
+  }))
+
+  return NextResponse.json({ requests: merged })
 }
 
 type ApproveBody = {
