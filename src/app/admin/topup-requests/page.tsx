@@ -175,74 +175,76 @@ export default function AdminTopupRequestsPage() {
       const text = await file.text()
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
 
-      // naive CSV parse: split by comma, search for first 12-digit number in row
-      const utrRows: { utr: string; amount: number }[] = []
-      for (const line of lines.slice(0, 5000)) {
-        const utr = parseUtrFromText(line)
-        if (!utr) continue
-        
-        const cols = line.split(',').map(c => c.trim())
-        // Improved Amount Detection:
-        // 1. Look for columns starting with currency symbol ₹
-        // 2. Skip columns that match date patterns (e.g. 26/04/2026, 2026-04-26)
-        // 3. Ignore numeric strings that are exactly 8 digits (often DDMMYYYY or YYYYMMDD)
-        // 4. Look for columns with decimal points (e.g. 199.00)
-        // 5. Fallback to first positive number that isn't the UTR and isn't a likely date
-        let amount = 0
-        
-        // Priority 0: Columns starting with ₹ (User identified this as a strong signal)
-        for (const col of cols) {
-          if (col.startsWith('₹') || col.includes('₹')) {
-            const cleanCol = col.replace(/[^\d.]/g, '')
-            const val = parseFloat(cleanCol)
-            if (!isNaN(val) && val > 0) {
-              amount = val
-              break
-            }
-          }
-        }
-        
-        // Priority 1: Columns with decimal points that aren't dates or UTR
-        if (amount === 0) {
-          for (const col of cols) {
-            if (col === utr) continue
-            if (col.includes('/') || col.includes('-')) continue // Likely a date
-            
-            const cleanCol = col.replace(/[^\d.]/g, '')
-            if (cleanCol.includes('.')) {
-              const val = parseFloat(cleanCol)
-              if (!isNaN(val) && val > 0 && val < 1000000 && cleanCol.length !== 8) { 
-                amount = val
-                break
-              }
-            }
-          }
-        }
-        
-        // Priority 2: Any positive number if amount still 0
-        if (amount === 0) {
-          for (const col of cols) {
-            const cleanCol = col.replace(/[^\d.]/g, '')
-            if (cleanCol === utr) continue
-            if (col.includes('/') || col.includes('-')) continue
-            
-            // Heuristic: If it's exactly 8 digits, it's likely a date (DDMMYYYY)
-            if (cleanCol.length === 8) continue 
-            
-            // If the user says 262026 is a date, it might be DDMYYY or similar.
-            // Let's also check for lengths 6 or 8.
-            if (cleanCol.length === 6) continue
+    // naive CSV parse: split by comma, search for first 12-digit number in row
+    const utrRows: { utr: string; amount: number }[] = []
+    const processedLines = lines.slice(0, 5000)
+    
+    // Track which lines were actually parsed to help debugging
+    console.log(`[admin] Parsing ${processedLines.length} CSV lines`)
 
+    for (const line of processedLines) {
+      const utr = parseUtrFromText(line)
+      if (!utr) continue
+      
+      // Clean line: replace common CSV separators if they aren't commas (some banks use ;)
+      const cleanLine = line.includes(';') ? line.replace(/;/g, ',') : line
+      const cols = cleanLine.split(',').map(c => c.trim())
+      
+      let amount = 0
+      
+      // Priority 0: Columns starting with ₹
+      for (const col of cols) {
+        if (col.startsWith('₹') || col.includes('₹')) {
+          const cleanCol = col.replace(/[^\d.]/g, '')
+          const val = parseFloat(cleanCol)
+          if (!isNaN(val) && val > 0) {
+            amount = val
+            break
+          }
+        }
+      }
+      
+      // Priority 1: Columns with decimal points that aren't dates or UTR
+      if (amount === 0) {
+        for (const col of cols) {
+          if (col === utr) continue
+          if (col.includes('/') || col.includes('-')) continue 
+          
+          const cleanCol = col.replace(/[^\d.]/g, '')
+          if (cleanCol.includes('.')) {
             const val = parseFloat(cleanCol)
-            if (!isNaN(val) && val > 0 && val < 1000000) {
+            // Amount should be > 0 and not too large, and not just 8 digits (YYYYMMDD)
+            if (!isNaN(val) && val > 0 && val < 10000000 && cleanCol.replace('.', '').length !== 8) { 
               amount = val
               break
             }
           }
         }
-        
-        utrRows.push({ utr, amount })
       }
+      
+      // Priority 2: Any positive number if amount still 0
+      if (amount === 0) {
+        for (const col of cols) {
+          const cleanCol = col.replace(/[^\d.]/g, '')
+          if (!cleanCol || cleanCol === utr) continue
+          if (col.includes('/') || col.includes('-')) continue
+          
+          if (cleanCol.length === 8 || cleanCol.length === 6) continue 
+
+          const val = parseFloat(cleanCol)
+          if (!isNaN(val) && val > 0 && val < 10000000) {
+            amount = val
+            break
+          }
+        }
+      }
+      
+      if (amount > 0) {
+        utrRows.push({ utr, amount })
+      } else {
+        console.warn('[admin] Found UTR but could not detect amount in line:', line)
+      }
+    }
 
       if (utrRows.length === 0) {
         setCsvMsg('No UTRs found in CSV')
@@ -300,19 +302,26 @@ export default function AdminTopupRequestsPage() {
 
   const approveCsvMatches = async () => {
     // Filter for requests that either match exactly OR have been manually reviewed/edited
-    const toProcess = csvMatches.filter(m => m.amountMatch || m.isEditing)
+    const toProcess = csvMatches.filter(m => m.amountMatch || m.isEditing || m.newAmount !== undefined)
     if (toProcess.length === 0) {
       alert('No valid matches to approve.')
       return
     }
     
-    if (!confirm(`Approve ${toProcess.length} requests? This will update the database with the CSV Amount (or edited amount) and Credits.`)) return
+    if (!confirm(`Approve ${toProcess.length} requests? This will update the database with the Bank Statement Amount (or edited amount) and corresponding Credits.`)) return
 
     setCsvBusy(true)
     setCsvMsg(null)
     try {
       for (const m of toProcess) {
-        const finalAmount = m.newAmount !== undefined ? m.newAmount : m.csvAmount
+        // Use newAmount if explicitly set (manually edited), otherwise use the csvAmount (bank statement)
+        const finalAmount = m.newAmount !== undefined ? m.newAmount : (m.csvAmount || 0)
+        
+        if (finalAmount <= 0) {
+           console.warn('[admin] Skipping approval for zero/negative amount', m.requestId)
+           continue
+        }
+
         // 1. First update the request with the actual CSV amount and credits
         const updateRes = await fetch('/api/admin/topup-requests/update-details', {
           method: 'POST',
@@ -325,7 +334,8 @@ export default function AdminTopupRequestsPage() {
         })
 
         if (!updateRes.ok) {
-          console.error('[admin] Failed to update request details before approval', m.requestId)
+          const err = await updateRes.json().catch(() => ({ error: 'Update failed' }))
+          throw new Error(`Failed to update amount for UTR ${m.utr}: ${err.error}`)
         }
 
         // 2. Then approve
@@ -336,7 +346,7 @@ export default function AdminTopupRequestsPage() {
         })
         if (!res.ok) {
           const j = await res.json().catch(() => null)
-          throw new Error(j?.error || 'Bulk approve failed')
+          throw new Error(`Approval failed for UTR ${m.utr}: ${j?.error || 'Unknown error'}`)
         }
       }
       setCsvMsg('Approved matched requests')
@@ -605,12 +615,12 @@ export default function AdminTopupRequestsPage() {
                               <span className="text-[10px] text-white/30 uppercase font-black">Correct To:</span>
                               <input 
                                 type="number"
-                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 w-full text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
-                                defaultValue={m.csvAmount}
+                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 w-full text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all text-white"
+                                value={m.newAmount !== undefined ? m.newAmount : m.csvAmount}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value)
                                   setCsvMatches(prev => prev.map((item, idx) => 
-                                    idx === i ? { ...item, newAmount: val, isEditing: true } : item
+                                    idx === i ? { ...item, newAmount: isNaN(val) ? 0 : val, isEditing: true } : item
                                   ))
                                 }}
                               />

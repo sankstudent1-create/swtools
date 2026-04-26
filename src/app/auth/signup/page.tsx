@@ -40,52 +40,74 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-24">
-      <div className="w-full max-w-md ui-modal-shell p-8">
-        <h1 className="text-2xl font-bold">Create Account</h1>
-        <p className="mt-2 text-sm text-white/60">Join us to start using our professional tools</p>
+    <main className="min-h-screen bg-[#050505] flex items-center justify-center px-4 py-12 selection:bg-blue-500/30">
+      <div className="w-full max-w-[440px] relative">
+        {/* Abstract Background Glows */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
 
-        <div className="mt-8 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1">Email Address</label>
-            <input
-              className="ui-input"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1">Password</label>
-            <input
-              className="ui-input"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
-            <p className="mt-1 text-[10px] text-white/40 italic">Minimum 6 characters required</p>
+        <div className="relative z-10 p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-3xl shadow-2xl">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 mb-6 shadow-xl shadow-blue-500/20 rotate-3 group hover:rotate-0 transition-transform duration-500">
+              <span className="text-2xl font-black text-white italic tracking-tighter">SW</span>
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter text-white mb-3 italic uppercase leading-none">
+              Create <span className="text-blue-500">Account</span>
+            </h1>
+            <p className="text-white/40 text-sm font-medium tracking-tight uppercase tracking-[0.1em]">
+              Join the professional tools platform
+            </p>
           </div>
 
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
+          <div className="space-y-6">
+            <div className="space-y-2 group">
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-focus-within:text-blue-500 transition-colors ml-1">Email Address</label>
+              <input
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all placeholder:text-white/10 font-medium"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+            </div>
 
-          <button
-            className="ui-btn-primary w-full"
-            onClick={onSignup}
-            disabled={busy || !email || password.length < 6}
-          >
-            {busy ? 'Creating Account…' : 'Create Account'}
-          </button>
-        </div>
+            <div className="space-y-2 group">
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-focus-within:text-blue-500 transition-colors ml-1">Password</label>
+              <input
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.07] transition-all placeholder:text-white/10 font-medium"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              <p className="mt-1 text-[10px] text-white/20 italic ml-1">Minimum 6 characters required</p>
+            </div>
 
-        <div className="mt-6 text-center text-sm text-white/60">
-          Already have an account?{' '}
-          <Link className="text-blue-400 hover:underline font-medium" href={`/auth/login?next=${encodeURIComponent(nextUrl)}`}>
-            Sign in instead
-          </Link>
+            {error && (
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                {error}
+              </div>
+            )}
+
+            <button
+              className="w-full py-4 rounded-2xl bg-blue-500 text-white font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] hover:bg-blue-600 transition-all disabled:opacity-50 disabled:grayscale disabled:scale-100"
+              onClick={onSignup}
+              disabled={busy || !email || password.length < 6}
+            >
+              {busy ? 'Creating Account...' : 'Get Started Now'}
+            </button>
+          </div>
+
+          <div className="mt-10 text-center border-t border-white/5 pt-8">
+            <p className="text-white/30 text-xs font-bold tracking-tight uppercase">
+              Already have an account?{' '}
+              <Link className="text-blue-500 hover:text-blue-400 transition-colors ml-1" href={`/auth/login?next=${encodeURIComponent(nextUrl)}`}>
+                Sign In
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </main>
