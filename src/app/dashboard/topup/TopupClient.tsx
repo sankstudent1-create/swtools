@@ -80,25 +80,35 @@ export default function TopupClient({ userId, userEmail }: Props) {
       const fileName = `${userId}/TEST_${Date.now()}_${fileToUpload.name}`
       addLog(`Processed file: ${fileToUpload.size} bytes, type: ${fileToUpload.type}`)
 
-      // PHASE 4: UPLOAD (THE CULPRIT)
-      addLog(`PHASE 4: Uploading ${fileToUpload.size} bytes...`)
+      // PHASE 4: UPLOAD (RAW FETCH BYPASS)
+      addLog(`PHASE 4: Raw Uploading ${fileToUpload.size} bytes...`)
       const startUpload = Date.now()
       
-      // We use a clean fetch-based approach for maximum transparency if the client fails
-      const { data: uploadData, error: uploadErr } = await supabase.storage
-        .from('manual-topup-proofs')
-        .upload(fileName, fileToUpload, {
-          cacheControl: '3600',
-          upsert: false
-        })
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      // Direct fetch to bypass client wrapper logic
+      const uploadUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/manual-topup-proofs/${fileName}`
+      
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-upsert': 'false'
+        },
+        body: fileToUpload
+      })
 
       const duration = Date.now() - startUpload
-      if (uploadErr) {
-        addLog(`UPLOAD FAILED after ${duration}ms: ${uploadErr.message}`)
-        console.error('[PROOF_DEBUG] Full Upload Error:', uploadErr)
-        throw uploadErr
+      
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({ message: response.statusText }))
+        addLog(`UPLOAD FAILED (${response.status}) after ${duration}ms: ${errJson.message}`)
+        throw new Error(errJson.message || 'Upload failed')
       }
-      addLog(`UPLOAD SUCCESS in ${duration}ms. Path: ${uploadData.path}`)
+
+      const uploadData = await response.json()
+      addLog(`UPLOAD SUCCESS in ${duration}ms. Path: ${uploadData.Key}`)
 
       // PHASE 5: DB RECORD
       addLog('PHASE 5: Creating DB Record')
@@ -109,7 +119,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
           amount_inr: amount,
           utr: `TEST_UTR_${Date.now()}`,
           credits_requested: Math.floor(amount * creditsPerInr),
-          screenshot_path: uploadData.path,
+          screenshot_path: fileName, // Use the path we just created
         }),
       })
 
