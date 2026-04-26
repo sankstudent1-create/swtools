@@ -3,7 +3,8 @@
   background: #c0bbb2;
   min-height: 100vh;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 /* ── Mobile tab bar ─────────────────────────────────────────── */
@@ -70,7 +71,7 @@
   grid-template-columns: 310px 1fr;
   min-height: calc(100vh - 52px);
   width: 100%;
-  max-width: 1440px;
+  max-width: none;
 }
 
 /* ── Sidebar column is scrollable on its own ─────────────────── */
