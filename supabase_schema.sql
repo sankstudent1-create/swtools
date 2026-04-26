@@ -1,40 +1,5 @@
 create extension if not exists "pgcrypto";
 
--- 1. Create the bucket if not exists
-insert into storage.buckets (id, name, public)
-values ('topup-screenshots', 'topup-screenshots', true)
-on conflict (id) do update set public = true;
-
--- 2. Enable RLS
-alter table storage.objects enable row level security;
-
--- 3. DROP existing policies to avoid conflicts
-drop policy if exists "Public Access" on storage.objects;
-drop policy if exists "Allow Authenticated Upload" on storage.objects;
-drop policy if exists "Allow Admin Full Access" on storage.objects;
-
--- 4. Create Policies
--- Allow anyone to view screenshots (Public bucket)
-create policy "Public Access"
-on storage.objects for select
-using ( bucket_id = 'topup-screenshots' );
-
--- Allow authenticated users to upload their own screenshots
--- We use (storage.foldername(name))[1] to check the first part of the path matches user id
-create policy "Allow Authenticated Upload"
-on storage.objects for insert
-with check (
-  bucket_id = 'topup-screenshots' 
-  AND auth.role() = 'authenticated'
-  AND (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- Allow service role (admin) full access
-create policy "Allow Admin Full Access"
-on storage.objects for all
-using ( bucket_id = 'topup-screenshots' )
-with check ( bucket_id = 'topup-screenshots' );
-
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
