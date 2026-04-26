@@ -20,6 +20,8 @@ import {
 
 const PRICING_PLANS = [
   { amount: 10, tag: 'Starter' },
+  { amount: 50, tag: 'Value' },
+  { amount: 100, tag: 'Pro' },
 ]
 
 type Props = {
@@ -66,7 +68,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
     setSubmitBusy(true)
     setError(null)
     try {
-      const res = await fetch('/api/wallet/topup/razorpay-order', {
+      const res = await fetch('/api/wallet/topup/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount_inr: amount })
@@ -75,23 +77,19 @@ export default function TopupClient({ userId, userEmail }: Props) {
       if (!res.ok) throw new Error(order.error || 'Failed to create order')
 
       const options = {
-        key: order.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
+        key: order.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount_paise,
         currency: order.currency,
         name: 'SW Info Systems',
         description: `Topup ${Math.floor(amount * creditsPerInr)} Credits`,
-        order_id: order.id,
+        order_id: order.order_id,
         handler: async function (response: any) {
           setSubmitMsg('Verifying payment...')
-          const verifyRes = await fetch('/api/wallet/topup/razorpay-verify', {
+          const verifyRes = await fetch('/api/wallet/topup/verify-payment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              amount_inr: amount,
-              credits: Math.floor(amount * creditsPerInr)
             })
           })
           const verifyData = await verifyRes.json()

@@ -60,10 +60,10 @@ export default function PremiumToolWrapper({
     try {
       const { data } = await supabase
         .from('wallets')
-        .select('balance')
+        .select('balance_credits')
         .eq('user_id', userId)
         .maybeSingle()
-      if (data) setBalance(data.balance)
+      if (data) setBalance(data.balance_credits)
     } catch (e) {
       console.error('Balance fetch error:', e)
     }
@@ -144,11 +144,11 @@ export default function PremiumToolWrapper({
     setIsRefreshing(true)
     const { data: walletData } = await supabase
       .from('wallets')
-      .select('balance')
+      .select('balance_credits')
       .eq('user_id', user.id)
       .maybeSingle()
     
-    const currentBalance = walletData?.balance ?? 0
+    const currentBalance = walletData?.balance_credits ?? 0
     setBalance(currentBalance)
     setIsRefreshing(false)
 
@@ -282,17 +282,16 @@ export default function PremiumToolWrapper({
                   Credit <span className="text-red-500">Deficit</span>
                 </h3>
                 <p className="text-white/40 text-sm mb-12 leading-relaxed font-bold tracking-tight">
-                  You current balance of <span className="text-white">{balance}</span> is insufficient. 
-                  This tool requires <span className="text-blue-500">{requiredCredits} credits</span> to operate.
+                  Payment required: <span className="text-white">₹{Math.max(1, Math.ceil((requiredCredits - (balance || 0)) / creditsPerInr))}</span>
                 </p>
                 
                 <div className="space-y-4">
                   <Link 
-                    href={`/dashboard/topup?amount=${Math.max(1, Math.ceil((requiredCredits - (balance || 0)) / creditsPerInr))}`}
+                    href="/dashboard/topup"
                     className="flex items-center justify-center gap-4 w-full py-5 rounded-[1.5rem] bg-blue-500 hover:bg-blue-600 text-white font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl shadow-blue-500/30 transition-all hover:scale-[1.05] active:scale-[0.95]"
                   >
                     <Wallet className="w-4 h-4" />
-                    Topup ₹{Math.max(1, Math.ceil((requiredCredits - (balance || 0)) / creditsPerInr))} Now
+                    Go to Topup
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <button 
