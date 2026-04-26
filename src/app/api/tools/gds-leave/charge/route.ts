@@ -15,8 +15,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json()
-  const { tab, pdfBase64, filename, storagePath, sizeBytes } = body
+  const contentType = req.headers.get('content-type') || ''
+
+  let tab: string | undefined
+  let pdfBase64: string | undefined
+  let filename: string | undefined
+  let storagePath: string | undefined
+  let sizeBytes: number | undefined
+  let uploadedFileBytes: Buffer | null = null
+
+  if (contentType.includes('multipart/form-data')) {
+    const form = await req.formData()
+    tab = (form.get('tab') as string) || undefined
+    filename = (form.get('filename') as string) || undefined
+    const sb = form.get('sizeBytes')
+    sizeBytes = typeof sb === 'string' ? Number(sb) : undefined
+
+    const file = form.get('file')
+    if (file && typeof file !== 'string') {
+      const ab = await (file as File).arrayBuffer()
+      uploadedFileBytes = Buffer.from(ab)
+      if (!sizeBytes) sizeBytes = uploadedFileBytes.length
+      if (!filename) filename = (file as File).name || undefined
+    }
+  } else {
+    const body = await req.json()
+    tab = body.tab
+    pdfBase64 = body.pdfBase64
+    filename = body.filename
+    storagePath = body.storagePath
+    sizeBytes = body.sizeBytes
+  }
 
   const { data: pricingRow } = await supabase
     .from('tool_pricing')
@@ -55,6 +84,38 @@ export async function POST(req: NextRequest) {
   let fileId: string | null = null
 
   const safeFilename = filename || `GDS_Leave_${Date.now()}.pdf`
+
+  if (uploadedFileBytes) {
+    try {
+      const path = `${auth.user.id}/gds_leave/${Date.now()}.pdf`
+      const uploadRes = await admin.storage.from(STORAGE_BUCKET).upload(path, uploadedFileBytes, {
+        contentType: 'application/pdf',
+        upsert: false,
+      })
+
+      if (uploadRes.error) {
+        console.error('[gds_leave] upload error', uploadRes.error)
+      } else {
+        const { data: fileRow, error: fileError } = await admin
+          .from('files')
+          .insert({
+            user_id: auth.user.id,
+            tool_id: TOOL_ID,
+            storage_bucket: STORAGE_BUCKET,
+            storage_path: path,
+            filename: safeFilename,
+            mime_type: 'application/pdf',
+            size_bytes: uploadedFileBytes.length,
+          })
+          .select('id')
+          .single()
+
+        if (!fileError) fileId = fileRow.id
+      }
+    } catch (e) {
+      console.error('[gds_leave] server upload error', e)
+    }
+  }
 
   if (storagePath) {
     if (typeof storagePath !== 'string' || !storagePath.startsWith(`${auth.user.id}/`)) {
