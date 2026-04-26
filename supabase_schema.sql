@@ -260,7 +260,34 @@ drop policy if exists "pricing_admin_write" on public.tool_pricing;
 create policy "pricing_admin_write" on public.tool_pricing
   for all using (public.is_admin()) with check (public.is_admin());
 
--- Profile creation fix: ensure triggers exist
+-- NEW STORAGE SETUP FOR PROOFS
+-- Run this in Supabase SQL Editor
+
+-- 1. Create a NEW bucket 'manual-topup-proofs'
+-- Note: If this fails with permission error, create it via Dashboard UI first!
+insert into storage.buckets (id, name, public)
+values ('manual-topup-proofs', 'manual-topup-proofs', true)
+on conflict (id) do update set public = true;
+
+-- 2. Allow public access to read screenshots
+create policy "Allow Public Read manual-topup-proofs"
+on storage.objects for select
+using ( bucket_id = 'manual-topup-proofs' );
+
+-- 3. Allow authenticated users to upload to their own folder
+create policy "Allow Auth Upload manual-topup-proofs"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'manual-topup-proofs' 
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- 4. Admin full access
+create policy "Admin Full Access manual-topup-proofs"
+on storage.objects for all
+using ( bucket_id = 'manual-topup-proofs' )
+with check ( bucket_id = 'manual-topup-proofs' );
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql

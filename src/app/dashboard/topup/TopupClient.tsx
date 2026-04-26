@@ -156,11 +156,11 @@ export default function TopupClient({ userId, userEmail }: Props) {
         console.log('[topup] Auth check SUCCESS:', { userId: session.user.id })
 
         // 2. Check Bucket existence
-        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('topup-screenshots')
+        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('manual-topup-proofs')
         
         if (bucketError) {
           console.error('[topup] Bucket access check FAILED:', bucketError)
-          setError(`Cannot access storage: ${bucketError.message}. Ensure the bucket 'topup-screenshots' exists and is Public.`)
+          setError(`Cannot access storage: ${bucketError.message}. Ensure the bucket 'manual-topup-proofs' exists and is Public.`)
           return
         }
         console.log('[topup] Bucket access check SUCCESS:', bucketData)
@@ -181,9 +181,9 @@ export default function TopupClient({ userId, userEmail }: Props) {
         const fileExt = fileToUpload.name.split('.').pop()
         const fileName = `${userId}/${Date.now()}.${fileExt}`
 
-        // 1. Storage Upload
+        // 1. Storage Upload to NEW BUCKET 'manual-topup-proofs'
         const startTime = Date.now()
-        console.log('[topup] Starting upload:', {
+        console.log('[topup] Starting upload to manual-topup-proofs:', {
           fileName,
           fileSize: fileToUpload.size,
           fileType: fileToUpload.type,
@@ -191,7 +191,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
         })
 
         const uploadRes = (await withTimeout(
-          supabase.storage.from('topup-screenshots').upload(fileName, fileToUpload, {
+          supabase.storage.from('manual-topup-proofs').upload(fileName, fileToUpload, {
             cacheControl: '3600',
             upsert: false,
           }),

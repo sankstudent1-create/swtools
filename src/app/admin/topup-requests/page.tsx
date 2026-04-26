@@ -45,7 +45,13 @@ export default function AdminTopupRequestsPage() {
 
   const [csvBusy, setCsvBusy] = useState(false)
   const [csvMsg, setCsvMsg] = useState<string | null>(null)
-  const [csvMatches, setCsvMatches] = useState<{ requestId: string; utr: string; amount?: string }[]>([])
+  const [csvMatches, setCsvMatches] = useState<{ 
+    requestId: string; 
+    utr: string; 
+    csvAmount: number; 
+    dbAmount: number; 
+    amountMatch: boolean 
+  }[]>([])
 
   async function loadRequests() {
     setLoading(true)
@@ -82,16 +88,30 @@ export default function AdminTopupRequestsPage() {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
 
       // naive CSV parse: split by comma, search for first 12-digit number in row
-      const utrRows: { utr: string; amount?: string }[] = []
+      const utrRows: { utr: string; amount: number }[] = []
       for (const line of lines.slice(0, 5000)) {
         const utr = parseUtrFromText(line)
         if (!utr) continue
+        
         const cols = line.split(',').map(c => c.trim())
-        utrRows.push({ utr, amount: cols.find(c => /^\d+(\.\d+)?$/.test(c)) })
+        // Find something that looks like an amount (number with decimal or just digits)
+        // Usually in banking CSVs, the amount is in a specific column.
+        // We'll look for any column that parses to a positive number and isn't the UTR.
+        let amount = 0
+        for (const col of cols) {
+          const cleanCol = col.replace(/[^\d.]/g, '')
+          const val = parseFloat(cleanCol)
+          if (!isNaN(val) && val > 0 && cleanCol !== utr) {
+            amount = val
+            break
+          }
+        }
+        
+        utrRows.push({ utr, amount })
       }
 
       if (utrRows.length === 0) {
-        setCsvMsg('No UTR found in CSV')
+        setCsvMsg('No UTRs found in CSV')
         return
       }
 
@@ -101,29 +121,79 @@ export default function AdminTopupRequestsPage() {
           .map(r => [String(r.utr || '').trim(), r])
       )
 
-      const matches: { requestId: string; utr: string; amount?: string }[] = []
+      const matches: { 
+        requestId: string; 
+        utr: string; 
+        csvAmount: number; 
+        dbAmount: number; 
+        amountMatch: boolean 
+      }[] = []
+
       for (const row of utrRows) {
         const req = pendingByUtr.get(row.utr)
-        if (req) matches.push({ requestId: req.id, utr: row.utr, amount: row.amount })
+        if (req) {
+          const dbAmount = Number(req.amount_inr)
+          const amountMatch = Math.abs(dbAmount - row.amount) < 0.01 // Handle float precision
+          
+          matches.push({ 
+            requestId: req.id, 
+            utr: row.utr, 
+            csvAmount: row.amount, 
+            dbAmount: dbAmount,
+            amountMatch
+          })
+        }
       }
 
       setCsvMatches(matches)
-      setCsvMsg(`Found ${matches.length} matching pending requests out of ${utrRows.length} UTRs in CSV`) 
-    } catch {
-      setCsvMsg('CSV read failed')
+      
+      const exactMatches = matches.filter(m => m.amountMatch).length
+      const mismatches = matches.length - exactMatches
+      
+      let msg = `Found ${matches.length} matching UTRs.`
+      if (mismatches > 0) {
+        msg += ` WARNING: ${mismatches} requests have AMOUNT MISMATCH (DB vs CSV).`
+      } else {
+        msg += ` All amounts match exactly.`
+      }
+      setCsvMsg(msg) 
+    } catch (e: any) {
+      setCsvMsg(`CSV read failed: ${e.message}`)
     } finally {
       setCsvBusy(false)
     }
   }
 
   const approveCsvMatches = async () => {
-    if (csvMatches.length === 0) return
-    if (!confirm(`Approve ${csvMatches.length} matched requests?`)) return
+    const exactMatches = csvMatches.filter(m => m.amountMatch)
+    if (exactMatches.length === 0) {
+      alert('No exact amount matches to approve.')
+      return
+    }
+    
+    if (!confirm(`Approve ${exactMatches.length} requests? This will update the database with the CORRECT Amount (₹${exactMatches[0].csvAmount}) and Credits if they differ from what the user submitted.`)) return
 
     setCsvBusy(true)
     setCsvMsg(null)
     try {
-      for (const m of csvMatches) {
+      const toApprove = csvMatches.filter(m => m.amountMatch)
+      for (const m of toApprove) {
+        // 1. First update the request with the actual CSV amount and credits
+        const updateRes = await fetch('/api/admin/topup-requests/update-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            request_id: m.requestId, 
+            amount_inr: m.csvAmount,
+            credits_requested: Math.floor(m.csvAmount * 1.0) // 1:1 rate as default, or use existing rate logic
+          }),
+        })
+
+        if (!updateRes.ok) {
+          console.error('[admin] Failed to update request details before approval', m.requestId)
+        }
+
+        // 2. Then approve
         const res = await fetch('/api/admin/topup-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -146,7 +216,7 @@ export default function AdminTopupRequestsPage() {
   const runOCR = async (requestId: string, screenshotPath: string) => {
     setOcrBusyId(requestId)
     try {
-      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/topup-screenshots/${screenshotPath}`
+      const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${screenshotPath}`
       const res = await fetch('/api/admin/topup-requests/ocr', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -291,14 +361,40 @@ export default function AdminTopupRequestsPage() {
                 type="button"
                 className="ui-btn-primary px-4 py-2 text-xs"
                 onClick={approveCsvMatches}
-                disabled={csvBusy || csvMatches.length === 0}
+                disabled={csvBusy || csvMatches.filter(m => m.amountMatch).length === 0}
               >
-                {csvBusy ? 'Working…' : `Approve Matches (${csvMatches.length})`}
+                {csvBusy ? 'Working…' : `Approve Valid Matches (${csvMatches.filter(m => m.amountMatch).length})`}
               </button>
             </div>
           </div>
 
-          {csvMsg ? <div className="mt-3 text-xs text-white/50">{csvMsg}</div> : null}
+          {csvMsg ? (
+            <div className={`mt-3 text-xs font-medium ${csvMsg.includes('WARNING') ? 'text-amber-400' : 'text-emerald-400'}`}>
+              {csvMsg}
+            </div>
+          ) : null}
+
+          {csvMatches.length > 0 && (
+            <div className="mt-4 border-t border-white/5 pt-4">
+              <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Match Details</div>
+              <div className="max-h-40 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+                {csvMatches.map((m, i) => (
+                  <div key={i} className={`flex items-center justify-between text-[11px] p-2 rounded bg-white/5 border ${m.amountMatch ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
+                    <div className="font-mono text-white/70">{m.utr}</div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-white/40">DB: <span className="text-white">₹{m.dbAmount}</span></div>
+                      <div className="text-white/40">CSV: <span className={m.amountMatch ? 'text-emerald-400' : 'text-red-400 font-bold'}>₹{m.csvAmount}</span></div>
+                      {m.amountMatch ? (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      ) : (
+                        <XCircle className="w-3 h-3 text-red-500" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -389,7 +485,7 @@ export default function AdminTopupRequestsPage() {
                     <button 
                       className="ui-btn-secondary py-2 px-4 text-xs flex items-center gap-2"
                       onClick={() => {
-                        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/topup-screenshots/${request.screenshot_path}`
+                        const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/manual-topup-proofs/${request.screenshot_path}`
                         window.open(url, '_blank')
                       }}
                     >
