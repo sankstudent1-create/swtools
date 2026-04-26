@@ -102,16 +102,39 @@ export default function AdminTopupRequestsPage() {
         if (!utr) continue
         
         const cols = line.split(',').map(c => c.trim())
-        // Find something that looks like an amount (number with decimal or just digits)
-        // Usually in banking CSVs, the amount is in a specific column.
-        // We'll look for any column that parses to a positive number and isn't the UTR.
+        // Improved Amount Detection:
+        // 1. Skip columns that match date patterns (e.g. 26/04/2026, 2026-04-26)
+        // 2. Look for columns with decimal points (e.g. 199.00)
+        // 3. Fallback to first positive number that isn't the UTR
         let amount = 0
+        
+        // Priority 1: Columns with decimal points that aren't dates or UTR
         for (const col of cols) {
+          if (col === utr) continue
+          if (col.includes('/') || col.includes('-')) continue // Likely a date
+          
           const cleanCol = col.replace(/[^\d.]/g, '')
-          const val = parseFloat(cleanCol)
-          if (!isNaN(val) && val > 0 && cleanCol !== utr) {
-            amount = val
-            break
+          if (cleanCol.includes('.')) {
+            const val = parseFloat(cleanCol)
+            if (!isNaN(val) && val > 0 && val < 1000000) { // Safety cap
+              amount = val
+              break
+            }
+          }
+        }
+        
+        // Priority 2: Any positive number if amount still 0
+        if (amount === 0) {
+          for (const col of cols) {
+            const cleanCol = col.replace(/[^\d.]/g, '')
+            if (cleanCol === utr) continue
+            if (col.includes('/') || col.includes('-')) continue
+            
+            const val = parseFloat(cleanCol)
+            if (!isNaN(val) && val > 0 && val < 1000000) {
+              amount = val
+              break
+            }
           }
         }
         
@@ -295,26 +318,36 @@ export default function AdminTopupRequestsPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-blue-500/30">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter text-white mb-2 italic uppercase">
-              Manual Topup <span className="text-blue-500">Verification</span>
-            </h1>
-            <p className="text-white/40 text-sm font-medium tracking-tight">
-              Manage and verify manual credit topup requests.
-            </p>
+        <div className="flex flex-col gap-8 mb-12 border-b border-white/5 pb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-5xl font-black tracking-tighter text-white mb-2 italic uppercase leading-none">
+                Manual Topup <span className="text-blue-500">Verification</span>
+              </h1>
+              <p className="text-white/40 text-sm font-medium tracking-tight">
+                Manage and verify manual credit topup requests.
+              </p>
+            </div>
+
+            <Link 
+              href="/admin" 
+              className="flex items-center gap-2 text-xs font-bold text-white/30 hover:text-white transition-all uppercase tracking-widest bg-white/5 px-4 py-2 rounded-lg border border-white/5"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Admin Dashboard
+            </Link>
           </div>
           
-          <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
+          <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/10 w-fit">
             <button 
               onClick={() => setActiveTab('requests')}
-              className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'requests' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
+              className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'requests' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
             >
               Requests List
             </button>
             <button 
               onClick={() => setActiveTab('csv')}
-              className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'csv' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-white/40 hover:text-white/60'}`}
+              className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'csv' ? 'bg-blue-500 text-white shadow-2xl shadow-blue-500/40 scale-105' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
             >
               CSV Verification
             </button>
