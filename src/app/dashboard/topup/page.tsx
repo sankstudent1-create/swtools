@@ -66,7 +66,14 @@ export default function TopupPage() {
 
     ;(async () => {
       try {
-        const res: any = await withTimeout(supabase.auth.getSession(), 12000, 'Auth check')
+        let res: any
+        try {
+          res = await withTimeout(supabase.auth.getSession(), 12000, 'Auth check')
+        } catch {
+          // If getSession is slow/hung, try a refresh once (often fixes stuck cookie state)
+          res = await withTimeout(supabase.auth.refreshSession(), 12000, 'Auth refresh')
+        }
+
         const data = res?.data
         const authError = res?.error
 
