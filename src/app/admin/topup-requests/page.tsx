@@ -59,6 +59,15 @@ export default function AdminTopupRequestsPage() {
 
   const [csvBusy, setCsvBusy] = useState(false)
   const [csvMsg, setCsvMsg] = useState<string | null>(null)
+  const [csvMatches, setCsvMatches] = useState<{ 
+    requestId: string; 
+    utr: string; 
+    csvAmount: number; 
+    dbAmount: number; 
+    amountMatch: boolean;
+    isEditing?: boolean;
+    newAmount?: number;
+  }[]>([])
   const [config, setConfig] = useState({
     method: 'manual',
     razorpay_enabled: false,
