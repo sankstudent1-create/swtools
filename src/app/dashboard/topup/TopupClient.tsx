@@ -50,88 +50,64 @@ export default function TopupClient({ userId, userEmail }: Props) {
 
   // --- NEW SCRATCH SCREENSHOT UPLOAD LOGIC ---
   const [debugLog, setDebugLog] = useState<string[]>([])
-  const addLog = (msg: string) => {
-    console.log(`[PROOF_DEBUG] ${msg}`)
-    setDebugLog(prev => [...prev.slice(-19), `${new Date().toLocaleTimeString()}: ${msg}`])
-  }
-
-  const handleIsolatedUpload = async () => {
-    if (!screenshot) return
+  
+  const submitTopupRequest = async () => {
+    if (!screenshot && !utr.trim()) return
     setSubmitBusy(true)
     setError(null)
-    setDebugLog(['DEBUG: Script started...'])
-    
+    setSubmitMsg(null)
+
     try {
-      // PHASE 1: PRE-CHECK (SIMPLIFIED)
-      addLog('PHASE 1: Client Pre-check (Native only)')
+      let screenshotPath: string | null = null
       
-      // Use the props passed from server instead of calling getSession first
-      if (!userId) {
-        addLog('ERROR: No userId provided in props')
-        throw new Error('No user ID found')
-      }
-      addLog(`UserId from props: ${userId}`)
-      
-      // PHASE 2: BUCKET CHECK (NATIVE FETCH)
-      addLog('PHASE 2: Bucket Health Check (Native Fetch)')
-      const bucketUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket/manual-topup-proofs`
-      const bRes = await fetch(bucketUrl, {
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+      if (screenshot) {
+        setSubmitMsg('Uploading proof...')
+        const formData = new FormData()
+        formData.append('file', screenshot)
+        formData.append('amount', amount.toString())
+        formData.append('utr', utr.trim() || `pending_ocr_${Date.now()}`)
+        formData.append('credits', Math.floor(amount * creditsPerInr).toString())
+
+        const res = await fetch('/api/wallet/topup/upload-proof', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!res.ok) {
+          const j = await res.json()
+          throw new Error(j.error || 'Upload failed')
         }
-      })
-      
-      if (!bRes.ok) {
-        addLog(`Bucket check failed status: ${bRes.status}`)
-        // We proceed anyway because getBucket might be restricted but upload might work
+        const data = await res.json()
+        screenshotPath = data.path
       } else {
-        addLog('Bucket is reachable')
+        // UTR only submission
+        setSubmitMsg('Submitting details...')
+        const res = await fetch('/api/wallet/topup/manual-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount_inr: amount,
+            utr: utr.trim(),
+            credits_requested: Math.floor(amount * creditsPerInr),
+            screenshot_path: null,
+          }),
+        })
+        if (!res.ok) {
+          const j = await res.json()
+          throw new Error(j.error || 'Submission failed')
+        }
       }
 
-      // PHASE 3: FILE PREP
-      addLog('PHASE 3: Preparing file')
-      const fileToUpload = screenshot
-      const fileName = `${userId}/RAW_${Date.now()}_${fileToUpload.name.replace(/\s+/g, '_')}`
-      addLog(`File ready: ${fileToUpload.size} bytes`)
-
-      // PHASE 4: UPLOAD (SERVER-SIDE BYPASS)
-      addLog('PHASE 4: Sending to Server-Side Upload...')
-      const startUpload = Date.now()
-      
-      const formData = new FormData()
-      formData.append('file', fileToUpload)
-      formData.append('amount', amount.toString())
-      formData.append('utr', `PROOFO_ONLY_${Date.now()}`)
-      formData.append('credits', Math.floor(amount * creditsPerInr).toString())
-
-      const response = await fetch('/api/wallet/topup/upload-proof', {
-        method: 'POST',
-        body: formData
-      })
-
-      const duration = Date.now() - startUpload
-      
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({ error: response.statusText }))
-        addLog(`SERVER UPLOAD FAILED (${response.status}) after ${duration}ms: ${errJson.error}`)
-        throw new Error(errJson.error || 'Server upload failed')
-      }
-
-      const result = await response.json()
-      addLog(`SERVER UPLOAD SUCCESS in ${duration}ms. Path: ${result.path}`)
-
-      // PHASE 5: COMPLETE
-      addLog('PHASE 5: Request Completed')
-      setSubmitMsg('Proof uploaded and record created successfully via server!')
-      
+      setSubmitMsg('Submitted successfully! Our team will verify and approve your credits soon.')
+      setUtr('')
+      setScreenshot(null)
+      setScreenshotPreview(null)
     } catch (e: any) {
-      addLog(`CRITICAL ERROR: ${e.message}`)
-      setError(e.message)
+      setError(e.message || 'Failed to submit request')
     } finally {
       setSubmitBusy(false)
     }
   }
-  // --- END NEW LOGIC ---
 
   useEffect(() => {
     let cancelled = false
@@ -485,21 +461,6 @@ export default function TopupClient({ userId, userEmail }: Props) {
                   className="block w-full text-xs text-white/60"
                 />
                 
-                {/* NEW DEBUG LOG WINDOW */}
-                {debugLog.length > 0 && (
-                  <div className="mt-3 p-3 bg-black rounded-lg border border-white/10 font-mono text-[10px] space-y-1">
-                    <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-1">
-                      <span className="text-blue-400 font-bold uppercase">Upload Diagnostics</span>
-                      <button onClick={() => setDebugLog([])} className="text-white/30 hover:text-white">Clear</button>
-                    </div>
-                    {debugLog.map((log, i) => (
-                      <div key={i} className={log.includes('ERROR') || log.includes('FAILED') ? 'text-red-400' : log.includes('SUCCESS') ? 'text-emerald-400' : 'text-white/60'}>
-                        {log}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
                 {screenshotPreview ? (
                   <div className="mt-3 rounded-xl overflow-hidden border border-white/10">
                     <img src={screenshotPreview} alt="Preview" className="w-full h-auto" />
@@ -507,24 +468,14 @@ export default function TopupClient({ userId, userEmail }: Props) {
                 ) : null}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-5">
-                <button
-                  className="ui-btn-secondary w-full inline-flex items-center justify-center gap-2"
-                  onClick={submitUtr}
-                  disabled={submitBusy || !utr.trim()}
-                >
-                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  UTR Only
-                </button>
-                <button
-                  className="ui-btn-primary w-full inline-flex items-center justify-center gap-2"
-                  onClick={handleIsolatedUpload}
-                  disabled={submitBusy || !screenshot}
-                >
-                  {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                  Proof + DB
-                </button>
-              </div>
+              <button
+                className="ui-btn-primary w-full mt-5 inline-flex items-center justify-center gap-2"
+                onClick={submitTopupRequest}
+                disabled={submitBusy || (!utr.trim() && !screenshot)}
+              >
+                {submitBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {submitBusy ? 'Submitting…' : 'Submit for Verification'}
+              </button>
 
               <div className="mt-3 text-[11px] text-white/40">
                 You can submit:

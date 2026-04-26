@@ -50,7 +50,9 @@ export default function AdminTopupRequestsPage() {
     utr: string; 
     csvAmount: number; 
     dbAmount: number; 
-    amountMatch: boolean 
+    amountMatch: boolean;
+    isEditing?: boolean;
+    newAmount?: number;
   }[]>([])
 
   async function loadRequests() {
@@ -165,27 +167,28 @@ export default function AdminTopupRequestsPage() {
   }
 
   const approveCsvMatches = async () => {
-    const exactMatches = csvMatches.filter(m => m.amountMatch)
-    if (exactMatches.length === 0) {
-      alert('No exact amount matches to approve.')
+    // Filter for requests that either match exactly OR have been manually reviewed/edited
+    const toProcess = csvMatches.filter(m => m.amountMatch || m.isEditing)
+    if (toProcess.length === 0) {
+      alert('No valid matches to approve.')
       return
     }
     
-    if (!confirm(`Approve ${exactMatches.length} requests? This will update the database with the CORRECT Amount (₹${exactMatches[0].csvAmount}) and Credits if they differ from what the user submitted.`)) return
+    if (!confirm(`Approve ${toProcess.length} requests? This will update the database with the CSV Amount (or edited amount) and Credits.`)) return
 
     setCsvBusy(true)
     setCsvMsg(null)
     try {
-      const toApprove = csvMatches.filter(m => m.amountMatch)
-      for (const m of toApprove) {
+      for (const m of toProcess) {
+        const finalAmount = m.newAmount !== undefined ? m.newAmount : m.csvAmount
         // 1. First update the request with the actual CSV amount and credits
         const updateRes = await fetch('/api/admin/topup-requests/update-details', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             request_id: m.requestId, 
-            amount_inr: m.csvAmount,
-            credits_requested: Math.floor(m.csvAmount * 1.0) // 1:1 rate as default, or use existing rate logic
+            amount_inr: finalAmount,
+            credits_requested: Math.floor(finalAmount * 1.0) 
           }),
         })
 
@@ -377,19 +380,51 @@ export default function AdminTopupRequestsPage() {
           {csvMatches.length > 0 && (
             <div className="mt-4 border-t border-white/5 pt-4">
               <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-2">Match Details</div>
-              <div className="max-h-40 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                 {csvMatches.map((m, i) => (
-                  <div key={i} className={`flex items-center justify-between text-[11px] p-2 rounded bg-white/5 border ${m.amountMatch ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
-                    <div className="font-mono text-white/70">{m.utr}</div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-white/40">DB: <span className="text-white">₹{m.dbAmount}</span></div>
-                      <div className="text-white/40">CSV: <span className={m.amountMatch ? 'text-emerald-400' : 'text-red-400 font-bold'}>₹{m.csvAmount}</span></div>
-                      {m.amountMatch ? (
-                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                      ) : (
-                        <XCircle className="w-3 h-3 text-red-500" />
-                      )}
+                  <div key={i} className={`flex flex-col gap-2 p-3 rounded bg-white/5 border ${m.amountMatch ? 'border-emerald-500/20' : 'border-amber-500/20'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="font-mono text-[11px] text-white/70">{m.utr}</div>
+                      <div className="flex items-center gap-2">
+                        {m.amountMatch ? (
+                          <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">Exact Match</span>
+                        ) : (
+                          <span className="text-[10px] text-amber-400 font-bold uppercase tracking-tighter">Amount Mismatch</span>
+                        )}
+                      </div>
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-[11px]">
+                      <div className="text-white/40">User Claim: <span className="text-white font-bold ml-1">₹{m.dbAmount}</span></div>
+                      <div className="text-white/40">Bank CSV: <span className={`font-bold ml-1 ${m.amountMatch ? 'text-emerald-400' : 'text-red-400'}`}>₹{m.csvAmount}</span></div>
+                    </div>
+
+                    {!m.amountMatch && (
+                      <div className="flex items-center gap-2 mt-1 pt-2 border-t border-white/5">
+                        <span className="text-[10px] text-white/40">Update to:</span>
+                        <input 
+                          type="number"
+                          className="bg-black/40 border border-white/10 rounded px-2 py-0.5 w-20 text-[11px] focus:outline-none focus:border-blue-500"
+                          defaultValue={m.csvAmount}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value)
+                            setCsvMatches(prev => prev.map((item, idx) => 
+                              idx === i ? { ...item, newAmount: val, isEditing: true } : item
+                            ))
+                          }}
+                        />
+                        <button 
+                          onClick={() => {
+                            setCsvMatches(prev => prev.map((item, idx) => 
+                              idx === i ? { ...item, isEditing: true, newAmount: m.csvAmount } : item
+                            ))
+                          }}
+                          className="text-[10px] text-blue-400 hover:text-blue-300 font-medium"
+                        >
+                          Use CSV Amount
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
