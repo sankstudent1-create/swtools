@@ -40,43 +40,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Storage failed: ${uploadErr.message}` }, { status: 500 })
     }
 
-    // 3. Attempt Server-Side OCR immediately
-    let detectedUtr = utr
-    try {
-      const publicUrl = admin.storage.from('manual-topup-proofs').getPublicUrl(fileName).data.publicUrl
-      console.log('[upload-api] Starting background OCR for:', publicUrl)
-      
-      const ocrRes = await fetch(`${req.nextUrl.origin}/api/admin/topup-requests/ocr`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          imageUrl: publicUrl,
-          skipAdminCheck: true // Internal call
-        })
-      })
-      
-      if (ocrRes.ok) {
-        const ocrData = await ocrRes.json()
-        if (ocrData.utr) {
-          console.log('[upload-api] OCR detected UTR:', ocrData.utr)
-          detectedUtr = ocrData.utr
-        }
-      } else {
-        const errText = await ocrRes.text()
-        console.error('[upload-api] OCR API non-ok response:', ocrRes.status, errText)
-      }
-    } catch (ocrErr) {
-      console.error('[upload-api] Background OCR failed:', ocrErr)
-    }
-
-    // 4. Create DB Record with detected UTR
+    // 3. Create DB Record immediately (Fastest response)
     const { error: dbErr } = await admin.from('manual_topup_requests').insert({
       user_id: user.id,
       amount_inr: Number(amount),
       credits_requested: Number(credits),
-      utr: detectedUtr || utr || `pending_ocr_${Date.now()}`,
+      utr: utr || `pending_ocr_${Date.now()}`,
       screenshot_path: fileName,
       status: 'pending'
     })
@@ -85,6 +54,15 @@ export async function POST(req: NextRequest) {
       console.error('[upload-api] DB error:', dbErr)
       return NextResponse.json({ error: `Database failed: ${dbErr.message}` }, { status: 500 })
     }
+
+    // 4. (Optional) Fire-and-forget OCR call without await 
+    // This might still run in some environments, but we don't wait for it.
+    const publicUrl = admin.storage.from('manual-topup-proofs').getPublicUrl(fileName).data.publicUrl
+    fetch(`${req.nextUrl.origin}/api/admin/topup-requests/ocr`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: publicUrl, skipAdminCheck: true })
+    }).catch(e => console.error('[upload-api] Background OCR trigger failed:', e))
 
     return NextResponse.json({ ok: true, path: fileName })
   } catch (e: any) {

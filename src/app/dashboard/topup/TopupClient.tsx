@@ -58,12 +58,20 @@ export default function TopupClient({ userId, userEmail }: Props) {
     setSubmitMsg(null)
 
     try {
-      let screenshotPath: string | null = null
+      let finalScreenshotPath: string | null = null
+      let fileToUpload = screenshot
       
-      if (screenshot) {
+      if (fileToUpload) {
+        setSubmitMsg('Optimizing proof...')
+        try {
+          fileToUpload = await normalizeScreenshot(fileToUpload)
+        } catch (e) {
+          console.error('[topup] Compression failed, using original', e)
+        }
+
         setSubmitMsg('Uploading proof...')
         const formData = new FormData()
-        formData.append('file', screenshot)
+        formData.append('file', fileToUpload)
         formData.append('amount', amount.toString())
         formData.append('utr', utr.trim() || `pending_ocr_${Date.now()}`)
         formData.append('credits', Math.floor(amount * creditsPerInr).toString())
@@ -78,7 +86,7 @@ export default function TopupClient({ userId, userEmail }: Props) {
           throw new Error(j.error || 'Upload failed')
         }
         const data = await res.json()
-        screenshotPath = data.path
+        finalScreenshotPath = data.path
       } else {
         // UTR only submission
         setSubmitMsg('Submitting details...')
@@ -188,150 +196,6 @@ export default function TopupClient({ userId, userEmail }: Props) {
     const data = encodeURIComponent(upiLink)
     return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${data}`
   }, [upiLink])
-
-  const submitUtr = async () => {
-    setSubmitBusy(true)
-    setError(null)
-    setSubmitMsg(null)
-
-    const withTimeout = async <T,>(p: Promise<T>, ms: number, label: string): Promise<T> => {
-      return await Promise.race([
-        p,
-        new Promise<T>((_resolve, reject) =>
-          setTimeout(() => reject(new Error(`${label} timed out`)), ms)
-        ),
-      ])
-    }
-
-    try {
-      let screenshotPath: string | null = null
-      if (screenshot) {
-        setSubmitMsg('Verifying storage access...')
-        // 1. Check Auth state explicitly
-        const { data: { session }, error: authErr } = await supabase.auth.getSession()
-        if (authErr || !session) {
-          console.error('[topup] Auth check FAILED:', { authErr, session })
-          setError(`Authentication error: Please log in again. (Detail: ${authErr?.message || 'No session'})`)
-          return
-        }
-        console.log('[topup] Auth check SUCCESS:', { userId: session.user.id })
-
-        // 2. Check Bucket existence
-        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('manual-topup-proofs')
-        
-        if (bucketError) {
-          console.error('[topup] Bucket access check FAILED:', bucketError)
-          setError(`Cannot access storage: ${bucketError.message}. Ensure the bucket 'manual-topup-proofs' exists and is Public.`)
-          return
-        }
-        console.log('[topup] Bucket access check SUCCESS:', bucketData)
-
-        setSubmitMsg('Uploading screenshot...')
-        let fileToUpload = screenshot
-        try {
-          fileToUpload = await normalizeScreenshot(screenshot)
-        } catch (e: any) {
-          console.error('[topup] screenshot normalize failed', e)
-        }
-
-        if (fileToUpload.size > 8_000_000) {
-          setError('Image is too large. Please upload a smaller screenshot (under 8MB).')
-          return
-        }
-
-        const fileExt = fileToUpload.name.split('.').pop()
-        const fileName = `${userId}/${Date.now()}.${fileExt}`
-
-        // 1. Storage Upload to NEW BUCKET 'manual-topup-proofs'
-        const startTime = Date.now()
-        console.log('[topup] Starting upload to manual-topup-proofs:', {
-          fileName,
-          fileSize: fileToUpload.size,
-          fileType: fileToUpload.type,
-          timestamp: new Date().toISOString()
-        })
-
-        const uploadRes = (await withTimeout(
-          supabase.storage.from('manual-topup-proofs').upload(fileName, fileToUpload, {
-            cacheControl: '3600',
-            upsert: false,
-          }),
-          90000,
-          'Screenshot upload'
-        )) as any
-
-        const duration = Date.now() - startTime
-
-        if (uploadRes?.error) {
-          console.error('[topup] Upload FAILED:', {
-            error: uploadRes.error,
-            code: uploadRes.error?.code,
-            statusCode: uploadRes.error?.status,
-            message: uploadRes.error?.message,
-            durationMs: duration,
-            fileName,
-            fileSize: fileToUpload.size,
-            networkStatus: navigator.onLine ? 'online' : 'offline',
-          })
-          
-          let userMsg = `Upload failed (${uploadRes.error.message || 'Unknown error'}).`
-          if (duration >= 90000) {
-            userMsg = `Upload timed out after 90s. Even small files can fail if the connection to storage is blocked.`
-          }
-          
-          setError(
-            `${userMsg} Please check if you have an ad-blocker or firewall blocking supabase.co, or try just submitting the UTR.`
-          )
-          return
-        }
-
-        console.log('[topup] Upload SUCCESS:', {
-          durationMs: duration,
-          path: uploadRes.data?.path,
-          size: fileToUpload.size
-        })
-
-        screenshotPath = uploadRes?.data?.path ?? null
-      }
-
-      setSubmitMsg('Submitting details...')
-
-      const res = await withTimeout(
-        fetch('/api/wallet/topup/manual-request', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount_inr: amount,
-            utr: utr.trim() || null,
-            credits_requested: Math.floor(amount * creditsPerInr),
-            screenshot_path: screenshotPath,
-          }),
-        }),
-        20000,
-        'Request submission'
-      )
-
-      if (res.status === 401) {
-        window.location.href = `/auth/login?next=${encodeURIComponent('/dashboard/topup')}`
-        return
-      }
-
-      const j = await res.json().catch(() => null)
-      if (!res.ok) {
-        setError(j?.error || 'Failed to submit request')
-        return
-      }
-
-      setSubmitMsg('Submitted successfully! Our team will verify and approve your credits soon.')
-      setUtr('')
-      setScreenshot(null)
-      setScreenshotPreview(null)
-    } catch (e: any) {
-      setError(e?.message || 'Failed to submit request')
-    } finally {
-      setSubmitBusy(false)
-    }
-  }
 
   return (
     <main className="min-h-screen px-4 py-24 bg-[#07090f]">
