@@ -123,7 +123,7 @@ export function getPrintCSS(): string {
   return `
 @page { size: A4; margin: 0; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #fff; }
+body { background: #fff; -webkit-text-size-adjust: none; text-size-adjust: none; }
 .pdf-page {
   display: block; width: 210mm; height: 297mm;
   position: relative; background: #fff;
@@ -143,8 +143,8 @@ body { background: #fff; }
 .t.sz12  { font-size: 12pt; }
 .ul  { position: absolute; height: 0; border-bottom: 0.8pt solid #000; }
 .ulv {
-  position: absolute; font-size: 11pt; line-height: 1.2; color: #000;
-  white-space: nowrap; overflow: visible;
+  position: absolute; font-size: 11pt; line-height: 1.1; color: #000;
+  white-space: normal; overflow: visible; word-break: break-word;
   font-family: 'Bookman Old Style','Book Antiqua',Palatino,Georgia,serif;
 }
 #letter-content {

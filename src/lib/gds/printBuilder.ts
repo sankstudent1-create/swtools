@@ -73,17 +73,19 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
   ${T('left:101mm;top:113mm','sz12',':')}
   ${UL('left:104mm;top:117.5mm;right:11.5mm')}
 
-  <div class="t sz10" style="position:absolute;left:19mm;top:122mm;width:179mm;text-align:justify;line-height:1.55;white-space:normal;">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I hereby propose Shri/Smt/Kum. ${s.name || '_________________________________'} whose particulars are given above to work as my substitute during my leave on my responsibility according to the terms of the security bond executed by me.
-  </div>
-  <div class="t sz10" style="position:absolute;left:19mm;top:133mm;width:179mm;text-align:justify;line-height:1.55;white-space:normal;">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I am aware of provisions of Rule 7 of the Department of Posts Gramin Dak Sevaks (Conduct and Employment) Rules, 2001 and I will abide by them.
-  </div>
-  <div class="t sz10" style="position:absolute;left:19mm;top:142mm;width:179mm;text-align:justify;line-height:1.55;white-space:normal;">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A charge report signed by myself and my nominee will be submitted as prescribed in Rule 50 of Rules for Branch Office / Rules 45 &amp; 56 of P&amp;T Manual Vol.IV.
-  </div>
-  <div class="t sz10" style="position:absolute;left:19mm;top:151mm;width:179mm;line-height:1.55;white-space:normal;">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Necessary approval may kindly be accorded to this arrangement.
+  <div style="position:absolute;left:19.5mm;top:122mm;width:179mm;font-size:10pt;line-height:1.55;text-align:justify;">
+    <div style="margin-bottom:2mm;">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I hereby propose Shri/Smt/Kum. ${s.name || '_________________________________'} whose particulars are given above to work as my substitute during my leave on my responsibility according to the terms of the security bond executed by me.
+    </div>
+    <div style="margin-bottom:2mm;">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I am aware of provisions of Rule 7 of the Department of Posts Gramin Dak Sevaks (Conduct and Employment) Rules, 2001 and I will abide by them.
+    </div>
+    <div style="margin-bottom:2mm;">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A charge report signed by myself and my nominee will be submitted as prescribed in Rule 50 of Rules for Branch Office / Rules 45 &amp; 56 of P&amp;T Manual Vol.IV.
+    </div>
+    <div>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Necessary approval may kindly be accorded to this arrangement.
+    </div>
   </div>
 
   ${T('left:11.5mm;top:159mm','sz12','Station :')}
@@ -95,61 +97,69 @@ function renderPage1HTML(data: FormData, derived: DerivedData): string {
   ${T('left:50%;transform:translateX(-50%);top:174mm','bold sz12','LEAVE SANCTION ORDERS')}
   ${T('left:50%;transform:translateX(-50%);top:179.5mm','bold sz12','(For use of the sanctioning authority)')}
 
-  ${T('left:15mm;top:187mm','sz10','1.')}
-  <div class="t sz10" style="position:absolute;left:21mm;top:187mm;width:176mm;line-height:1.55;white-space:normal;">
-    Shri/Smt/Kum.${a.name || '_______________________'}(Designation) ${a.desig || '_____________'} BO/SO
-  </div>
-  <div class="t sz10" style="position:absolute;left:21mm;top:192.5mm;width:176mm;line-height:1.55;white-space:normal;">
-    ${d.boSoLine || '_______________________'} Division${a.div ? ' ' + a.div + ' ' : '__________________'} has been permitted to proceed on leave
-  </div>
-  <div class="t sz10" style="position:absolute;left:21mm;top:198mm;width:176mm;line-height:1.55;white-space:normal;">
-    without allowances (LWA)/Paid leave for ${d.daysCount || '________'} days from ${l.fromDate ? fmtDMY(l.fromDate) : '__________'}to ${l.toDate ? fmtDMY(l.toDate) : '_________'}.
-  </div>
+  <div style="position:absolute;left:15mm;top:187mm;width:182mm;font-size:10pt;line-height:1.5;">
+    <div style="display:flex;gap:2mm;margin-bottom:1mm;">
+      <span style="flex-shrink:0;width:5mm;">1.</span>
+      <div style="flex:1;">
+        Shri/Smt/Kum. <strong>${a.name || '_______________________'}</strong> (Designation) <strong>${a.desig || '_____________'}</strong> BO/SO
+        <strong>${d.boSoLine || '_______________________'}</strong> Division <strong>${a.div ? a.div : '__________________'}</strong> has been permitted to proceed on leave
+        without allowances (LWA)/Paid leave for <strong>${d.daysCount || '________'}</strong> days from <strong>${l.fromDate ? fmtDMY(l.fromDate) : '__________'}</strong> to <strong>${l.toDate ? fmtDMY(l.toDate) : '_________'}</strong>.
+      </div>
+    </div>
 
-  ${T('left:15mm;top:203.5mm','sz10','2.')}
-  <div class="t sz10" style="position:absolute;left:21mm;top:203.5mm;width:176mm;line-height:1.55;white-space:normal;">
-    The appointment of Shri/Smt/Kum. ${s.name || '_________________________________'} as his/her substitute is
-  </div>
-  <div class="t sz10" style="position:absolute;left:21mm;top:209mm;width:176mm;line-height:1.55;white-space:normal;">
-    approved on the clear understanding that the substitute may be discharged by the appointing authority
-  </div>
-  <div class="t sz10" style="position:absolute;left:21mm;top:214.5mm;width:176mm;line-height:1.55;white-space:normal;">
-    at any time without assigning any reason.
-  </div>
+    <div style="display:flex;gap:2mm;margin-bottom:1mm;">
+      <span style="flex-shrink:0;width:5mm;">2.</span>
+      <div style="flex:1;">
+        The appointment of Shri/Smt/Kum. <strong>${s.name || '_________________________________'}</strong> as his/her substitute is
+        approved on the clear understanding that the substitute may be discharged by the appointing authority
+        at any time without assigning any reason.
+      </div>
+    </div>
 
-  ${T('left:15mm;top:220mm','sz10','3.')}
-  ${T('left:21mm;top:220mm','sz10','The substitute is entitled only to the minimum of the TRCA applicable to GDS.')}
+    <div style="display:flex;gap:2mm;margin-bottom:1mm;">
+      <span style="flex-shrink:0;width:5mm;">3.</span>
+      <div style="flex:1;">
+        The substitute is entitled only to the minimum of the TRCA applicable to GDS.
+      </div>
+    </div>
 
-  ${T('left:15mm;top:225.5mm','sz10','4.')}
-  <div class="t sz10" style="position:absolute;left:21mm;top:225.5mm;width:176mm;line-height:1.55;white-space:normal;">
-    The paid leave at the credit of the GDS for the half year ending on ${sn.halfYear || '_______________'} after deducting the
-  </div>
-  <div class="t sz10" style="position:absolute;left:21mm;top:231mm;width:176mm;line-height:1.55;white-space:normal;">
-    paid leave now sanctioned, is ${sn.balance || '_________________________'} days only.
+    <div style="display:flex;gap:2mm;">
+      <span style="flex-shrink:0;width:5mm;">4.</span>
+      <div style="flex:1;">
+        The paid leave at the credit of the GDS for the half year ending on <strong>${sn.halfYear || '_______________'}</strong> after deducting the
+        paid leave now sanctioned, is <strong>${sn.balance || '_________________________'}</strong> days only.
+      </div>
+    </div>
   </div>
 
   ${T('right:11.5mm;top:240mm','bold sz12','Signature of the Sanctioning Authority')}
 
   ${T('left:11.5mm;top:246mm','sz12','Date &nbsp;&nbsp;&nbsp;&nbsp; :')}
-  ${T('left:11.5mm;top:252mm','sz12','Copy to  :')}
-
-  ${T('left:22mm;top:252mm','sz12','1.')}
-  ${T('left:28mm;top:252mm','sz12','Shri/Smt/Kum.')}
-  ${UL('left:60mm;top:256.5mm;width:82mm')}
-  ${UV('','left:60.5mm;top:248.2mm;width:81mm;height:5mm', a.name)}
-  ${T('left:144mm;top:252mm','sz12','GDS.')}
-
-  ${T('left:22mm;top:257.5mm','sz12','2.')}
-  ${T('left:28mm;top:257.5mm','sz12','Shri/Smt/Kum.')}
-  ${UL('left:60mm;top:262mm;width:82mm')}
-  ${UV('','left:60.5mm;top:253.7mm;width:81mm;height:5mm', s.name)}
-  ${T('left:144mm;top:257.5mm','sz12','(Substitute).')}
-
-  ${T('left:22mm;top:263mm','sz12','3.')}
-  ${T('left:28mm;top:263mm','sz12','Postmaster')}
-  ${UL('left:47mm;top:267.5mm;width:110mm')}
-  ${UV('','left:47.5mm;top:259.2mm;width:109mm;height:5mm', sn.postmaster)}
-  ${T('left:158.5mm;top:263mm','sz12','.')}
+  <div style="position:absolute;left:11.5mm;top:252mm;width:187mm;font-size:12pt;line-height:1.4;">
+    <div style="display:flex;">
+      <span style="width:10.5mm;flex-shrink:0;">Copy to :</span>
+      <div style="flex:1;">
+        <div style="display:flex;gap:2mm;margin-bottom:1mm;">
+          <span style="width:4mm;flex-shrink:0;">1.</span>
+          <div style="flex:1;">
+            Shri/Smt/Kum. <strong>${a.name || '_______________________'}</strong> GDS.
+          </div>
+        </div>
+        <div style="display:flex;gap:2mm;margin-bottom:1mm;">
+          <span style="width:4mm;flex-shrink:0;">2.</span>
+          <div style="flex:1;">
+            Shri/Smt/Kum. <strong>${s.name || '_______________________'}</strong> (Substitute).
+          </div>
+        </div>
+        <div style="display:flex;gap:2mm;">
+          <span style="width:4mm;flex-shrink:0;">3.</span>
+          <div style="flex:1;">
+            Postmaster <strong>${sn.postmaster || '_______________________'}</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>`;
 }
 
