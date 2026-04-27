@@ -8,7 +8,9 @@ import { useLS } from '@/hooks/useLS'
 import AutocompleteInput from '@/components/td-commission/AutocompleteInput'
 import EntryRowComponent from '@/components/td-commission/EntryRow'
 import PreviewModal from '@/components/td-commission/PreviewModal'
-import { Calculator, Download, Eye, Printer, Plus, Save, Building2, MapPin, Building, RotateCcw } from 'lucide-react'
+import { Calculator, Download, Eye, Printer, Plus, Save, Building2, MapPin, Building, RotateCcw, Clock } from 'lucide-react'
+import HistoryModal from '@/components/common/HistoryModal'
+import CreditsModal from '@/components/common/CreditsModal'
 
 const MAX_ROWS = 19
 
@@ -34,6 +36,10 @@ export default function TDCommissionPage() {
   const [isPdfBusy, setIsPdfBusy] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const [showHistory, setShowHistory] = useState(false)
+  const [showCredits, setShowCredits] = useState(false)
+  const [requiredCredits, setRequiredCredits] = useState(10)
 
   useEffect(() => {
     setOffice(prev => ({
@@ -134,7 +140,8 @@ export default function TDCommissionPage() {
       }
       if (res.status === 402) {
         const j = await res.json().catch(() => null)
-        alert(`Insufficient credits. Required: ${j?.required_credits ?? 'N/A'}`)
+        setRequiredCredits(j?.required_credits ?? 10)
+        setShowCredits(true)
         return
       }
       if (!res.ok) {
@@ -368,6 +375,11 @@ export default function TDCommissionPage() {
             <RotateCcw className="w-4 h-4" />
             <span className="hidden sm:inline">Reset</span>
           </button>
+          <button onClick={() => setShowHistory(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/80 font-medium text-[13px] hover:bg-white/10 hover:text-white transition-all">
+            <Clock className="w-4 h-4" />
+            <span className="hidden sm:inline">History</span>
+          </button>
           <button onClick={handlePreview}
             disabled={isPdfBusy}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/80 font-medium text-[13px] hover:bg-white/10 hover:text-white transition-all disabled:opacity-50">
@@ -390,6 +402,17 @@ export default function TDCommissionPage() {
 
         <PreviewModal blobUrl={previewUrl} onClose={() => { setPreviewUrl(null) }} />
 
+        <HistoryModal 
+          isOpen={showHistory} 
+          onClose={() => setShowHistory(false)} 
+          toolId="td_commission" 
+        />
+
+        <CreditsModal 
+          isOpen={showCredits} 
+          onClose={() => setShowCredits(false)} 
+          requiredCredits={requiredCredits} 
+        />
       </div>
   )
 }

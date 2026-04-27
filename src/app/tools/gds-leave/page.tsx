@@ -12,6 +12,9 @@ import { defaultFormData } from '@/types/gds';
 import { buildSubject } from '@/lib/gds/utils';
 import { openWatermarkedPreviewWindow, buildPrintHTML } from '@/lib/gds/printBuilder';
 import { htmlPagesToPdfBlobA4 } from '@/lib/pdf/htmlToPdfBase64';
+import HistoryModal from '@/components/common/HistoryModal';
+import CreditsModal from '@/components/common/CreditsModal';
+import { Clock } from 'lucide-react';
 import styles from './gds-leave.module.css';
 
 type Tab = 'app' | 'letter';
@@ -24,6 +27,9 @@ export default function GDSLeavePage() {
   const prevUrlRef                  = useRef<string>('');
 
   const [isCharging, setIsCharging] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
+  const [requiredCredits, setRequiredCredits] = useState(15);
 
   function handleChange(updated: FormData) {
     const autoSubj       = buildSubject(updated);
@@ -61,7 +67,8 @@ export default function GDSLeavePage() {
       }
       if (res.status === 402) {
         const j = await res.json();
-        alert(`Insufficient credits. Required: ${j.required_credits}`);
+        setRequiredCredits(j.required_credits || 15);
+        setShowCredits(true);
         return;
       }
       if (!res.ok) {
@@ -173,6 +180,10 @@ export default function GDSLeavePage() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             Preview
           </button>
+          <button onClick={() => setShowHistory(true)} className={styles.btnSecondary}>
+            <Clock className="w-4 h-4 mr-1" />
+            History
+          </button>
           <button 
             onClick={handlePrint} 
             disabled={isCharging}
@@ -207,6 +218,18 @@ export default function GDSLeavePage() {
         {toast && (
           <div className={styles.toast}>{toast}</div>
         )}
+
+        <HistoryModal 
+          isOpen={showHistory} 
+          onClose={() => setShowHistory(false)} 
+          toolId="gds_leave" 
+        />
+
+        <CreditsModal 
+          isOpen={showCredits} 
+          onClose={() => setShowCredits(false)} 
+          requiredCredits={requiredCredits} 
+        />
       </div>
   );
 }

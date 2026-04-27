@@ -11,6 +11,8 @@ import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
 import { elementToPdfBlobA4 } from '@/lib/pdf/htmlToPdfBase64';
+import HistoryModal from '@/components/common/HistoryModal';
+import CreditsModal from '@/components/common/CreditsModal';
 
 export default function LetterpadGeneratorPage() {
   const {
@@ -34,6 +36,11 @@ export default function LetterpadGeneratorPage() {
   // ── Mobile tab: 'edit' | 'preview' ──────────
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('preview');
   const [isMobile, setIsMobile] = useState(false);
+
+  // ── Modals ──
+  const [showHistory, setShowHistory] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
+  const [requiredCredits, setRequiredCredits] = useState(15);
 
   // ── Responsive paper scale ───────────────────
   useEffect(() => {
@@ -82,7 +89,8 @@ export default function LetterpadGeneratorPage() {
       }
       if (res.status === 402) {
         const j = await res.json();
-        alert(`Insufficient credits. Required: ${j.required_credits}`);
+        setRequiredCredits(j.required_credits || 15);
+        setShowCredits(true);
         return;
       }
       if (!res.ok) {
@@ -150,6 +158,7 @@ export default function LetterpadGeneratorPage() {
           onPDF={doPrint}
           onToggleEndorse={toggleEndorse}
           onToggleCopy={toggleCopy}
+          onHistory={() => setShowHistory(true)}
           lastModel={lastModel}
         />
 
@@ -232,6 +241,18 @@ export default function LetterpadGeneratorPage() {
             </div>
           </main>
         </div>
+
+        <HistoryModal 
+          isOpen={showHistory} 
+          onClose={() => setShowHistory(false)} 
+          toolId="letterpad_generator" 
+        />
+
+        <CreditsModal 
+          isOpen={showCredits} 
+          onClose={() => setShowCredits(false)} 
+          requiredCredits={requiredCredits} 
+        />
     </div>
   );
 }
