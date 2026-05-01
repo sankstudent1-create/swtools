@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { TypingAnalyzer, TypingSessionResult } from '../engine/analyzer';
-import { generateTutorLesson, TUTOR_LEVELS } from '../engine/generator';
+import { generateTutorLesson, TUTOR_LEVELS, generateShortfallPractice } from '../engine/generator';
 import { generateTypingPDF } from '../engine/pdfReport';
 import { ArrowLeft, RefreshCw, Trophy, ChevronRight, BookOpen, Download } from 'lucide-react';
 

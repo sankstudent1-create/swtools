@@ -13,6 +13,7 @@ export interface TypingSessionResult {
   correctKeystrokes: number;
   incorrectKeystrokes: number;
   backspaces: number;
+  kph: number;
   timeSeconds: number;
   weakKeys: string[];
   errorFrequencyMap: Record<string, number>;
@@ -57,7 +58,7 @@ export class TypingAnalyzer {
   endSession(): TypingSessionResult {
     this.endTime = Date.now();
     if (this.logs.length === 0) {
-      return { wpm: 0, rawWpm: 0, accuracy: 0, totalKeystrokes: 0, correctKeystrokes: 0, incorrectKeystrokes: 0, backspaces: 0, timeSeconds: 0, weakKeys: [], errorFrequencyMap: {}, mistakeTimeline: [] };
+      return { wpm: 0, rawWpm: 0, accuracy: 0, kph: 0, totalKeystrokes: 0, correctKeystrokes: 0, incorrectKeystrokes: 0, backspaces: 0, timeSeconds: 0, weakKeys: [], errorFrequencyMap: {}, mistakeTimeline: [] };
     }
 
     const durationSeconds = (this.endTime - (this.startTime || this.endTime)) / 1000;
@@ -72,8 +73,16 @@ export class TypingAnalyzer {
     });
 
     const accuracy = (correctCount / this.logs.length) * 100;
-    const rawWpm = (this.logs.length / 5) / (durationMinutes || 1);
-    const netWpm = Math.max(0, ((this.logs.length / 5) - (this.logs.length - correctCount)) / (durationMinutes || 1));
+    
+    // Standard WPM calculation: (Characters / 5) / time
+    const grossWpm = (this.logs.length / 5) / (durationMinutes || 1);
+    
+    // SSC CGL Specific: (Correct Words - Errors) / Time. 
+    // Word is defined as 5 keystrokes.
+    const netWpm = Math.max(0, ((correctCount / 5) / (durationMinutes || 1)));
+    
+    // KPH (Keys Per Hour) - crucial for many Indian Govt exams
+    const kph = Math.round((this.logs.length / (durationSeconds || 1)) * 3600);
 
     const weakKeys = Object.entries(errorMap)
       .sort((a, b) => b[1] - a[1])
@@ -82,8 +91,9 @@ export class TypingAnalyzer {
 
     return {
       wpm: Math.round(netWpm),
-      rawWpm: Math.round(rawWpm),
+      rawWpm: Math.round(grossWpm),
       accuracy: Math.round(accuracy * 10) / 10,
+      kph,
       totalKeystrokes: this.logs.length,
       correctKeystrokes: correctCount,
       incorrectKeystrokes: this.logs.length - correctCount,
