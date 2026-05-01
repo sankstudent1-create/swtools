@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Clock, AlertTriangle, Trophy } from 'lucide-react';
-import { TypingAnalyzer } from '../engine/analyzer';
+import { TypingAnalyzer, TypingSessionResult } from '../engine/analyzer';
 import { generateSSCCGLPassage } from '../engine/generator';
+import { generateTypingPDF } from '../engine/pdfReport';
+import { FileText, Download } from 'lucide-react';
 
 // SSC CGL specific rules: generally 15 minutes for 2000 keystrokes (~26 WPM requirement but realistically higher for safety).
 const EXAM_DURATION_SECONDS = 15 * 60; // 15 mins
@@ -16,7 +18,7 @@ export default function ExamModePage() {
   const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
   const [isActive, setIsActive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<TypingSessionResult | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -61,10 +63,10 @@ export default function ExamModePage() {
       const lastChar = val[val.length - 1];
       const expectedChar = passage[val.length - 1];
       if (expectedChar) {
-        analyzer.logKeystroke(expectedChar, lastChar);
+        analyzer.logKeystroke(expectedChar, lastChar, val.length - 1);
       }
     } else if (val.length < input.length) {
-      // Backspace handled
+      analyzer.logBackspace();
     }
 
     setInput(val);
@@ -156,34 +158,59 @@ export default function ExamModePage() {
             <h2 className="text-4xl font-semibold mb-2">Exam Concluded</h2>
             <p className="text-white/50 mb-8 font-light">Here is your definitive skill test result.</p>
             
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="p-6 bg-white/5 border border-white/5 rounded-2xl">
-                <div className="text-sm text-white/50 mb-2 uppercase tracking-widest font-semibold">Net WPM</div>
-                <div className={`text-5xl font-semibold ${results.wpm >= 27 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {results.wpm}
-                </div>
-                <div className="text-xs text-white/30 mt-2">Required: 27 WPM (minimum)</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-left">
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Raw Speed</div>
+                <div className="text-2xl font-semibold text-white">{results.rawWpm} <span className="text-xs">WPM</span></div>
               </div>
-              <div className="p-6 bg-white/5 border border-white/5 rounded-2xl">
-                <div className="text-sm text-white/50 mb-2 uppercase tracking-widest font-semibold">Accuracy</div>
-                <div className={`text-5xl font-semibold ${results.accuracy >= 95 ? 'text-blue-400' : 'text-amber-400'}`}>
-                  {results.accuracy}%
-                </div>
-                <div className="text-xs text-white/30 mt-2">Required: 95% (UR category std)</div>
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Accuracy</div>
+                <div className="text-2xl font-semibold text-white">{results.accuracy}%</div>
+              </div>
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Backspaces</div>
+                <div className="text-2xl font-semibold text-amber-400">{results.backspaces}</div>
+              </div>
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Mistakes</div>
+                <div className="text-2xl font-semibold text-rose-400">{results.incorrectKeystrokes}</div>
               </div>
             </div>
 
-            <div className="p-4 bg-white/5 rounded-xl border border-white/[0.05] flex justify-between px-8 text-sm text-white/60 mb-8">
-              <span>Total Keystrokes: <strong className="text-white">{results.totalKeystrokes}</strong></span>
-              <span>Errors: <strong className="text-rose-400">{results.incorrectKeystrokes}</strong></span>
+            <div className="mb-8 p-6 bg-white/5 border border-white/5 rounded-2xl text-left">
+              <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" /> Mistake Mapping
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {results.weakKeys.length > 0 ? (
+                  results.weakKeys.map(key => (
+                    <span key={key} className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg text-xs font-mono">
+                      {key === ' ' ? 'Space' : key} ({results.errorFrequencyMap[key]} times)
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-emerald-400 text-sm italic">Perfect run! No frequent mistakes detected.</span>
+                )}
+              </div>
+              <p className="mt-4 text-xs text-white/40 leading-relaxed">
+                Exam Rule Note: Net WPM is calculated by deducting errors from gross speed. Backspaces help improve accuracy but take time, indirectly lowering WPM.
+              </p>
             </div>
 
-            <button 
-              onClick={() => window.location.reload()}
-              className="inline-block w-full px-6 py-4 bg-white text-black hover:bg-white/90 rounded-xl font-medium transition shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-            >
-              Take Another Mock Test
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={() => window.location.reload()}
+                className="flex-1 px-6 py-4 bg-white text-black hover:bg-white/90 rounded-xl font-medium transition"
+              >
+                Take Another Mock Test
+              </button>
+              <button 
+                onClick={() => generateTypingPDF(results, "SSC CGL Skill Test")}
+                className="flex-1 px-6 py-4 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium transition flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Download PDF Report
+              </button>
+            </div>
           </div>
         )}
       </div>

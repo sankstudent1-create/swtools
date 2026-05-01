@@ -1,8 +1,44 @@
-// Mock Generator for SSC CGL and typing lessons
 export const HOME_ROW_KEYS = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'];
 export const TOP_ROW_KEYS = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
 export const BOTTOM_ROW_KEYS = ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'];
 export const NUMBER_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+
+export const TUTOR_LEVELS = [
+  { id: 'home-1', name: 'Home Row: Basic', keys: ['f', 'j', 'd', 'k'], description: 'Index and middle fingers of both hands.' },
+  { id: 'home-2', name: 'Home Row: Complete', keys: ['a', 's', 'l', ';', 'g', 'h'], description: 'All home row keys including pinky and center keys.' },
+  { id: 'top-1', name: 'Top Row: Index/Middle', keys: ['r', 'u', 'e', 'i'], description: 'Moving upwards from home row.' },
+  { id: 'top-2', name: 'Top Row: Complete', keys: ['q', 'w', 't', 'y', 'o', 'p'], description: 'All top row keys.' },
+  { id: 'bottom-1', name: 'Bottom Row: Index/Middle', keys: ['v', 'n', 'c', 'm'], description: 'Moving downwards from home row.' },
+  { id: 'bottom-2', name: 'Bottom Row: Complete', keys: ['z', 'x', 'b', ',', '.', '/'], description: 'All bottom row keys.' },
+  { id: 'numbers-1', name: 'Numbers: Basic', keys: ['4', '7', '3', '8'], description: 'Introduction to the number row.' },
+  { id: 'numbers-2', name: 'Numbers: Complete', keys: ['1', '2', '5', '6', '9', '0'], description: 'Full numeric row practice.' },
+  { id: 'symbols', name: 'Common Symbols', keys: ['!', '@', '#', '$', '%', '&', '*', '(', ')'], description: 'Shift-key combinations.' },
+  { id: 'sentences-easy', name: 'Easy Sentences', type: 'sentence', description: 'Simple words and phrases.' },
+  { id: 'sentences-hard', name: 'Advanced Paragraphs', type: 'paragraph', description: 'Complex vocabulary and punctuation.' }
+];
+
+export function generateTutorLesson(levelId: string, length: number = 100): string {
+  const level = TUTOR_LEVELS.find(l => l.id === levelId);
+  if (!level) return generateKeyCombinations(['home'], length);
+
+  if (level.type === 'sentence') {
+    return SSC_MOCK_PARAGRAPHS[Math.floor(Math.random() * SSC_MOCK_PARAGRAPHS.length)].substring(0, length);
+  }
+
+  if (level.type === 'paragraph') {
+    return generateSSCCGLPassage(length);
+  }
+
+  let result = '';
+  const pool = level.keys || HOME_ROW_KEYS;
+  for (let i = 0; i < length / 4; i++) {
+    const k1 = pool[Math.floor(Math.random() * pool.length)];
+    const k2 = pool[Math.floor(Math.random() * pool.length)];
+    const k3 = pool[Math.floor(Math.random() * pool.length)];
+    result += `${k1}${k2}${k3} `;
+  }
+  return result.trim().substring(0, length);
+}
 
 // Generates an isolated character sequence for given rows
 export function generateKeyCombinations(rows: ('home' | 'top' | 'bottom' | 'numbers')[], length: number = 100): string {
