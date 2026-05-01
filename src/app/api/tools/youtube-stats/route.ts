@@ -8,12 +8,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'YouTube URL is required' }, { status: 400 });
     }
 
-    // Extract Video ID
-    const videoIdMatch = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    // Extract Video ID with a more robust regex
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const videoIdMatch = url.match(regex);
     const videoId = videoIdMatch ? videoIdMatch[1] : null;
 
     if (!videoId) {
-      return NextResponse.json({ error: 'Invalid YouTube URL' }, { status: 400 });
+      console.error('Failed to extract videoId from URL:', url);
+      return NextResponse.json({ error: 'Invalid YouTube URL format' }, { status: 400 });
     }
 
     const apiKey = process.env.YOUTUBE_API_KEY;
@@ -22,13 +24,18 @@ export async function POST(req: Request) {
     }
 
     // Fetch video details
-    const videoResponse = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoId}&key=${apiKey}`
-    );
+    const videoUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoId}&key=${apiKey}`;
+    const videoResponse = await fetch(videoUrl);
     const videoData = await videoResponse.json();
 
+    if (videoData.error) {
+      console.error('YouTube API Error (Video):', videoData.error);
+      return NextResponse.json({ error: videoData.error.message }, { status: videoData.error.code || 500 });
+    }
+
     if (!videoData.items || videoData.items.length === 0) {
-      return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+      console.error('No video found for ID:', videoId);
+      return NextResponse.json({ error: 'Video not found. Please check if it is public.' }, { status: 404 });
     }
 
     const videoItem = videoData.items[0];
