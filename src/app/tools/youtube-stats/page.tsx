@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Play, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check, Video, Download, Music, FileText } from 'lucide-react';
+import { Play, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check, Video, Download, Music, FileText, Activity } from 'lucide-react';
 import { generateYouTubePDF } from './youtubePdfReport';
 
 interface VideoStats {
