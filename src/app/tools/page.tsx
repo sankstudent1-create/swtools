@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { 
   Search, Image as ImageIcon, FileText, Settings, ChevronRight, Menu, X, 
   Maximize, Sparkles, Layers, PenTool, Edit3, Fingerprint, RefreshCw, 
-  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator, Smartphone
+  FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator, Smartphone,
+  Youtube
 } from 'lucide-react';
 
 // Unified Tools Data mapped to the new Crystalline design system
@@ -262,10 +263,21 @@ const TOOLS_DATA = [
     bg: "bg-green-400/10",
     border: "border-green-400/20",
     href: "/tools/upi-qr",
+  },
+  {
+    id: "youtube-stats",
+    name: "YouTube Stats Extractor",
+    description: "Analyze video performance, extract SEO tags, and get channel insights for any YouTube video.",
+    category: "Video Utility",
+    icon: Youtube,
+    accent: "text-red-400",
+    bg: "bg-red-400/10",
+    border: "border-red-400/20",
+    href: "/tools/youtube-stats",
   }
 ];
 
-const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments', 'Education'];
+const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments', 'Education', 'Video Utility'];
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
