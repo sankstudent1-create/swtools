@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Youtube, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check } from 'lucide-react';
+import { Play, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check, Video } from 'lucide-react';
 import Image from 'next/image';
 
 interface VideoStats {
@@ -85,7 +85,7 @@ export default function YoutubeStatsPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-red-500/10 border border-red-500/20 mb-6">
-            <Youtube className="w-8 h-8 text-red-500" />
+            <Video className="w-8 h-8 text-red-500" />
           </div>
           <h1 className="text-4xl font-semibold mb-4 tracking-tight text-white">YouTube Stats Extractor</h1>
           <p className="text-white/50 text-lg max-w-2xl mx-auto font-light">

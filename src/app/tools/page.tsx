@@ -6,7 +6,7 @@ import {
   Search, Image as ImageIcon, FileText, Settings, ChevronRight, Menu, X, 
   Maximize, Sparkles, Layers, PenTool, Edit3, Fingerprint, RefreshCw, 
   FlipHorizontal, Crop, Type, Layers as LayersIcon, Mail, Building, Calculator, Smartphone,
-  Youtube
+  Video
 } from 'lucide-react';
 
 // Unified Tools Data mapped to the new Crystalline design system
@@ -269,7 +269,7 @@ const TOOLS_DATA = [
     name: "YouTube Stats Extractor",
     description: "Analyze video performance, extract SEO tags, and get channel insights for any YouTube video.",
     category: "Video Utility",
-    icon: Youtube,
+    icon: Video,
     accent: "text-red-400",
     bg: "bg-red-400/10",
     border: "border-red-400/20",
