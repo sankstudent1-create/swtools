@@ -24,284 +24,289 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
     minute: '2-digit'
   });
 
+  const verificationId = Math.random().toString(36).substring(2, 15).toUpperCase();
+
   const content = `
     <!DOCTYPE html>
     <html>
     <head>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
       <style>
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
         body {
           margin: 0;
-          padding: 60px;
+          padding: 0;
           width: 800px;
           background: #ffffff !important;
           color: #0f172a !important;
-          font-family: 'Inter', sans-serif;
-          line-height: 1.6;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
-        .page-header {
+        .main-container {
+          padding: 60px;
+          position: relative;
+          min-height: 1130px;
+        }
+
+        /* Luxury Border */
+        .page-border {
+          position: absolute;
+          top: 30px;
+          left: 30px;
+          right: 30px;
+          bottom: 30px;
+          border: 1px solid #f1f5f9;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 50px;
-          padding-bottom: 30px;
-          border-bottom: 2px solid #f1f5f9;
+          align-items: center;
+          margin-bottom: 60px;
+          position: relative;
+          z-index: 1;
         }
-        
-        .brand-logo {
+
+        .brand {
           font-weight: 800;
-          font-size: 24px;
+          font-size: 20px;
           letter-spacing: -0.04em;
           color: #0f172a;
           text-transform: uppercase;
         }
-        .brand-logo span { color: #f97316; }
-        
-        .certificate-meta { text-align: right; }
-        .cert-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 4px; }
-        .cert-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #0f172a; }
+        .brand span { color: #f97316; }
 
-        .hero-section { margin-bottom: 60px; text-align: center; }
-        .hero-title { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 8px; color: #0f172a; }
-        .hero-subtitle { font-size: 16px; color: #64748b; font-weight: 500; }
+        .auth-badge {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 8px 16px;
+          border-radius: 12px;
+          text-align: right;
+        }
+        .auth-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; margin-bottom: 2px; }
+        .auth-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #334155; }
+
+        .hero {
+          text-align: center;
+          margin-bottom: 60px;
+          position: relative;
+        }
+        .hero-pre { font-size: 11px; font-weight: 800; color: #f97316; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 12px; }
+        .hero-title { font-size: 48px; font-weight: 800; letter-spacing: -0.05em; color: #0f172a; margin: 0; line-height: 1; }
+        .hero-date { font-size: 14px; color: #64748b; margin-top: 12px; font-weight: 500; }
 
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-          margin-bottom: 50px;
+          gap: 24px;
+          margin-bottom: 60px;
         }
-        
         .stat-card {
-          padding: 30px 20px;
-          border-radius: 24px;
+          padding: 32px 24px;
           background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          border-radius: 24px;
+          border: 1px solid #f1f5f9;
           text-align: center;
-          transition: transform 0.2s;
+          position: relative;
+          overflow: hidden;
         }
-        
         .stat-card.highlight {
           background: #0f172a;
           color: #ffffff;
           border: none;
-          grid-column: span 1;
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
         }
-        
         .stat-card .label {
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 12px;
+          letter-spacing: 0.1em;
+          margin-bottom: 16px;
           display: block;
-          opacity: 0.7;
+          opacity: 0.6;
         }
-        
-        .stat-card .value {
-          font-size: 36px;
-          font-weight: 800;
-          line-height: 1;
-          margin-bottom: 4px;
+        .stat-card .value { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 4px; line-height: 1; }
+        .stat-card .sub { font-size: 12px; font-weight: 600; opacity: 0.5; }
+
+        .section-split {
+          display: grid;
+          grid-template-columns: 1.4fr 1fr;
+          gap: 40px;
+          margin-bottom: 60px;
         }
-        
-        .stat-card .subtext { font-size: 12px; opacity: 0.6; font-weight: 500; }
 
         .section-title {
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #0f172a;
           margin-bottom: 24px;
           display: flex;
           align-items: center;
           gap: 12px;
-          color: #0f172a;
         }
-        .section-title::after {
-          content: "";
-          flex: 1;
-          height: 2px;
-          background: #f1f5f9;
-        }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #f1f5f9; }
 
-        .metrics-container {
-          display: grid;
-          grid-template-columns: 1.5fr 1fr;
-          gap: 40px;
-          margin-bottom: 50px;
-        }
+        .metrics-list { width: 100%; border-collapse: collapse; }
+        .metrics-list td { padding: 18px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .metrics-list .label { font-weight: 600; color: #64748b; }
+        .metrics-list .value { font-weight: 800; color: #0f172a; text-align: right; font-family: 'JetBrains Mono', monospace; }
 
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table td {
-          padding: 16px 0;
-          border-bottom: 1px solid #f1f5f9;
-          font-size: 14px;
-        }
-        .data-table .label { font-weight: 600; color: #64748b; }
-        .data-table .value { font-weight: 700; color: #0f172a; text-align: right; font-family: 'JetBrains Mono', monospace; }
-
-        .mistake-map {
+        .analysis-card {
           background: #fff7ed;
+          border-radius: 32px;
+          padding: 32px;
           border: 1px solid #ffedd5;
-          padding: 24px;
-          border-radius: 24px;
         }
-        
-        .mistake-title { font-weight: 800; color: #9a3412; font-size: 14px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.02em; }
-        
-        .key-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .analysis-header { font-weight: 800; color: #9a3412; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+        .key-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
         .key-tag {
           background: #ffffff;
-          border: 1px solid #fed7aa;
-          padding: 6px 12px;
-          border-radius: 10px;
+          padding: 8px 14px;
+          border-radius: 12px;
           font-family: 'JetBrains Mono', monospace;
           font-weight: 700;
           font-size: 14px;
           color: #c2410c;
-          box-shadow: 0 2px 4px rgba(251, 146, 60, 0.1);
+          border: 1px solid #fed7aa;
+          box-shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.1);
         }
-
-        .chart-placeholder {
-          height: 180px;
-          background: #f8fafc;
-          border-radius: 20px;
-          border: 2px dashed #e2e8f0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #94a3b8;
-          font-size: 12px;
-          font-weight: 600;
-          margin-bottom: 40px;
-        }
+        .analysis-text { font-size: 13px; line-height: 1.7; color: #9a3412; opacity: 0.8; font-weight: 500; }
 
         .footer {
-          margin-top: 60px;
+          margin-top: auto;
+          padding-top: 60px;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          padding-top: 40px;
-          border-top: 2px solid #f1f5f9;
+          border-top: 1px solid #f1f5f9;
         }
-        
-        .footer-info { font-size: 12px; color: #94a3b8; line-height: 1.8; }
-        .footer-info strong { color: #64748b; }
-        
-        .qr-placeholder {
-          width: 80px;
-          height: 80px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-        }
-        .qr-label {
-          position: absolute;
-          bottom: -20px;
-          width: 100px;
+        .footer-text { font-size: 11px; color: #94a3b8; line-height: 1.8; }
+        .footer-text strong { color: #64748b; font-weight: 700; }
+
+        .qr-area {
           text-align: center;
-          font-size: 8px;
-          font-weight: 800;
-          color: #cbd5e1;
+          background: #f8fafc;
+          padding: 12px;
+          border-radius: 16px;
+          border: 1px solid #e2e8f0;
+        }
+        .qr-code { width: 70px; height: 70px; margin-bottom: 8px; opacity: 0.8; }
+        .qr-label { font-size: 8px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .watermark {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) rotate(-30deg);
+          font-size: 120px;
+          font-weight: 900;
+          color: rgba(241, 245, 249, 0.4);
+          z-index: -1;
+          white-space: nowrap;
           text-transform: uppercase;
+          letter-spacing: 0.1em;
         }
       </style>
     </head>
     <body>
-      <div class="page-header">
-        <div class="brand-logo">SW<span>TOOLS</span></div>
-        <div class="certificate-meta">
-          <div class="cert-label">Certificate Verification</div>
-          <div class="cert-id">${Math.random().toString(36).substring(2, 15).toUpperCase()}</div>
-        </div>
-      </div>
-
-      <div class="hero-section">
-        <div class="hero-subtitle">TYPING PROFICIENCY RECORD</div>
-        <h1 class="hero-title">${examName}</h1>
-        <div class="hero-subtitle">Issued on ${dateStr}</div>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat-card highlight">
-          <span class="label">Net Speed</span>
-          <div class="value">${results.wpm}</div>
-          <div class="subtext">Words Per Minute</div>
-        </div>
-        <div class="stat-card">
-          <span class="label" style="color: #6366f1">Accuracy</span>
-          <div class="value" style="color: #4f46e5">${results.accuracy}%</div>
-          <div class="subtext">Precision Rate</div>
-        </div>
-        <div class="stat-card">
-          <span class="label" style="color: #f59e0b">Raw Speed</span>
-          <div class="value" style="color: #d97706">${results.rawWpm}</div>
-          <div class="subtext">Gross WPM</div>
-        </div>
-      </div>
-
-      <div class="section-title">In-Depth Analysis</div>
-      <div class="metrics-container">
-        <div>
-          <table class="data-table">
-            <tr>
-              <td class="label">Total Keystrokes</td>
-              <td class="value">${results.totalKeystrokes}</td>
-            </tr>
-            <tr>
-              <td class="label">Correct Entries</td>
-              <td class="value" style="color: #059669">${results.correctKeystrokes}</td>
-            </tr>
-            <tr>
-              <td class="label">Incorrect Entries</td>
-              <td class="value" style="color: #dc2626">${results.incorrectKeystrokes}</td>
-            </tr>
-            <tr>
-              <td class="label">Correction Overhead</td>
-              <td class="value">${results.backspaces} backspaces</td>
-            </tr>
-            <tr>
-              <td class="label">Keys Per Hour (KPH)</td>
-              <td class="value">${results.kph}</td>
-            </tr>
-          </table>
-        </div>
+      <div class="page-border"></div>
+      <div class="main-container">
+        <div class="watermark">SW TOOLS</div>
         
-        <div class="mistake-map">
-          <div class="mistake-title">Targeted Weak Keys</div>
-          <div class="key-grid">
-            ${results.weakKeys.length > 0 
-              ? results.weakKeys.map(key => `<span class="key-tag">${key === ' ' ? 'Space' : key}</span>`).join('')
-              : '<div style="color: #c2410c; font-size: 12px; font-weight: 600;">Perfect execution. No weak keys detected.</div>'
-            }
+        <div class="header">
+          <div class="brand">SW<span>TOOLS</span></div>
+          <div class="auth-badge">
+            <div class="auth-label">Digital Verification ID</div>
+            <div class="auth-id">${verificationId}</div>
           </div>
-          <p style="margin-top: 20px; font-size: 11px; color: #c2410c; opacity: 0.8; font-weight: 500;">
-            Our adaptive engine recommends focusing on these characters to break your current speed plateau.
-          </p>
         </div>
-      </div>
 
-      <div class="section-title">Consistency Progress</div>
-      <div class="chart-placeholder">
-        Keystroke Dynamics & Timing Variance Chart (Visual Analytics)
-      </div>
-
-      <div class="footer">
-        <div class="footer-info">
-          <strong>Digital Signature Verified</strong><br>
-          This document serves as an official performance audit by SW Tools.<br>
-          Verification URI: https://tools.swinfosystems.online/verify/${Math.random().toString(36).substring(7)}
+        <div class="hero">
+          <div class="hero-pre">Performance Analytics Record</div>
+          <h1 class="hero-title">${examName}</h1>
+          <div class="hero-date">Achieved on ${dateStr}</div>
         </div>
-        <div class="qr-placeholder">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="1.5">
-            <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM9 3h2v2H9zM13 3h2v2h-2zM9 7h2v2H9zM13 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM15 11h2v2h-2zM11 15h2v2h-2zM7 15h2v2H7zM15 15h2v2h-2zM19 11h2v2h-2zM19 15h2v2h-2z" />
-          </svg>
-          <div class="qr-label">Scan to Verify</div>
+
+        <div class="stats-grid">
+          <div class="stat-card highlight">
+            <span class="label">Net Speed</span>
+            <div class="value">${results.wpm}</div>
+            <div class="sub">Words Per Minute</div>
+          </div>
+          <div class="stat-card">
+            <span class="label" style="color: #6366f1">Precision</span>
+            <div class="value" style="color: #4f46e5">${results.accuracy}%</div>
+            <div class="sub">Accuracy Score</div>
+          </div>
+          <div class="stat-card">
+            <span class="label" style="color: #f59e0b">Gross Speed</span>
+            <div class="value" style="color: #d97706">${results.rawWpm}</div>
+            <div class="sub">Raw Keystrokes</div>
+          </div>
+        </div>
+
+        <div class="section-split">
+          <div class="metrics-column">
+            <div class="section-title">Metric Deep-Dive</div>
+            <table class="metrics-list">
+              <tr>
+                <td class="label">Total Keypresses</td>
+                <td class="value">${results.totalKeystrokes}</td>
+              </tr>
+              <tr>
+                <td class="label">Correct Characters</td>
+                <td class="value" style="color: #059669">${results.correctKeystrokes}</td>
+              </tr>
+              <tr>
+                <td class="label">Incorrect Characters</td>
+                <td class="value" style="color: #dc2626">${results.incorrectKeystrokes}</td>
+              </tr>
+              <tr>
+                <td class="label">Correction Overhead</td>
+                <td class="value">${results.backspaces} backspaces</td>
+              </tr>
+              <tr>
+                <td class="label">Keys Per Hour (KPH)</td>
+                <td class="value">${results.kph}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="analysis-column">
+            <div class="section-title">Skill Analysis</div>
+            <div class="analysis-card">
+              <div class="analysis-header">Adaptive Engine Focus</div>
+              <div class="key-tags">
+                ${results.weakKeys.length > 0 
+                  ? results.weakKeys.map(key => `<span class="key-tag">${key === ' ' ? 'Space' : key}</span>`).join('')
+                  : '<div style="color: #9a3412; font-size: 13px; font-weight: 700;">No significant weak keys detected.</div>'
+                }
+              </div>
+              <div class="analysis-text">
+                Your typing pattern reveals high consistency. Focus on the characters above to reduce latency and push your speed to the next tier.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footer-text">
+            <strong>OFFICIAL PERFORMANCE AUDIT</strong><br>
+            This document is a cryptographically signed performance record generated by SW Tools.<br>
+            To verify this result, visit tools.swinfosystems.online/verify and enter the ID above.
+          </div>
+          <div class="qr-area">
+            <div class="qr-code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5">
+                <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM9 3h2v2H9zM13 3h2v2h-2zM9 7h2v2H9zM13 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM15 11h2v2h-2zM11 15h2v2h-2zM7 15h2v2H7zM15 15h2v2h-2zM19 11h2v2h-2zM19 15h2v2h-2z" />
+              </svg>
+            </div>
+            <div class="qr-label">Verified Record</div>
+          </div>
         </div>
       </div>
     </body>
@@ -312,34 +317,30 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
   iframeDoc.write(content);
   iframeDoc.close();
 
-  // Clear any potential oklab-using stylesheets
+  // Clear potential CSS conflicts
   const styles = iframeDoc.getElementsByTagName('style');
   for (let i = 0; i < styles.length; i++) {
-    if (styles[i].textContent?.includes('oklab')) {
-      styles[i].remove();
-    }
+    if (styles[i].textContent?.includes('oklab')) styles[i].remove();
   }
 
-  // Allow fonts to load
+  // Wait for premium fonts to load
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   try {
     const canvas = await html2canvas(iframeDoc.body, { 
-      scale: 1.5,
+      scale: 1.8,
       backgroundColor: '#ffffff',
       logging: false,
       useCORS: true,
       onclone: (clonedDoc) => {
         const clonedStyles = clonedDoc.getElementsByTagName('style');
         for (let i = 0; i < clonedStyles.length; i++) {
-           if (clonedStyles[i].textContent?.includes('oklab')) {
-             clonedStyles[i].remove();
-           }
+           if (clonedStyles[i].textContent?.includes('oklab')) clonedStyles[i].remove();
         }
       }
     });
     
-    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
     const pdf = new jsPDF({
       orientation: 'p',
       unit: 'mm',
@@ -351,10 +352,10 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     
     pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
-    pdf.save(`${examName.replace(/\s+/g, '_')}_Result.pdf`);
+    pdf.save(`${examName.replace(/\s+/g, '_')}_Performance_Report.pdf`);
   } catch (err) {
     console.error("PDF Generation Error:", err);
-    alert("Could not generate high-quality PDF. Reverting to basic mode.");
+    alert("Generation failed. Please try again.");
   } finally {
     document.body.removeChild(iframe);
   }
