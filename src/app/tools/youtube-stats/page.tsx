@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Play, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check, Video } from 'lucide-react';
+import { Play, Search, BarChart2, Tag, Calendar, Clock, Eye, ThumbsUp, MessageCircle, User, ExternalLink, Copy, Check, Video, Download, Music } from 'lucide-react';
 import Image from 'next/image';
 
 interface VideoStats {
@@ -140,6 +140,37 @@ export default function YoutubeStatsPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Download Options */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8">
+                <div className="flex items-center gap-2 mb-6">
+                  <Download className="w-5 h-5 text-emerald-400" />
+                  <h3 className="text-lg font-medium">Download Options</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <a
+                    href={`https://www.ssyoutube.com/watch?v=${stats.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-98"
+                  >
+                    <Video className="w-5 h-5" />
+                    Download Video (MP4)
+                  </a>
+                  <a
+                    href={`https://www.youtubepp.com/watch?v=${stats.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-all hover:scale-[1.02] active:scale-98"
+                  >
+                    <Music className="w-5 h-5" />
+                    Download Audio (MP3)
+                  </a>
+                </div>
+                <p className="mt-4 text-white/20 text-[10px] text-center uppercase tracking-widest">
+                  Redirects to secure conversion partners
+                </p>
               </div>
 
               {/* Tags Section */}
