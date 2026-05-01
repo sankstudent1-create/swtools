@@ -37,8 +37,8 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
           margin: 0;
           padding: 0;
           width: 800px;
-          background: #ffffff !important;
-          color: #0f172a !important;
+          background: #0B1120 !important;
+          color: #f1f5f9 !important;
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
         
@@ -51,84 +51,88 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
         /* Luxury Border */
         .page-border {
           position: absolute;
-          top: 30px;
-          left: 30px;
-          right: 30px;
-          bottom: 30px;
-          border: 1px solid #f1f5f9;
+          top: 20px;
+          left: 20px;
+          right: 20px;
+          bottom: 20px;
+          border: 1px solid rgba(255,255,255,0.06);
           pointer-events: none;
           z-index: 0;
+          border-radius: 4px;
         }
 
         .header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 60px;
+          margin-bottom: 50px;
           position: relative;
           z-index: 1;
         }
 
         .brand {
           font-weight: 800;
-          font-size: 20px;
+          font-size: 22px;
           letter-spacing: -0.04em;
-          color: #0f172a;
+          color: #ffffff;
           text-transform: uppercase;
         }
         .brand span { color: #f97316; }
 
         .auth-badge {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          padding: 8px 16px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 10px 18px;
           border-radius: 12px;
           text-align: right;
         }
-        .auth-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; margin-bottom: 2px; }
-        .auth-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #334155; }
+        .auth-label { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #475569; margin-bottom: 2px; }
+        .auth-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #94a3b8; }
 
         .hero {
           text-align: center;
-          margin-bottom: 60px;
+          margin-bottom: 50px;
           position: relative;
         }
         .hero-pre { font-size: 11px; font-weight: 800; color: #f97316; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 12px; }
-        .hero-title { font-size: 48px; font-weight: 800; letter-spacing: -0.05em; color: #0f172a; margin: 0; line-height: 1; }
-        .hero-date { font-size: 14px; color: #64748b; margin-top: 12px; font-weight: 500; }
+        .hero-title { font-size: 42px; font-weight: 800; letter-spacing: -0.05em; color: #ffffff; margin: 0; line-height: 1.1; }
+        .hero-date { font-size: 13px; color: #475569; margin-top: 12px; font-weight: 500; }
 
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-          margin-bottom: 60px;
+          gap: 20px;
+          margin-bottom: 50px;
         }
         .stat-card {
-          padding: 32px 24px;
-          background: #f8fafc;
-          border-radius: 24px;
-          border: 1px solid #f1f5f9;
+          padding: 28px 20px;
+          background: rgba(255,255,255,0.03);
+          border-radius: 20px;
+          border: 1px solid rgba(255,255,255,0.06);
           text-align: center;
           position: relative;
           overflow: hidden;
         }
         .stat-card.highlight {
-          background: #0f172a;
+          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
           color: #ffffff;
           border: none;
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
+          box-shadow: 0 20px 40px rgba(249, 115, 22, 0.15);
         }
         .stat-card .label {
           font-size: 10px;
           font-weight: 700;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
           display: block;
-          opacity: 0.6;
+          opacity: 0.5;
+          color: #94a3b8;
         }
-        .stat-card .value { font-size: 42px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 4px; line-height: 1; }
-        .stat-card .sub { font-size: 12px; font-weight: 600; opacity: 0.5; }
+        .stat-card.highlight .label { color: rgba(255,255,255,0.8); opacity: 0.9; }
+        .stat-card .value { font-size: 38px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 4px; line-height: 1; color: #ffffff; }
+        .stat-card .sub { font-size: 11px; font-weight: 600; opacity: 0.4; color: #94a3b8; }
+        .stat-card.highlight .sub { color: rgba(255,255,255,0.7); opacity: 0.8; }
 
         .section-split {
           display: grid;
@@ -142,60 +146,59 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.1em;
-          color: #0f172a;
-          margin-bottom: 24px;
+          color: #ffffff;
+          margin-bottom: 20px;
           display: flex;
           align-items: center;
           gap: 12px;
         }
-        .section-title::after { content: ""; flex: 1; height: 1px; background: #f1f5f9; }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
 
         .metrics-list { width: 100%; border-collapse: collapse; }
-        .metrics-list td { padding: 18px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .metrics-list td { padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; }
         .metrics-list .label { font-weight: 600; color: #64748b; }
-        .metrics-list .value { font-weight: 800; color: #0f172a; text-align: right; font-family: 'JetBrains Mono', monospace; }
+        .metrics-list .value { font-weight: 800; color: #e2e8f0; text-align: right; font-family: 'JetBrains Mono', monospace; }
 
         .analysis-card {
-          background: #fff7ed;
-          border-radius: 32px;
-          padding: 32px;
-          border: 1px solid #ffedd5;
+          background: rgba(249, 115, 22, 0.06);
+          border-radius: 24px;
+          padding: 28px;
+          border: 1px solid rgba(249, 115, 22, 0.15);
         }
-        .analysis-header { font-weight: 800; color: #9a3412; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+        .analysis-header { font-weight: 800; color: #fb923c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
         .key-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
         .key-tag {
-          background: #ffffff;
+          background: rgba(255,255,255,0.05);
           padding: 8px 14px;
-          border-radius: 12px;
+          border-radius: 10px;
           font-family: 'JetBrains Mono', monospace;
           font-weight: 700;
-          font-size: 14px;
-          color: #c2410c;
-          border: 1px solid #fed7aa;
-          box-shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.1);
+          font-size: 13px;
+          color: #fb923c;
+          border: 1px solid rgba(249, 115, 22, 0.2);
         }
-        .analysis-text { font-size: 13px; line-height: 1.7; color: #9a3412; opacity: 0.8; font-weight: 500; }
+        .analysis-text { font-size: 12px; line-height: 1.7; color: #94a3b8; font-weight: 500; }
 
         .footer {
           margin-top: auto;
-          padding-top: 60px;
+          padding-top: 50px;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
-          border-top: 1px solid #f1f5f9;
+          border-top: 1px solid rgba(255,255,255,0.06);
         }
-        .footer-text { font-size: 11px; color: #94a3b8; line-height: 1.8; }
+        .footer-text { font-size: 11px; color: #475569; line-height: 1.8; }
         .footer-text strong { color: #64748b; font-weight: 700; }
 
         .qr-area {
           text-align: center;
-          background: #f8fafc;
+          background: rgba(255,255,255,0.03);
           padding: 12px;
           border-radius: 16px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255,255,255,0.06);
         }
-        .qr-code { width: 70px; height: 70px; margin-bottom: 8px; opacity: 0.8; }
-        .qr-label { font-size: 8px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; }
+        .qr-code { width: 70px; height: 70px; margin-bottom: 8px; opacity: 0.5; }
+        .qr-label { font-size: 8px; font-weight: 800; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; }
 
         .watermark {
           position: absolute;
@@ -204,7 +207,7 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
           transform: translate(-50%, -50%) rotate(-30deg);
           font-size: 120px;
           font-weight: 900;
-          color: rgba(241, 245, 249, 0.4);
+          color: rgba(255, 255, 255, 0.02);
           z-index: -1;
           white-space: nowrap;
           text-transform: uppercase;
@@ -238,13 +241,13 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
             <div class="sub">Words Per Minute</div>
           </div>
           <div class="stat-card">
-            <span class="label" style="color: #6366f1">Precision</span>
-            <div class="value" style="color: #4f46e5">${results.accuracy}%</div>
+            <span class="label" style="color: #818cf8">Precision</span>
+            <div class="value" style="color: #a5b4fc">${results.accuracy}%</div>
             <div class="sub">Accuracy Score</div>
           </div>
           <div class="stat-card">
-            <span class="label" style="color: #f59e0b">Gross Speed</span>
-            <div class="value" style="color: #d97706">${results.rawWpm}</div>
+            <span class="label" style="color: #fbbf24">Gross Speed</span>
+            <div class="value" style="color: #fcd34d">${results.rawWpm}</div>
             <div class="sub">Raw Keystrokes</div>
           </div>
         </div>
@@ -259,11 +262,11 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
               </tr>
               <tr>
                 <td class="label">Correct Characters</td>
-                <td class="value" style="color: #059669">${results.correctKeystrokes}</td>
+                <td class="value" style="color: #34d399">${results.correctKeystrokes}</td>
               </tr>
               <tr>
                 <td class="label">Incorrect Characters</td>
-                <td class="value" style="color: #dc2626">${results.incorrectKeystrokes}</td>
+                <td class="value" style="color: #f87171">${results.incorrectKeystrokes}</td>
               </tr>
               <tr>
                 <td class="label">Correction Overhead</td>
@@ -283,7 +286,7 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
               <div class="key-tags">
                 ${results.weakKeys.length > 0 
                   ? results.weakKeys.map(key => `<span class="key-tag">${key === ' ' ? 'Space' : key}</span>`).join('')
-                  : '<div style="color: #9a3412; font-size: 13px; font-weight: 700;">No significant weak keys detected.</div>'
+                  : '<div style="color: #fb923c; font-size: 13px; font-weight: 700;">No significant weak keys detected.</div>'
                 }
               </div>
               <div class="analysis-text">
@@ -301,7 +304,7 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
           </div>
           <div class="qr-area">
             <div class="qr-code">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5">
                 <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM9 3h2v2H9zM13 3h2v2h-2zM9 7h2v2H9zM13 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM15 11h2v2h-2zM11 15h2v2h-2zM7 15h2v2H7zM15 15h2v2h-2zM19 11h2v2h-2zM19 15h2v2h-2z" />
               </svg>
             </div>
@@ -329,7 +332,7 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
   try {
     const canvas = await html2canvas(iframeDoc.body, { 
       scale: 1.8,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0B1120',
       logging: false,
       useCORS: true,
       onclone: (clonedDoc) => {

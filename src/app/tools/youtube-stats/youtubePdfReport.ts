@@ -43,8 +43,8 @@ export async function generateYouTubePDF(stats: any) {
           margin: 0;
           padding: 60px;
           width: 800px;
-          background: #ffffff !important;
-          color: #0f172a !important;
+          background: #0B1120 !important;
+          color: #f1f5f9 !important;
           font-family: 'Inter', sans-serif;
           line-height: 1.6;
         }
@@ -55,25 +55,25 @@ export async function generateYouTubePDF(stats: any) {
           align-items: flex-start;
           margin-bottom: 50px;
           padding-bottom: 30px;
-          border-bottom: 2px solid #f1f5f9;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         
         .brand-logo {
           font-weight: 800;
           font-size: 24px;
           letter-spacing: -0.04em;
-          color: #0f172a;
+          color: #ffffff;
           text-transform: uppercase;
         }
         .brand-logo span { color: #ef4444; }
         
         .certificate-meta { text-align: right; }
-        .cert-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 4px; }
-        .cert-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #0f172a; }
+        .cert-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 4px; }
+        .cert-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #94a3b8; }
 
         .hero-section { margin-bottom: 40px; }
-        .hero-title { font-size: 36px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 8px; color: #0f172a; line-height: 1.2; }
-        .hero-subtitle { font-size: 14px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .hero-title { font-size: 36px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 8px; color: #ffffff; line-height: 1.2; }
+        .hero-subtitle { font-size: 14px; color: #475569; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
 
         .main-stats {
           display: grid;
@@ -85,15 +85,16 @@ export async function generateYouTubePDF(stats: any) {
         .stat-card {
           padding: 24px 16px;
           border-radius: 20px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
           text-align: center;
         }
         
         .stat-card.primary {
-          background: #0f172a;
+          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
           color: #ffffff;
           border: none;
+          box-shadow: 0 20px 40px rgba(239, 68, 68, 0.15);
         }
         
         .stat-card .label {
@@ -103,39 +104,42 @@ export async function generateYouTubePDF(stats: any) {
           letter-spacing: 0.05em;
           margin-bottom: 8px;
           display: block;
-          opacity: 0.7;
+          opacity: 0.5;
+          color: #94a3b8;
         }
+        .stat-card.primary .label { color: rgba(255,255,255,0.8); opacity: 0.9; }
         
         .stat-card .value {
           font-size: 28px;
           font-weight: 800;
           line-height: 1;
+          color: #ffffff;
         }
 
         .content-box {
-          background: #f8fafc;
+          background: rgba(255,255,255,0.03);
           border-radius: 24px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255,255,255,0.06);
           padding: 30px;
           margin-bottom: 40px;
         }
 
         .section-title {
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 800;
           margin-bottom: 20px;
           display: flex;
           align-items: center;
           gap: 12px;
-          color: #0f172a;
+          color: #ffffff;
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
         .section-title::after {
           content: "";
           flex: 1;
-          height: 2px;
-          background: #f1f5f9;
+          height: 1px;
+          background: rgba(255,255,255,0.08);
         }
 
         .data-grid {
@@ -146,10 +150,10 @@ export async function generateYouTubePDF(stats: any) {
 
         .data-item {
           padding-bottom: 12px;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .data-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
-        .data-value { font-size: 14px; font-weight: 700; color: #0f172a; }
+        .data-label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
+        .data-value { font-size: 14px; font-weight: 700; color: #e2e8f0; }
 
         .tags-container {
           display: flex;
@@ -158,13 +162,13 @@ export async function generateYouTubePDF(stats: any) {
           margin-top: 10px;
         }
         .tag {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.08);
           padding: 4px 10px;
           border-radius: 8px;
           font-size: 12px;
           font-weight: 600;
-          color: #64748b;
+          color: #94a3b8;
         }
 
         .footer {
@@ -173,18 +177,18 @@ export async function generateYouTubePDF(stats: any) {
           justify-content: space-between;
           align-items: flex-end;
           padding-top: 40px;
-          border-top: 2px solid #f1f5f9;
+          border-top: 1px solid rgba(255,255,255,0.06);
         }
         
-        .footer-info { font-size: 12px; color: #94a3b8; line-height: 1.8; }
+        .footer-info { font-size: 12px; color: #475569; line-height: 1.8; }
         .footer-info strong { color: #64748b; }
         
         .qr-section { text-align: center; }
         .qr-placeholder {
           width: 80px;
           height: 80px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: 12px;
           display: flex;
           align-items: center;
@@ -194,7 +198,7 @@ export async function generateYouTubePDF(stats: any) {
         .qr-label {
           font-size: 8px;
           font-weight: 800;
-          color: #cbd5e1;
+          color: #334155;
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -292,7 +296,7 @@ export async function generateYouTubePDF(stats: any) {
       </div>
 
       <div class="section-title">Description Overview</div>
-      <div class="content-box" style="font-size: 12px; color: #64748b; line-height: 1.8;">
+      <div class="content-box" style="font-size: 12px; color: #94a3b8; line-height: 1.8;">
         ${stats.description.substring(0, 1000)}${stats.description.length > 1000 ? '...' : ''}
       </div>
 
@@ -304,7 +308,7 @@ export async function generateYouTubePDF(stats: any) {
         </div>
         <div class="qr-section">
           <div class="qr-placeholder">
-            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="1.5">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="1.5">
               <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM9 3h2v2H9zM13 3h2v2h-2zM9 7h2v2H9zM13 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM15 11h2v2h-2zM11 15h2v2h-2zM7 15h2v2H7zM15 15h2v2h-2zM19 11h2v2h-2zM19 15h2v2h-2z" />
             </svg>
           </div>
@@ -325,7 +329,7 @@ export async function generateYouTubePDF(stats: any) {
   try {
     const canvas = await html2canvas(iframeDoc.body, { 
       scale: 1.5,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0B1120',
       logging: false,
       useCORS: true
     });
