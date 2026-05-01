@@ -161,19 +161,19 @@ export default function ExamModePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-left">
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                 <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Raw Speed</div>
-                <div className="text-2xl font-semibold text-white">{results.rawWpm} <span className="text-xs">WPM</span></div>
+                <div className="text-2xl font-semibold text-white">{results?.rawWpm} <span className="text-xs">WPM</span></div>
               </div>
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                 <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Accuracy</div>
-                <div className="text-2xl font-semibold text-white">{results.accuracy}%</div>
+                <div className="text-2xl font-semibold text-white">{results?.accuracy}%</div>
               </div>
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                 <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Backspaces</div>
-                <div className="text-2xl font-semibold text-amber-400">{results.backspaces}</div>
+                <div className="text-2xl font-semibold text-amber-400">{results?.backspaces}</div>
               </div>
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                 <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Mistakes</div>
-                <div className="text-2xl font-semibold text-rose-400">{results.incorrectKeystrokes}</div>
+                <div className="text-2xl font-semibold text-rose-400">{results?.incorrectKeystrokes}</div>
               </div>
             </div>
 
@@ -182,7 +182,7 @@ export default function ExamModePage() {
                 <FileText className="w-4 h-4 text-blue-400" /> Mistake Mapping
               </h3>
               <div className="flex flex-wrap gap-2">
-                {results.weakKeys.length > 0 ? (
+                {results?.weakKeys && results.weakKeys.length > 0 ? (
                   results.weakKeys.map(key => (
                     <span key={key} className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg text-xs font-mono">
                       {key === ' ' ? 'Space' : key} ({results.errorFrequencyMap[key]} times)
@@ -205,7 +205,7 @@ export default function ExamModePage() {
                 Take Another Mock Test
               </button>
               <button 
-                onClick={() => generateTypingPDF(results, "SSC CGL Skill Test")}
+                onClick={() => results && generateTypingPDF(results, "SSC CGL Skill Test")}
                 className="flex-1 px-6 py-4 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium transition flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" /> Download PDF Report
