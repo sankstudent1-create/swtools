@@ -209,6 +209,17 @@ const TOOLS_DATA = [
     href: "/tools/bulk-image-converter",
   },
   {
+    id: "typing-tutor",
+    name: "Typing Tutor",
+    description: "Beginner to advanced typing learner with SSC CGL exam prep and dynamic shortfall analysis.",
+    category: "Education",
+    icon: Type,
+    accent: "text-blue-400",
+    bg: "bg-blue-400/10",
+    border: "border-blue-400/20",
+    href: "/tools/typing-tutor",
+  },
+  {
     id: "letterpad-generator",
     name: "Letterpad Generator",
     description: "Create professionally formatted government & office letterpads with AI assistance, customizable templates, and PDF output",
@@ -254,7 +265,7 @@ const TOOLS_DATA = [
   }
 ];
 
-const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments'];
+const CATEGORIES = ['All', 'Format', 'Image Utility', 'PDF Utility', 'India Post', 'Generators', 'Payments', 'Education'];
 
 export default function ToolsPage() {
   const [searchQuery, setSearchQuery] = useState('');
