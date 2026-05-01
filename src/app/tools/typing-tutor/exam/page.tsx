@@ -19,10 +19,12 @@ export default function ExamModePage() {
   const [isActive, setIsActive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [results, setResults] = useState<TypingSessionResult | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     // Generate a 2000 character mock passage
     setPassage(generateSSCCGLPassage(2000));
   }, []);
@@ -49,6 +51,12 @@ export default function ExamModePage() {
     setIsActive(false);
     setIsFinished(true);
     setResults(analyzer.endSession());
+  };
+
+  const submitExam = () => {
+    if (confirm("Are you sure you want to submit the exam?")) {
+      endExam();
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -85,6 +93,8 @@ export default function ExamModePage() {
     const s = seconds % 60;
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white pt-24 pb-12 px-4 sm:px-6 font-sans">
@@ -147,8 +157,16 @@ export default function ExamModePage() {
             />
             
             {isActive && (
-              <div className="text-right text-sm text-white/40 font-mono">
-                Keystrokes: {input.length} / {passage.length}
+              <div className="flex justify-between items-center text-sm font-mono">
+                <div className="text-white/40">
+                  Keystrokes: {input.length} / {passage.length}
+                </div>
+                <button
+                  onClick={submitExam}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-xl font-medium transition shadow-lg shadow-emerald-900/20"
+                >
+                  Submit Exam
+                </button>
               </div>
             )}
           </div>
