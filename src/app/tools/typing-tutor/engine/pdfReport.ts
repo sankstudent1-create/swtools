@@ -78,7 +78,12 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
   document.body.appendChild(element);
   
   try {
-    const canvas = await html2canvas(element, { scale: 2 });
+    const canvas = await html2canvas(element, { 
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const imgWidth = 210;
