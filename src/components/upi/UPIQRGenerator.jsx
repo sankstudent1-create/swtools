@@ -147,10 +147,11 @@ const UPIQRGenerator = ({
           </div>
           <div className="flex items-center gap-2">
             <div className="h-6 w-px bg-gray-200"></div>
-            <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-                <circle cx="12" cy="12" r="10" stroke="#E85D04" strokeWidth="1.5"/>
-                <path d="M12 7v5l3 3" stroke="#E85D04" strokeWidth="1.5" strokeLinecap="round"/>
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-4 h-4">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
               </svg>
             </div>
           </div>
