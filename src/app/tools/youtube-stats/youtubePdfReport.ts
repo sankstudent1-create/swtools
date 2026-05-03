@@ -4,24 +4,22 @@ import jsPDF from 'jspdf';
 export async function generateYouTubePDF(stats: any) {
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
-  iframe.style.top = '0';
+  iframe.style.top = '-9999px';
   iframe.style.left = '0';
-  iframe.style.width = '1000px';
-  iframe.style.height = '1414px';
-  iframe.style.visibility = 'hidden';
-  iframe.style.pointerEvents = 'none';
+  iframe.style.width = '1200px';
+  iframe.style.height = '1600px';
   document.body.appendChild(iframe);
 
-  const iframeDoc = iframe.contentWindow?.document;
-  if (!iframeDoc) return;
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
 
-  const dateStr = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
+  const dateStr = new Date().toLocaleDateString('en-US', {
+    day: 'numeric',
     month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    year: 'numeric'
   });
+
+  const verifyId = Math.random().toString(36).substring(2, 12).toUpperCase();
 
   const isVideo = stats.type === 'video';
   const isPlaylist = stats.type === 'playlist';
@@ -45,171 +43,164 @@ export async function generateYouTubePDF(stats: any) {
     <!DOCTYPE html>
     <html>
     <head>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
       <style>
-        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; }
         body {
-          margin: 0;
-          padding: 0;
-          width: 800px;
-          background: #0a0a0a !important;
-          color: #ffffff !important;
           font-family: 'Inter', sans-serif;
+          background: #f8fafc !important;
+          color: #0f172a !important;
+          width: 794px;
+          min-height: 1123px;
         }
-        
-        .main-container {
-          padding: 45px 50px;
-          position: relative;
-          min-height: 1130px;
-          background: #0a0a0a;
+
+        .page {
+          background: white;
+          padding: 45px 55px;
+          min-height: 1123px;
         }
 
         .header {
           display: flex;
           justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 35px;
+          align-items: center;
           padding-bottom: 25px;
-          border-bottom: 2px solid #1a1a1a;
+          border-bottom: 3px solid ${config.color};
+          margin-bottom: 30px;
         }
 
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-icon {
           width: 44px;
           height: 44px;
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-          border-radius: 12px;
+          background: ${config.color};
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .brand-icon svg { width: 24px; height: 24px; }
+        .brand-icon svg { width: 24px; height: 24px; color: white; }
         .brand-text { display: flex; flex-direction: column; }
-        .brand-name { font-weight: 800; font-size: 20px; color: #ffffff; letter-spacing: -0.02em; }
-        .brand-tagline { font-size: 11px; color: #737373; font-weight: 500; }
+        .brand-name { font-weight: 800; font-size: 19px; color: #0f172a; letter-spacing: -0.02em; }
+        .brand-tagline { font-size: 11px; color: #64748b; font-weight: 500; }
 
-        .report-badge {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 16px;
-          background: #171717;
-          border: 1px solid #262626;
-          border-radius: 10px;
-        }
-        .report-badge-icon { width: 20px; height: 20px; color: ${config.color}; }
-        .report-badge-text { font-size: 11px; font-weight: 700; color: #a3a3a3; text-transform: uppercase; letter-spacing: 0.05em; }
+        .report-stamp { text-align: right; }
+        .report-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: ${config.color}; margin-bottom: 4px; }
+        .report-id { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: #0f172a; letter-spacing: 0.1em; }
 
         .hero-card {
           display: flex;
           gap: 25px;
-          padding: 30px;
-          background: linear-gradient(135deg, #171717 0%, #0f0f0f 100%);
-          border: 1px solid #262626;
-          border-radius: 20px;
+          padding: 28px;
+          background: ${config.color}10;
+          border: 1px solid ${config.color}30;
+          border-radius: 18px;
           margin-bottom: 30px;
         }
 
         .thumbnail {
           width: 140px;
           height: 100px;
-          background: linear-gradient(135deg, ${config.color}40 0%, ${config.color}20 100%);
+          background: ${config.color};
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 48px;
-          font-weight: 900;
-          color: ${config.color};
           flex-shrink: 0;
-          border: 2px solid ${config.color}30;
         }
-        .thumbnail svg { width: 48px; height: 48px; color: ${config.color}; }
+        .thumbnail svg { width: 48px; height: 48px; color: white; }
 
         .hero-content { flex: 1; }
-        .hero-label {
+        .hero-badge {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 5px 12px;
-          background: ${config.color}20;
-          border: 1px solid ${config.color}40;
-          border-radius: 20px;
-          font-size: 10px;
-          font-weight: 700;
-          color: ${config.color};
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
+          padding: 6px 12px;
+          background: white;
+          border-radius: 100px;
           margin-bottom: 12px;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: ${config.color};
+          box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .hero-title { 
-          font-size: 26px; 
-          font-weight: 800; 
-          color: #ffffff; 
-          margin: 0 0 10px 0; 
-          line-height: 1.3;
+
+        .hero-title {
+          font-size: 28px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 10px 0;
+          line-height: 1.2;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
-        .hero-meta { font-size: 13px; color: #737373; font-weight: 500; }
 
-        .main-stats {
+        .hero-meta { font-size: 13px; color: #64748b; font-weight: 500; }
+
+        .stats-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 15px;
+          gap: 18px;
           margin-bottom: 30px;
         }
-        
+
         .stat-card {
-          padding: 22px 18px;
-          background: #171717;
-          border: 1px solid #262626;
+          background: white;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
+          padding: 24px 20px;
           text-align: center;
         }
-        
+
         .stat-card.primary {
-          background: linear-gradient(135deg, ${config.color} 0%, ${isVideo ? '#dc2626' : isPlaylist ? '#7c3aed' : '#16a34a'} 100%);
-          border: none;
+          background: ${config.color};
+          border-color: ${config.color};
           box-shadow: 0 10px 30px ${config.color}30;
         }
-        
+
         .stat-icon {
-          width: 36px;
-          height: 36px;
-          margin: 0 auto 10px;
+          width: 44px;
+          height: 44px;
+          margin: 0 auto 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: ${config.color}20;
-          border-radius: 10px;
+          background: ${config.color}10;
+          border-radius: 12px;
         }
+
         .stat-card.primary .stat-icon { background: rgba(255,255,255,0.2); }
-        .stat-icon svg { width: 20px; height: 20px; color: ${config.color}; }
-        .stat-card.primary .stat-icon svg { color: #ffffff; }
-        
+        .stat-icon svg { width: 22px; height: 22px; color: ${config.color}; }
+        .stat-card.primary .stat-icon svg { color: white; }
+
         .stat-value {
-          font-size: 28px;
+          font-size: 32px;
           font-weight: 800;
-          color: #ffffff;
-          margin-bottom: 4px;
+          color: #0f172a;
+          margin-bottom: 6px;
           letter-spacing: -0.02em;
         }
+
+        .stat-card.primary .stat-value { color: white; }
+
         .stat-label {
-          font-size: 10px;
-          font-weight: 700;
+          font-size: 11px;
+          font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          color: #737373;
+          letter-spacing: 0.06em;
+          color: #94a3b8;
         }
-        .stat-card.primary .stat-label { color: rgba(255,255,255,0.7); }
+
+        .stat-card.primary .stat-label { color: rgba(255,255,255,0.8); }
 
         .details-section {
           padding: 25px;
-          background: #171717;
-          border: 1px solid #262626;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           margin-bottom: 25px;
         }
@@ -218,12 +209,12 @@ export async function generateYouTubePDF(stats: any) {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-bottom: 20px;
+          margin-bottom: 18px;
           padding-bottom: 15px;
-          border-bottom: 1px solid #262626;
+          border-bottom: 1px solid #e2e8f0;
         }
-        .section-header svg { width: 20px; height: 20px; color: ${config.color}; }
-        .section-title { font-size: 13px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em; }
+        .section-header svg { width: 18px; height: 18px; color: ${config.color}; }
+        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #0f172a; }
 
         .details-grid {
           display: grid;
@@ -236,44 +227,42 @@ export async function generateYouTubePDF(stats: any) {
           justify-content: space-between;
           align-items: center;
           padding: 12px 0;
-          border-bottom: 1px solid #262626;
+          border-bottom: 1px solid #e2e8f0;
         }
         .detail-item:last-child { border-bottom: none; }
-        .detail-label { font-size: 12px; color: #737373; font-weight: 500; }
-        .detail-value { font-size: 13px; font-weight: 700; color: #ffffff; }
+        .detail-label { font-size: 13px; color: #64748b; font-weight: 500; }
+        .detail-value { font-size: 14px; font-weight: 700; color: #0f172a; }
         .detail-value.channel { color: ${config.color}; }
 
         .tags-section {
           margin-top: 20px;
-          padding-top: 20px;
-          border-top: 1px solid #262626;
+          padding-top: 18px;
+          border-top: 1px solid #e2e8f0;
         }
-        .tags-label { font-size: 11px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .tags-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
         .tags-row { display: flex; flex-wrap: wrap; gap: 8px; }
         .tag {
           padding: 6px 12px;
-          background: #262626;
-          border: 1px solid #404040;
+          background: white;
+          border: 1px solid #cbd5e1;
           border-radius: 8px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #a3a3a3;
+          font-size: 12px;
+          font-weight: 500;
+          color: #475569;
         }
 
         .description-card {
           padding: 25px;
-          background: #171717;
-          border: 1px solid #262626;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
           border-radius: 16px;
           margin-bottom: 30px;
         }
-        
+
         .description-text {
-          font-size: 13px;
-          line-height: 1.8;
-          color: #a3a3a3;
-          max-height: 120px;
-          overflow: hidden;
+          font-size: 14px;
+          line-height: 1.7;
+          color: #475569;
         }
 
         .footer {
@@ -282,58 +271,32 @@ export async function generateYouTubePDF(stats: any) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-top: 2px solid #1a1a1a;
+          border-top: 2px solid #e2e8f0;
         }
 
-        .footer-info { display: flex; align-items: center; gap: 15px; }
+        .footer-info { display: flex; align-items: center; gap: 12px; }
         .footer-logo {
           width: 40px;
           height: 40px;
-          background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+          background: #dc2626;
           border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
-        .footer-logo svg { width: 22px; height: 22px; }
-        .footer-text { font-size: 11px; color: #525252; line-height: 1.6; }
-        .footer-text strong { color: #a3a3a3; font-weight: 700; }
+        .footer-logo svg { width: 22px; height: 22px; color: white; }
+        .footer-text { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+        .footer-text strong { color: #64748b; font-weight: 600; }
 
-        .verify-box {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          padding: 15px 20px;
-          background: #171717;
-          border: 1px solid #262626;
-          border-radius: 12px;
-        }
-        .qr-code { width: 50px; height: 50px; opacity: 0.5; }
-        .qr-code svg { width: 100%; height: 100%; }
-        .verify-text { text-align: left; }
-        .verify-label { font-size: 9px; font-weight: 700; color: #525252; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-        .verify-id { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: #737373; }
-
-        .watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(-25deg);
-          font-size: 100px;
-          font-weight: 900;
-          color: rgba(255, 255, 255, 0.03);
-          z-index: 0;
-          white-space: nowrap;
-          text-transform: uppercase;
-          letter-spacing: 0.15em;
-          pointer-events: none;
-        }
+        .qr-box { text-align: center; }
+        .qr { width: 60px; height: 60px; background: #f1f5f9; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+        .qr svg { width: 32px; height: 32px; color: #94a3b8; }
+        .qr-l { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
       </style>
     </head>
+    </head>
     <body>
-      <div class="main-container">
-        <div class="watermark">YOUTUBE</div>
-
+      <div class="page">
         <div class="header">
           <div class="brand">
             <div class="brand-icon">
@@ -347,11 +310,9 @@ export async function generateYouTubePDF(stats: any) {
               <div class="brand-tagline">Professional Analytics</div>
             </div>
           </div>
-          <div class="report-badge">
-            <svg class="report-badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-            </svg>
-            <span class="report-badge-text">${config.label}</span>
+          <div class="report-stamp">
+            <div class="report-label">Report ID</div>
+            <div class="report-id">${verifyId}</div>
           </div>
         </div>
 
@@ -372,13 +333,13 @@ export async function generateYouTubePDF(stats: any) {
             `}
           </div>
           <div class="hero-content">
-            <div class="hero-label">${stats.type.toUpperCase()}</div>
+            <div class="hero-badge">${stats.type.toUpperCase()}</div>
             <h1 class="hero-title">${stats.title}</h1>
             <div class="hero-meta">Generated on ${dateStr}</div>
           </div>
         </div>
 
-        <div class="main-stats">
+        <div class="stats-grid">
           ${isVideo ? `
             <div class="stat-card primary">
               <div class="stat-icon">
@@ -551,20 +512,17 @@ export async function generateYouTubePDF(stats: any) {
               </svg>
             </div>
             <div class="footer-text">
-              <strong>Official YouTube Analytics Report</strong><br>
-              tools.swinfosystems.online • Data via YouTube API v3
+              <strong>YouTube Analytics Report</strong><br>
+              tools.swinfosystems.online
             </div>
           </div>
-          <div class="verify-box">
-            <div class="qr-code">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="1.5">
-                <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM9 3h2v2H9zM13 3h2v2h-2zM9 7h2v2H9zM13 7h2v2h-2zM11 11h2v2h-2zM7 11h2v2H7zM15 11h2v2h-2zM11 15h2v2h-2zM7 15h2v2H7zM15 15h2v2h-2zM19 11h2v2h-2zM19 15h2v2h-2z"/>
+          <div class="qr-box">
+            <div class="qr">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                <path d="M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3z"/>
               </svg>
             </div>
-            <div class="verify-text">
-              <div class="verify-label">Verified Report ID</div>
-              <div class="verify-id">${Math.random().toString(36).substring(2, 10).toUpperCase()}</div>
-            </div>
+            <div class="qr-l">Verify</div>
           </div>
         </div>
       </div>
@@ -572,16 +530,16 @@ export async function generateYouTubePDF(stats: any) {
     </html>
   `;
 
-  iframeDoc.open();
-  iframeDoc.write(content);
-  iframeDoc.close();
+  doc.open();
+  doc.write(content);
+  doc.close();
 
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   try {
-    const canvas = await html2canvas(iframeDoc.body, { 
-      scale: 1.8,
-      backgroundColor: '#0a0a0a',
+    const canvas = await html2canvas(doc.body, {
+      scale: 2,
+      backgroundColor: '#ffffff',
       logging: false,
       useCORS: true
     });
