@@ -129,36 +129,46 @@ const UPIQRGenerator = ({
     <div className="w-full max-w-sm flex flex-col gap-6">
       {/* Branded QR Card */}
       <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100" ref={cardRef}>
-        {/* Branding Header */}
+        {/* Branding Header - SW Tools Logo */}
         <div className="w-full flex justify-between items-center mb-8">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">SW Info Systems</span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-sm font-black text-gray-900 tracking-tight leading-none italic">TRUSTED PAY</span>
-              <div className="flex gap-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-white border border-blue-500"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-5 h-5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.15em]">SW Info Systems</span>
+              <span className="text-sm font-black text-gray-900 tracking-tight leading-none">SW TOOLS</span>
+              <span className="text-[10px] font-semibold text-gray-400 tracking-wider">UPI Payment</span>
             </div>
           </div>
-          <div className="h-6 w-px bg-gray-200 mx-2"></div>
-          <img src={LOGOS.ippb} alt="IPPB" className="h-5 object-contain grayscale brightness-0 opacity-80" />
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-px bg-gray-200"></div>
+            <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                <circle cx="12" cy="12" r="10" stroke="#E85D04" strokeWidth="1.5"/>
+                <path d="M12 7v5l3 3" stroke="#E85D04" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* QR Canvas with Center Logo */}
         <div className="relative group">
           <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 via-indigo-500 to-teal-400 rounded-[2rem] blur-md opacity-10 group-hover:opacity-25 transition duration-700"></div>
-          <div className="relative bg-white p-4 rounded-[1.8rem] border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+          <div className="relative bg-white p-4 rounded-[1.8rem] border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center">
             <div ref={canvasRef} className="qrcode-container" />
             
-            {/* PhonePe Center Logo (Visual only, placed over QR) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border border-gray-100 p-1 flex items-center justify-center z-10">
-              <img 
-                src="https://cdn.brandfetch.io/idcE0OdG8i/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667569122597" 
-                alt="PhonePe" 
-                className="w-full h-full object-contain p-0.5" 
-              />
+            {/* Center Logo overlay */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border border-gray-100 flex items-center justify-center z-10">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" className="w-7 h-7">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
             </div>
           </div>
         </div>
@@ -184,10 +194,14 @@ const UPIQRGenerator = ({
 
         {/* Footer Branding - Minimal & Powered by SWTools */}
         <div className="mt-10 pt-6 border-t border-gray-100 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-6 grayscale opacity-40 hover:opacity-80 hover:grayscale-0 transition-all duration-500">
-            <img src={LOGOS.gpay} alt="GPay" className="h-6 object-contain" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/100px-UPI-Logo-vector.svg.png" alt="UPI" className="h-4 object-contain" />
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/BHIM_Logo.svg/100px-BHIM_Logo.svg.png" alt="BHIM" className="h-4 object-contain" />
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1.5 bg-[#4285F4] text-white text-[10px] font-bold rounded-md">GPay</span>
+            <span className="px-2.5 py-1.5 bg-[#5f259f] text-white text-[10px] font-bold rounded-md">PhonePe</span>
+            <span className="px-2.5 py-1.5 bg-[#002970] text-white text-[10px] font-bold rounded-md">Paytm</span>
+            <span className="px-2.5 py-1.5 bg-[#232F3E] text-white text-[10px] font-bold rounded-md">Amazon</span>
+            <span className="px-2.5 py-1.5 bg-[#E85D04] text-white text-[10px] font-bold rounded-md">IPPB</span>
+            <span className="px-2.5 py-1.5 bg-[#000000] text-white text-[10px] font-bold rounded-md">Cred</span>
+            <span className="px-2.5 py-1.5 bg-[#097939] text-white text-[10px] font-bold rounded-md">BHIM</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[9px] font-bold text-gray-400 tracking-[0.3em] uppercase">Powered by SWTools</span>
