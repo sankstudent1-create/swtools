@@ -62,7 +62,7 @@ const UPIQRGenerator = ({
         text: uri,
         width: 256,
         height: 256,
-        colorDark: '#1e40af', // Deep Blue to match site
+        colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.H,
       });
@@ -132,7 +132,7 @@ const UPIQRGenerator = ({
         {/* Branding Header - SW Tools Logo */}
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
               <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-5 h-5">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
@@ -140,7 +140,7 @@ const UPIQRGenerator = ({
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.15em]">SW Info Systems</span>
+              <span className="text-[10px] font-black text-gray-900 uppercase tracking-[0.15em]">SW Info Systems</span>
               <span className="text-sm font-black text-gray-900 tracking-tight leading-none">SW TOOLS</span>
               <span className="text-[10px] font-semibold text-gray-400 tracking-wider">UPI Payment</span>
             </div>
@@ -158,13 +158,13 @@ const UPIQRGenerator = ({
 
         {/* QR Canvas with Center Logo */}
         <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 via-indigo-500 to-teal-400 rounded-[2rem] blur-md opacity-10 group-hover:opacity-25 transition duration-700"></div>
+          <div className="absolute -inset-2 bg-gradient-to-tr from-orange-500 via-pink-500 to-red-400 rounded-[2rem] blur-md opacity-10 group-hover:opacity-25 transition duration-700"></div>
           <div className="relative bg-white p-4 rounded-[1.8rem] border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center">
             <div ref={canvasRef} className="qrcode-container" />
             
             {/* Center Logo overlay */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border border-gray-100 flex items-center justify-center z-10">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" className="w-7 h-7">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#E85D04" strokeWidth="2.2" className="w-7 h-7">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
                 <path d="M2 12l10 5 10-5"/>
@@ -192,19 +192,19 @@ const UPIQRGenerator = ({
           )}
         </div>
 
-        {/* Footer Branding - Minimal & Powered by SWTools */}
-        <div className="mt-10 pt-6 border-t border-gray-100 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            <span className="px-2.5 py-1.5 bg-[#4285F4] text-white text-[10px] font-bold rounded-md">GPay</span>
-            <span className="px-2.5 py-1.5 bg-[#5f259f] text-white text-[10px] font-bold rounded-md">PhonePe</span>
-            <span className="px-2.5 py-1.5 bg-[#002970] text-white text-[10px] font-bold rounded-md">Paytm</span>
-            <span className="px-2.5 py-1.5 bg-[#232F3E] text-white text-[10px] font-bold rounded-md">Amazon</span>
-            <span className="px-2.5 py-1.5 bg-[#E85D04] text-white text-[10px] font-bold rounded-md">IPPB</span>
-            <span className="px-2.5 py-1.5 bg-[#000000] text-white text-[10px] font-bold rounded-md">Cred</span>
-            <span className="px-2.5 py-1.5 bg-[#097939] text-white text-[10px] font-bold rounded-md">BHIM</span>
+        {/* Footer Branding - UPI App Logos */}
+        <div className="mt-10 pt-6 border-t border-gray-200 w-full flex flex-col items-center gap-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap opacity-80 hover:opacity-100 transition-opacity duration-300">
+            <img src={LOGOS.gpay} alt="Google Pay" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.phonepe} alt="PhonePe" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.paytm} alt="Paytm" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.amazon} alt="Amazon Pay" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.ippb} alt="India Post Payments Bank" className="h-4 w-auto object-contain" />
+            <img src={LOGOS.cred} alt="Cred" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.bhim} alt="BHIM" className="h-6 w-auto object-contain" />
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[9px] font-bold text-gray-400 tracking-[0.3em] uppercase">Powered by SWTools</span>
+            <span className="text-[9px] font-bold text-gray-500 tracking-[0.3em] uppercase">Powered by SWTools</span>
           </div>
         </div>
       </div>
