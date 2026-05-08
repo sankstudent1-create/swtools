@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { Plus, Trash2, Edit2, Check, X, Tag } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, Tag, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -10,6 +10,8 @@ export default function CategoryManager() {
   const supabase = createSupabaseBrowserClient();
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -20,18 +22,25 @@ export default function CategoryManager() {
 
   async function fetchCategories() {
     setLoading(true);
+    setError(null);
     const { data, error } = await supabase
       .from("blog_categories")
       .select("*")
       .order("name");
     
-    if (data) setCategories(data);
+    if (error) {
+      setError(error.message);
+    } else {
+      setCategories(data || []);
+    }
     setLoading(false);
   }
 
   async function addCategory() {
     if (!newCategoryName.trim()) return;
     
+    setActionLoading(true);
+    setError(null);
     const slug = newCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
     const { error } = await supabase
@@ -39,16 +48,19 @@ export default function CategoryManager() {
       .insert([{ name: newCategoryName, slug }]);
     
     if (error) {
-      alert(error.message);
+      setError(error.message);
     } else {
       setNewCategoryName("");
       fetchCategories();
     }
+    setActionLoading(false);
   }
 
   async function updateCategory(id: string) {
     if (!editName.trim()) return;
     
+    setActionLoading(true);
+    setError(null);
     const slug = editName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
     const { error } = await supabase
@@ -57,26 +69,30 @@ export default function CategoryManager() {
       .eq("id", id);
     
     if (error) {
-      alert(error.message);
+      setError(error.message);
     } else {
       setEditingId(null);
       fetchCategories();
     }
+    setActionLoading(false);
   }
 
   async function deleteCategory(id: string) {
     if (!confirm("Are you sure? Posts in this category will become Uncategorized.")) return;
     
+    setActionLoading(true);
+    setError(null);
     const { error } = await supabase
       .from("blog_categories")
       .delete()
       .eq("id", id);
     
     if (error) {
-      alert(error.message);
+      setError(error.message);
     } else {
       fetchCategories();
     }
+    setActionLoading(false);
   }
 
   return (
@@ -88,6 +104,19 @@ export default function CategoryManager() {
         <h1 className="text-3xl font-bold">Manage Categories</h1>
       </div>
 
+      {error && (
+        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-3 text-rose-400">
+          <AlertCircle className="shrink-0 mt-0.5" size={18} />
+          <div className="text-sm">
+            <p className="font-bold">Error Actioning Category</p>
+            <p className="opacity-80">{error}</p>
+          </div>
+          <button onClick={() => setError(null)} className="ml-auto text-rose-400/50 hover:text-rose-400">
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
       <div className="ui-modal-shell p-6 mb-8">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Plus size={20} className="text-brand-orange" />
@@ -98,29 +127,36 @@ export default function CategoryManager() {
             type="text"
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
+            disabled={actionLoading}
             placeholder="Category name (e.g. India Post)"
             className="flex-grow bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all"
             onKeyDown={(e) => e.key === "Enter" && addCategory()}
           />
           <button
             onClick={addCategory}
-            className="ui-btn-primary px-6 rounded-xl font-semibold whitespace-nowrap"
+            disabled={actionLoading || !newCategoryName.trim()}
+            className="ui-btn-primary px-6 rounded-xl font-semibold whitespace-nowrap flex items-center gap-2"
           >
+            {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
             Add Category
           </button>
         </div>
       </div>
 
       <div className="ui-modal-shell overflow-hidden">
-        <div className="bg-white/5 border-b border-white/10 px-6 py-4">
+        <div className="bg-white/5 border-b border-white/10 px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Tag size={20} className="text-indigo-400" />
             Existing Categories
           </h2>
+          <span className="text-xs text-white/30 font-mono">{categories.length} total</span>
         </div>
         
         {loading ? (
-          <div className="p-12 text-center text-white/40">Loading...</div>
+          <div className="p-12 text-center text-white/40 flex flex-col items-center gap-3">
+            <Loader2 className="animate-spin text-brand-orange" size={24} />
+            Loading categories...
+          </div>
         ) : (
           <div className="divide-y divide-white/10">
             {categories.map((cat) => (
@@ -155,12 +191,14 @@ export default function CategoryManager() {
                       setEditingId(cat.id);
                       setEditName(cat.name);
                     }}
+                    disabled={actionLoading}
                     className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                   >
                     <Edit2 size={18} />
                   </button>
                   <button
                     onClick={() => deleteCategory(cat.id)}
+                    disabled={actionLoading}
                     className="p-2 text-white/40 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all"
                   >
                     <Trash2 size={18} />

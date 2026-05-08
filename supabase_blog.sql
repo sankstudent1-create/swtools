@@ -1,3 +1,15 @@
+-- Helper function to check if the current user is an admin
+create or replace function public.is_admin()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+    and role = 'admin'
+  );
+end;
+$$ language plpgsql security definer;
+
 create table if not exists public.blog_categories (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
