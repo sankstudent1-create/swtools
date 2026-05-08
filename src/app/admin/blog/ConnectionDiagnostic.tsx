@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ShieldCheck, Database, Table, Lock, HardDrive, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Terminal } from "lucide-react";
