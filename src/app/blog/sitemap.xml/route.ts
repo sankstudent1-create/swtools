@@ -1,6 +1,6 @@
 import { listPublishedPosts } from "@/lib/blog/queries";
 
-export default async function BlogSitemap() {
+export async function GET() {
   const posts = await listPublishedPosts(100);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://tools.swinfosystems.online";
 
