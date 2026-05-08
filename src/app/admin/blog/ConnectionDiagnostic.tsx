@@ -25,10 +25,36 @@ export default function ConnectionDiagnostic() {
       setResults(prev => [...prev, test]);
     };
 
+    // 0. Env Check
+    addLog("Checking environment variables...");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!url || !key) {
+      addLog(`CRITICAL: Missing environment variables! URL: ${!!url}, Key: ${!!key}`);
+      addTestResult({
+        name: "Environment Variables",
+        status: "error",
+        message: "Supabase URL or Anon Key missing",
+        details: "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in Vercel."
+      });
+      setLoading(false);
+      return;
+    }
+    addLog(`Env vars present. URL: ${url.substring(0, 15)}...`);
+
     // 1. Auth & Session Check
     try {
-      addLog("Checking auth session...");
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      addLog("Calling supabase.auth.getSession()...");
+      const sessionPromise = supabase.auth.getSession();
+      
+      // Add a timeout to the session promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Supabase Auth Timeout (10s)")), 10000)
+      );
+
+      const { data: { session }, error: sessionError } = await (Promise.race([sessionPromise, timeoutPromise]) as any);
+      
       if (sessionError) throw sessionError;
       
       addTestResult({
