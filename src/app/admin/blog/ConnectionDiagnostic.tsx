@@ -43,6 +43,30 @@ export default function ConnectionDiagnostic() {
     }
     addLog(`Env vars present. URL: ${url.substring(0, 15)}...`);
 
+    // 0.1 Network Check
+    try {
+      addLog("Testing network connectivity to Supabase URL...");
+      const start = Date.now();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      await fetch(`${url}/rest/v1/`, { 
+        method: "GET", 
+        headers: { "apikey": key },
+        signal: controller.signal 
+      });
+      clearTimeout(timeoutId);
+      addLog(`Network check success (${Date.now() - start}ms)`);
+    } catch (e: any) {
+      addLog(`Network check failed: ${e.message}`);
+      addTestResult({
+        name: "Network Connectivity",
+        status: "error",
+        message: "Cannot reach Supabase API",
+        details: "This is likely a network issue or an incorrect Supabase URL."
+      });
+    }
+
     // 1. Auth & Session Check
     try {
       addLog("Calling supabase.auth.getSession()...");
