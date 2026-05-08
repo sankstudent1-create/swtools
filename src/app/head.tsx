@@ -1,4 +1,5 @@
 export default function Head() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tools.swinfosystems.online";
   return (
     <>
       <title>SW Tools</title>
@@ -10,7 +11,7 @@ export default function Head() {
         name="keywords"
         content="image tools, signature formatter, image resizer, image compressor, pdf maker, scan cleaner, watermark tool"
       />
-      <link rel="canonical" href="/" />
+      <link rel="canonical" href={siteUrl} />
     </>
   );
 }

@@ -2,7 +2,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { TypingSessionResult } from '../engine/analyzer';
 
-export async function generateTypingPDF(results: TypingSessionResult, examName: string = "Typing Skill Test") {
+export async function generateTypingPDF(results: TypingSessionResult, examName: string = 'Typing Mastery Report') {
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.top = '-9999px';
@@ -34,11 +34,11 @@ export async function generateTypingPDF(results: TypingSessionResult, examName: 
 <!DOCTYPE html>
 <html>
 <head>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact}
-body{font-family:Inter,sans-serif;background:#fff;color:#0f172a;width:794px;min-height:1123px}
-.page{background:#fff;padding:45px 55px;min-height:1123px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#f8fafc;color:#0f172a;width:794px;min-height:1123px}
+.page{background:#fff;padding:45px 55px;min-height:1123px;border-radius:24px;margin:20px auto;box-shadow:0 20px 60px rgba(0,0,0,0.1)}
 .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:25px;border-bottom:3px solid #0f172a;margin-bottom:35px}
 .brand{display:flex;align-items:center;gap:12px}
 .brand-icon{width:44px;height:44px;background:#0f172a;border-radius:10px;display:flex;align-items:center;justify-content:center}
@@ -111,11 +111,11 @@ body{font-family:Inter,sans-serif;background:#fff;color:#0f172a;width:794px;min-
 <div class="header">
 <div class="brand">
 <div class="brand-icon">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
 </div>
 <div class="brand-text">
 <h1>SW TOOLS</h1>
-<p>Professional Typing Analytics</p>
+<p>Premium Typing Assessment</p>
 </div>
 </div>
 <div class="cert-stamp">

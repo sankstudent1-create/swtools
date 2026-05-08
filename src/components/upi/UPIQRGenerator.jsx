@@ -132,12 +132,8 @@ const UPIQRGenerator = ({
         {/* Branding Header - SW Tools Logo */}
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-5 h-5">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md overflow-hidden">
+              <img src="/icon-512.png" alt="SW Tools" className="w-6 h-6 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-gray-900 uppercase tracking-[0.15em]">SW Info Systems</span>
