@@ -13,10 +13,17 @@ export default function ConnectionDiagnostic() {
 
   const runDiagnostic = useCallback(async () => {
     setLoading(true);
-    const tests = [];
+    setResults([]);
     let log = "Starting Diagnostic Log...\n";
 
-    const addLog = (msg: string) => { log += `[${new Date().toLocaleTimeString()}] ${msg}\n`; setRawOutput(log); };
+    const addLog = (msg: string) => { 
+      log += `[${new Date().toLocaleTimeString()}] ${msg}\n`; 
+      setRawOutput(log); 
+    };
+
+    const addTestResult = (test: any) => {
+      setResults(prev => [...prev, test]);
+    };
 
     // 1. Auth & Session Check
     try {
@@ -24,7 +31,7 @@ export default function ConnectionDiagnostic() {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       
-      tests.push({
+      addTestResult({
         name: "Supabase Auth Session",
         status: session ? "success" : "warning",
         message: session ? `Authenticated as ${session.user.email}` : "No active session (Anonymous)",
@@ -34,7 +41,7 @@ export default function ConnectionDiagnostic() {
       else addLog("Auth warning: No session found");
     } catch (e: any) {
       addLog(`Auth error: ${e.message}`);
-      tests.push({ name: "Auth Check", status: "error", message: e.message });
+      addTestResult({ name: "Auth Check", status: "error", message: e.message });
     }
 
     // 2. Profile Role Check
@@ -51,17 +58,19 @@ export default function ConnectionDiagnostic() {
         if (profileError) throw profileError;
         
         const isAdmin = profile?.role === "admin";
-        tests.push({
+        addTestResult({
           name: "User Profile Role",
           status: isAdmin ? "success" : "warning",
           message: profile ? `Current Role: ${profile.role}` : "Profile not found",
           details: isAdmin ? "Admin verified" : "You need 'admin' role in profiles table"
         });
         addLog(`Profile found: role=${profile?.role}`);
+      } else {
+        addLog("No user found, skipping profile check");
       }
     } catch (e: any) {
       addLog(`Profile check error: ${e.message}`);
-      tests.push({ name: "Profile Check", status: "error", message: e.message });
+      addTestResult({ name: "Profile Check", status: "error", message: e.message });
     }
 
     // 3. Table Structure Check
@@ -72,7 +81,7 @@ export default function ConnectionDiagnostic() {
         const { error } = await supabase.from(table).select("id").limit(1);
         if (error) {
           addLog(`Read error on ${table}: ${error.code} - ${error.message}`);
-          tests.push({
+          addTestResult({
             name: `Table: ${table}`,
             status: "error",
             message: error.message,
@@ -80,7 +89,7 @@ export default function ConnectionDiagnostic() {
           });
         } else {
           addLog(`Read success on ${table}`);
-          tests.push({
+          addTestResult({
             name: `Table: ${table}`,
             status: "success",
             message: "Table exists and is readable"
@@ -94,11 +103,16 @@ export default function ConnectionDiagnostic() {
     // 4. Admin Function Check (Try an update)
     try {
       addLog("Testing write permissions (dry-run)...");
-      // This will fail if RLS blocks it, even if no row is updated
-      const { error } = await supabase.from("blog_categories").update({ name: "test" }).eq("id", "00000000-0000-0000-0000-000000000000");
+      const { error } = await supabase
+        .from("blog_categories")
+        .update({ name: "test" })
+        .eq("id", "00000000-0000-0000-0000-000000000000")
+        .select("id")
+        .single();
+        
       if (error && error.code === "PGRST301") {
         addLog("Write blocked by RLS policy");
-        tests.push({
+        addTestResult({
           name: "Admin Permissions",
           status: "error",
           message: "Write access denied by RLS",
@@ -106,7 +120,7 @@ export default function ConnectionDiagnostic() {
         });
       } else {
         addLog("Write check passed (dry-run)");
-        tests.push({
+        addTestResult({
           name: "Admin Permissions",
           status: "success",
           message: "Write permissions verified"
@@ -116,7 +130,6 @@ export default function ConnectionDiagnostic() {
       addLog(`Write check error: ${e.message}`);
     }
 
-    setResults(tests);
     setLoading(false);
   }, [supabase]);
 
