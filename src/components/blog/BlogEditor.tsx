@@ -127,7 +127,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
           <MenuButton 
             onClick={() => {
               const url = window.prompt("YouTube URL");
-              if (url) editor.chain().focus().setYoutubeVideo({ url }).run();
+              if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run();
             }}
           >
             <VideoIcon size={18} />
