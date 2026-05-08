@@ -1,4 +1,4 @@
-# Ads Setup (AdSense)
+ # Ads Setup (AdSense)
 
 Use these environment variables in your deployment platform (for example Vercel):
 
