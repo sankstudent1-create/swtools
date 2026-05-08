@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { ShieldCheck, Database, Table, Lock, HardDrive, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Terminal } from "lucide-react";
 
 export default function ConnectionDiagnostic() {
-  const supabase = createSupabaseBrowserClient();
+  // Use a direct client for diagnostic to avoid SSR/cookie complexity
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  const supabase = createClient(url, key);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
