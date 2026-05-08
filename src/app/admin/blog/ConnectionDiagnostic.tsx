@@ -156,20 +156,26 @@ export default function ConnectionDiagnostic() {
     // 4. Admin Function Check (Try an update)
     try {
       addLog("Testing write permissions (dry-run)...");
-      const { error } = await supabase
+      const writePromise = supabase
         .from("blog_categories")
         .update({ name: "test" })
         .eq("id", "00000000-0000-0000-0000-000000000000")
         .select("id")
         .single();
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Write Test Timeout (10s)")), 10000)
+      );
+
+      const { error } = await (Promise.race([writePromise, timeoutPromise]) as any);
         
-      if (error && error.code === "PGRST301") {
+      if (error && (error.code === "PGRST301" || error.code === "42501")) {
         addLog("Write blocked by RLS policy");
         addTestResult({
           name: "Admin Permissions",
           status: "error",
           message: "Write access denied by RLS",
-          details: "is_admin() check failed or policy missing"
+          details: "You are logged in but do not have 'admin' role in the profiles table."
         });
       } else {
         addLog("Write check passed (dry-run)");
@@ -181,6 +187,12 @@ export default function ConnectionDiagnostic() {
       }
     } catch (e: any) {
       addLog(`Write check error: ${e.message}`);
+      addTestResult({
+        name: "Admin Permissions",
+        status: "error",
+        message: e.message,
+        details: "The write test timed out or failed critically."
+      });
     }
 
     setLoading(false);
