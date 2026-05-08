@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listAllPostsForAdmin } from "@/lib/blog/admin-queries";
 import { Plus, Edit, Eye, MessageSquare, FileText, Layout, Search, Filter, MoreVertical, Trash2 } from "lucide-react";
+import ConnectionDiagnostic from "./ConnectionDiagnostic";
 
 export default async function AdminBlogPage() {
   const { isAdmin } = await requireAdmin();
@@ -10,7 +11,10 @@ export default async function AdminBlogPage() {
   const posts = await listAllPostsForAdmin();
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pt-8 pb-16 md:px-6">
+    <main className="mx-auto max-w-7xl px-4 pt-24 pb-16 md:px-6">
+      {/* Connection Diagnostic Tool */}
+      <ConnectionDiagnostic />
+
       {/* Header with Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
