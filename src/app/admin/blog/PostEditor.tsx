@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import BlogEditor from "@/components/blog/BlogEditor";
@@ -16,6 +16,10 @@ interface PostEditorProps {
 export default function PostEditor({ initialData, categories, authorId }: PostEditorProps) {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
+  const coverFileInputRef = useRef<HTMLInputElement | null>(null);
+  const [coverUploading, setCoverUploading] = useState(false);
+
+  const defaultDoc = { type: "doc", content: [{ type: "paragraph" }] };
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,8 +29,40 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
   const [categoryId, setCategoryId] = useState(initialData?.category_id || "");
   const [status, setStatus] = useState(initialData?.status || "draft");
-  const [contentJson, setContentJson] = useState(initialData?.content_json || {});
+  const [contentJson, setContentJson] = useState(
+    initialData?.content_json && typeof initialData.content_json === "object"
+      ? initialData.content_json
+      : defaultDoc
+  );
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.cover_image_url || "");
+
+  const uploadCoverImage = async (file: File) => {
+    setCoverUploading(true);
+    setError(null);
+    try {
+      const safeExt = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `cover/${Date.now()}-${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+      const { error } = await supabase.storage
+        .from("blog")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from("blog").getPublicUrl(path);
+      const publicUrl = data?.publicUrl;
+      if (!publicUrl) throw new Error("Failed to get public URL");
+      setCoverImageUrl(publicUrl);
+    } catch (e: any) {
+      setError(e?.message || "Failed to upload cover image");
+    } finally {
+      setCoverUploading(false);
+    }
+  };
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
@@ -38,6 +74,18 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
   const handleSave = async (newStatus?: string) => {
     setLoading(true);
     setError(null);
+    console.log("[blog] save start", { newStatus });
+
+    if (!title.trim()) {
+      setError("Title is required");
+      setLoading(false);
+      return;
+    }
+    if (!slug.trim()) {
+      setError("Slug is required");
+      setLoading(false);
+      return;
+    }
 
     const postStatus = newStatus || status;
     const publishedAt = postStatus === "published" ? (initialData?.published_at || new Date().toISOString()) : null;
@@ -61,19 +109,31 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
         result = await supabase
           .from("blog_posts")
           .update(postData)
-          .eq("id", initialData.id);
+          .eq("id", initialData.id)
+          .select("id")
+          .maybeSingle();
       } else {
         result = await supabase
           .from("blog_posts")
-          .insert([postData]);
+          .insert([postData])
+          .select("id")
+          .maybeSingle();
       }
 
       if (result.error) throw result.error;
+      if (!result.data?.id) throw new Error("Save failed: no row returned");
 
       router.push("/admin/blog");
       router.refresh();
     } catch (e: any) {
-      setError(e.message);
+      console.error("[blog] save failed", e);
+      const msg =
+        typeof e?.message === "string"
+          ? e.message
+          : typeof e === "string"
+            ? e
+            : JSON.stringify(e);
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -158,6 +218,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
 
             <div className="pt-4 space-y-2">
               <button 
+                type="button"
                 onClick={() => handleSave()}
                 disabled={loading}
                 className="w-full ui-btn-primary flex items-center justify-center gap-2"
@@ -166,6 +227,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
               </button>
               {status === "draft" && (
                 <button 
+                  type="button"
                   onClick={() => handleSave("published")}
                   disabled={loading}
                   className="w-full ui-btn-secondary flex items-center justify-center gap-2 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
@@ -185,6 +247,28 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
 
           <div className="ui-modal-shell p-6">
             <h3 className="font-semibold mb-4 text-sm">Cover Image</h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="ui-btn-secondary text-xs"
+                disabled={coverUploading}
+                onClick={() => coverFileInputRef.current?.click()}
+              >
+                {coverUploading ? "Uploading..." : "Upload"}
+              </button>
+              <input
+                ref={coverFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadCoverImage(file);
+                  e.target.value = "";
+                }}
+              />
+              <span className="text-[11px] text-white/40">or paste a URL below</span>
+            </div>
             <input 
               type="text" 
               value={coverImageUrl}

@@ -1,14 +1,18 @@
 "use client";
 
+import type React from "react";
+import { useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
+import { IframeEmbed } from "@/lib/blog/iframe-extension";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
   Bold, Italic, List, ListOrdered, Image as ImageIcon, 
   Link as LinkIcon, Video as VideoIcon, Heading1, Heading2,
-  Undo, Redo
+  Undo, Redo, Share2
 } from "lucide-react";
 
 interface BlogEditorProps {
@@ -43,6 +47,21 @@ const MenuButton = ({
 );
 
 export default function BlogEditor({ content, onChange, editable = true }: BlogEditorProps) {
+  const supabase = createSupabaseBrowserClient();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const contentKey =
+    content && typeof content === "object" ? JSON.stringify(content) : "__empty__";
+
+  const safeContent =
+    content &&
+    typeof content === "object" &&
+    (content as any).type === "doc" &&
+    Array.isArray((content as any).content)
+      ? content
+      : { type: "doc", content: [{ type: "paragraph" }] };
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -54,15 +73,42 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         width: 480,
         height: 320,
       }),
+      IframeEmbed,
     ],
-    content: content,
+    content: safeContent,
     editable: editable,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON());
     },
-  });
+  }, [contentKey, editable]);
 
   if (!editor) return null;
+
+  const uploadAndInsertImage = async (file: File) => {
+    setUploading(true);
+    try {
+      const safeExt = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `inline/${Date.now()}-${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+      const { error } = await supabase.storage
+        .from("blog")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+
+      if (error) throw error;
+
+      const { data } = supabase.storage.from("blog").getPublicUrl(path);
+      const publicUrl = data?.publicUrl;
+      if (publicUrl) editor.chain().focus().setImage({ src: publicUrl }).run();
+    } catch (e: any) {
+      window.alert(e?.message || "Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="w-full border border-white/10 rounded-xl overflow-hidden bg-white/5">
@@ -124,6 +170,12 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
           >
             <ImageIcon size={18} />
           </MenuButton>
+          <MenuButton
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            <ImageIcon size={18} />
+          </MenuButton>
           <MenuButton 
             onClick={() => {
               const url = window.prompt("YouTube URL");
@@ -131,6 +183,16 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             }}
           >
             <VideoIcon size={18} />
+          </MenuButton>
+          <MenuButton
+            onClick={() => {
+              const input = window.prompt(
+                "Embed URL or iframe HTML (Facebook post/video embed works here)"
+              );
+              if (input) editor.chain().focus().setIframeEmbed({ src: input }).run();
+            }}
+          >
+            <Share2 size={18} />
           </MenuButton>
           <div className="w-px h-6 bg-white/10 mx-1 self-center" />
           <MenuButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
@@ -141,6 +203,19 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
           </MenuButton>
         </div>
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) uploadAndInsertImage(file);
+          e.target.value = "";
+        }}
+      />
+
       <div className="prose prose-invert max-w-none p-4 min-h-[400px]">
         <EditorContent editor={editor} />
       </div>

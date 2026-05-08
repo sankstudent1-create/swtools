@@ -13,7 +13,7 @@ create table if not exists public.blog_posts (
   slug text unique not null,
   title text not null,
   excerpt text,
-  content_json jsonb not null default '{}'::jsonb,
+  content_json jsonb not null default '{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb,
   cover_image_url text,
   category_id uuid references public.blog_categories(id) on delete set null,
   author_id uuid references public.profiles(id) on delete set null,

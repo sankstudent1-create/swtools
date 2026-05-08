@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import { getPublishedPostBySlug } from "@/lib/blog/queries";
+import { renderTipTapToHtml } from "@/lib/blog/render";
 
 export default async function BlogPostPage({
   params,
@@ -12,6 +13,7 @@ export default async function BlogPostPage({
   if (!post) return notFound();
 
   const published = post.published_at ? new Date(post.published_at) : null;
+  const html = renderTipTapToHtml(post.content_json);
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -44,10 +46,21 @@ export default async function BlogPostPage({
         )}
       </header>
 
+      {post.cover_image_url && (
+        <div className="mb-8 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+          <img
+            src={post.cover_image_url}
+            alt={post.title}
+            className="aspect-video w-full object-cover"
+          />
+        </div>
+      )}
+
       <article className="ui-modal-shell p-6">
-        <pre className="whitespace-pre-wrap text-sm text-foreground/80">
-          {JSON.stringify(post.content_json, null, 2)}
-        </pre>
+        <div
+          className="prose prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: html || "" }}
+        />
       </article>
     </main>
   );
