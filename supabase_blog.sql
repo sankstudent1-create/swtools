@@ -103,3 +103,20 @@ create policy "blog_comments_admin_moderate" on public.blog_comments
   to authenticated
   using (public.is_admin())
   with check (public.is_admin());
+
+-- Blog Storage Bucket Configuration
+insert into storage.buckets (id, name, public)
+values ('blog', 'blog', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "blog_public_read" on storage.objects;
+create policy "blog_public_read"
+on storage.objects for select
+using ( bucket_id = 'blog' );
+
+drop policy if exists "blog_admin_all" on storage.objects;
+create policy "blog_admin_all"
+on storage.objects for all
+to authenticated
+using ( bucket_id = 'blog' and public.is_admin() )
+with check ( bucket_id = 'blog' and public.is_admin() );

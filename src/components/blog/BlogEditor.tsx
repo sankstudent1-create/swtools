@@ -9,11 +9,11 @@ import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
 import { IframeEmbed } from "@/lib/blog/iframe-extension";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
@@ -70,9 +70,12 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
       ? content
       : { type: "doc", content: [{ type: "paragraph" }] };
 
+  // Remove contentKey from dependencies to stop infinite re-renders
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        horizontalRule: false, // Disable default HR to use custom HorizontalRule extension
+      }),
       Image,
       Link.configure({
         openOnClick: false,
@@ -97,7 +100,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON());
     },
-  }, [contentKey, editable]);
+  }, [editable]); // Only depend on editable, not contentKey
 
   if (!editor) return null;
 

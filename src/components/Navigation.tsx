@@ -100,6 +100,9 @@ export default function Navigation() {
               <Link href="/about" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${pathname === "/about" ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
                 About
               </Link>
+              <Link href="/blog" className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${pathname.startsWith("/blog") ? "bg-white/[0.08] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/5" : "text-white/50 hover:text-white hover:bg-white/[0.04]"}`}>
+                Blog
+              </Link>
               {user ? (
                 <div className="flex items-center gap-1.5">
                   {isAdmin && (
@@ -160,6 +163,13 @@ export default function Navigation() {
               className={`p-4 rounded-2xl text-xl font-medium transition-colors ${pathname === "/about" ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
             >
               About
+            </Link>
+            <Link 
+              href="/blog" 
+              onClick={() => setIsOpen(false)} 
+              className={`p-4 rounded-2xl text-xl font-medium transition-colors ${pathname.startsWith("/blog") ? "bg-white/[0.05] text-white border border-white/[0.05]" : "text-white/60 hover:text-white hover:bg-white/[0.02]"}`}
+            >
+              Blog
             </Link>
             {user ? (
               <>

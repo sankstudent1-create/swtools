@@ -108,6 +108,15 @@ export default async function AdminPage() {
       border: 'border-purple-500/20'
     },
     {
+      title: 'Blog Management',
+      desc: 'Create and manage blog posts, categories, and comments.',
+      href: '/admin/blog',
+      icon: LayoutDashboard,
+      color: 'text-indigo-400',
+      bg: 'bg-indigo-500/10',
+      border: 'border-indigo-500/20'
+    },
+    {
       title: 'System Settings',
       desc: 'Adjust global conversion rates and configurations.',
       href: '/admin/settings',
