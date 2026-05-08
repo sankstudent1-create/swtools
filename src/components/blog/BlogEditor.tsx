@@ -7,7 +7,7 @@ import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
 import { 
   Bold, Italic, List, ListOrdered, Image as ImageIcon, 
-  Link as LinkIcon, Youtube as YoutubeIcon, Heading1, Heading2,
+  Link as LinkIcon, Video as VideoIcon, Heading1, Heading2,
   Undo, Redo
 } from "lucide-react";
 
@@ -130,7 +130,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
               if (url) editor.chain().focus().setYoutubeVideo({ url }).run();
             }}
           >
-            <YoutubeIcon size={18} />
+            <VideoIcon size={18} />
           </MenuButton>
           <div className="w-px h-6 bg-white/10 mx-1 self-center" />
           <MenuButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
