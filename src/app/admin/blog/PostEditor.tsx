@@ -120,6 +120,18 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
           .maybeSingle();
       }
 
+      // Handle the common auth lock error with a single retry
+      if (result.error && result.error.message?.includes("lock:sb")) {
+        console.warn("[blog] auth lock detected, retrying save once...");
+        await new Promise(r => setTimeout(r, 1000));
+        
+        if (initialData?.id) {
+          result = await supabase.from("blog_posts").update(postData).eq("id", initialData.id).select("id").maybeSingle();
+        } else {
+          result = await supabase.from("blog_posts").insert([postData]).select("id").maybeSingle();
+        }
+      }
+
       if (result.error) throw result.error;
       if (!result.data?.id) throw new Error("Save failed: no row returned");
 

@@ -7,12 +7,20 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
+import Underline from "@tiptap/extension-underline";
+import Highlight from "@tiptap/extension-highlight";
+import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
 import { IframeEmbed } from "@/lib/blog/iframe-extension";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
   Bold, Italic, List, ListOrdered, Image as ImageIcon, 
   Link as LinkIcon, Video as VideoIcon, Heading1, Heading2,
-  Undo, Redo, Share2
+  Undo, Redo, Share2, Underline as UnderlineIcon, Highlighter,
+  Minus, Table as TableIcon
 } from "lucide-react";
 
 interface BlogEditorProps {
@@ -74,6 +82,15 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         height: 320,
       }),
       IframeEmbed,
+      Underline,
+      Highlight,
+      HorizontalRule,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: safeContent,
     editable: editable,
@@ -138,6 +155,29 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             active={editor.isActive("italic")}
           >
             <Italic size={18} />
+          </MenuButton>
+          <MenuButton 
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={editor.isActive("underline")}
+          >
+            <UnderlineIcon size={18} />
+          </MenuButton>
+          <MenuButton 
+            onClick={() => editor.chain().focus().toggleHighlight().run()}
+            active={editor.isActive("highlight")}
+          >
+            <Highlighter size={18} />
+          </MenuButton>
+          <div className="w-px h-6 bg-white/10 mx-1 self-center" />
+          <MenuButton 
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          >
+            <Minus size={18} />
+          </MenuButton>
+          <MenuButton 
+            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          >
+            <TableIcon size={18} />
           </MenuButton>
           <div className="w-px h-6 bg-white/10 mx-1 self-center" />
           <MenuButton 
