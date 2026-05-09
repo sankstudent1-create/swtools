@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { ShieldCheck, Database, Table, Lock, HardDrive, AlertTriangle, CheckCircle2, XCircle, RefreshCw, Terminal } from "lucide-react";
 
 export default function ConnectionDiagnostic() {
-  // Use a direct client for diagnostic to avoid SSR/cookie complexity
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-  const supabase = createClient(url, key);
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
@@ -51,15 +48,18 @@ export default function ConnectionDiagnostic() {
       addLog("Testing network connectivity to Supabase URL...");
       const start = Date.now();
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      await fetch(`${url}/rest/v1/`, { 
+      const response = await fetch(`${url}/rest/v1/`, { 
         method: "GET", 
         headers: { "apikey": key },
         signal: controller.signal 
       });
       clearTimeout(timeoutId);
-      addLog(`Network check success (${Date.now() - start}ms)`);
+      addLog(`Network check success (${Date.now() - start}ms) - Status: ${response.status}`);
+      if (!response.ok) {
+        addLog(`Network warning: Response not OK (${response.status})`);
+      }
     } catch (e: any) {
       addLog(`Network check failed: ${e.message}`);
       addTestResult({
@@ -119,14 +119,58 @@ export default function ConnectionDiagnostic() {
         });
         addLog(`Profile found: role=${profile?.role}`);
       } else {
-        addLog("No user found, skipping profile check");
+        // 2.1 RPC Function Check
+        addLog("Testing public.is_admin() function via RPC...");
+        const { data: rpcIsAdmin, error: rpcError } = await supabase.rpc('is_admin');
+        
+        if (rpcError) {
+          addLog(`RPC Error: ${rpcError.code} - ${rpcError.message}`);
+          addTestResult({
+            name: "Admin Function (RPC)",
+            status: "error",
+            message: rpcError.message,
+            details: "The is_admin() function might be missing or broken. Check supabase_blog.sql."
+          });
+        } else {
+          addLog(`RPC Result: ${rpcIsAdmin}`);
+          addTestResult({
+            name: "Admin Function (RPC)",
+            status: rpcIsAdmin ? "success" : "warning",
+            message: rpcIsAdmin ? "is_admin() returned TRUE" : "is_admin() returned FALSE",
+            details: rpcIsAdmin ? "Database function is working correctly" : "User is not recognized as admin by the database function."
+          });
+        }
+      } else {
+        addLog("No user found, skipping profile and RPC checks");
+      }
+
+    // 3. Storage Bucket Check
+    try {
+      addLog("Checking 'blog' storage bucket...");
+      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      if (bucketError) {
+        addLog(`Bucket error: ${bucketError.message}`);
+        addTestResult({
+          name: "Storage: Blog Bucket",
+          status: "error",
+          message: "Could not list buckets",
+          details: bucketError.message
+        });
+      } else {
+        const blogBucket = buckets?.find(b => b.id === 'blog');
+        addLog(`Bucket 'blog' exists: ${!!blogBucket}`);
+        addTestResult({
+          name: "Storage: Blog Bucket",
+          status: blogBucket ? "success" : "error",
+          message: blogBucket ? "Blog bucket exists" : "Blog bucket missing",
+          details: blogBucket ? (blogBucket.public ? "Bucket is public" : "Bucket is private (warning)") : "Run migration to create storage bucket."
+        });
       }
     } catch (e: any) {
-      addLog(`Profile check error: ${e.message}`);
-      addTestResult({ name: "Profile Check", status: "error", message: e.message });
+      addLog(`Storage check error: ${e.message}`);
     }
 
-    // 3. Table Structure Check
+    // 4. Table Structure Check
     const tables = ["blog_posts", "blog_categories", "blog_comments"];
     for (const table of tables) {
       try {
@@ -221,6 +265,17 @@ export default function ConnectionDiagnostic() {
             title="Show Logs"
           >
             <Terminal size={18} />
+          </button>
+          <button
+            onClick={async () => {
+              addLog("Signing out...");
+              await supabase.auth.signOut();
+              window.location.reload();
+            }}
+            className="p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-all"
+            title="Sign Out"
+          >
+            <Lock size={18} />
           </button>
           <button
             onClick={runDiagnostic}

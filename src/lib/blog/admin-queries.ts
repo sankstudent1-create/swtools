@@ -1,7 +1,7 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function listAllPostsForAdmin() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("blog_posts")
     .select(
@@ -14,7 +14,7 @@ export async function listAllPostsForAdmin() {
 }
 
 export async function listCategories() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("blog_categories")
     .select("*")
@@ -25,7 +25,7 @@ export async function listCategories() {
 }
 
 export async function getPostByIdForAdmin(id: string) {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")

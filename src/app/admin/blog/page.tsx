@@ -7,30 +7,37 @@ import PostList from "./PostList";
 
 export default async function AdminBlogPage() {
   const { isAdmin, user } = await requireAdmin();
-  const posts = isAdmin ? await listAllPostsForAdmin() : [];
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-4 bg-[#07090f]">
+        <div className="w-full max-w-md ui-modal-shell p-8 text-center border-red-500/20 bg-red-500/5">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Layout className="w-8 h-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Access Denied</h1>
+          <p className="mt-2 text-white/60">
+            You do not have administrative privileges to view the blog console.
+            {user && ` (Logged in as ${user.email})`}
+          </p>
+          <div className="mt-8">
+            <Link className="ui-btn-secondary w-full" href="/dashboard">Return to Dashboard</Link>
+          </div>
+          {/* Keep diagnostic tool even for non-admins to help troubleshoot role issues */}
+          <div className="mt-8 text-left">
+            <ConnectionDiagnostic />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const posts = await listAllPostsForAdmin();
 
   return (
     <main className="mx-auto max-w-7xl px-4 pt-24 pb-16 md:px-6">
       {/* Connection Diagnostic Tool */}
       <ConnectionDiagnostic />
-
-      {!isAdmin && (
-        <div className="ui-modal-shell p-12 text-center border-rose-500/20 bg-rose-500/5">
-          <div className="max-w-md mx-auto">
-            <h2 className="text-2xl font-bold text-rose-400 mb-4">Access Denied</h2>
-            <p className="text-white/60 mb-8">
-              Your account ({user?.email || "Not signed in"}) does not have administrative privileges. 
-              Please check the diagnostic status above to verify your role.
-            </p>
-            <Link href="/auth/login" className="ui-btn-primary px-8 py-3 rounded-xl">
-              Switch Account
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {isAdmin && (
-        <>
 
       {/* Header with Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
@@ -112,8 +119,6 @@ export default async function AdminBlogPage() {
           </div>
         </Link>
       </div>
-        </>
-      )}
     </main>
   );
 }

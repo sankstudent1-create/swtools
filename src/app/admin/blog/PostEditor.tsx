@@ -100,52 +100,18 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
       cover_image_url: coverImageUrl || null,
       author_id: authorId,
       published_at: publishedAt,
-      updated_at: new Date().toISOString(),
     };
 
     try {
-      let result;
-      if (initialData?.id) {
-        result = await supabase
-          .from("blog_posts")
-          .update(postData)
-          .eq("id", initialData.id)
-          .select("id")
-          .maybeSingle();
-      } else {
-        result = await supabase
-          .from("blog_posts")
-          .insert([postData])
-          .select("id")
-          .maybeSingle();
-      }
-
-      // Handle the common auth lock error with a single retry
-      if (result.error && result.error.message?.includes("lock:sb")) {
-        console.warn("[blog] auth lock detected, retrying save once...");
-        await new Promise(r => setTimeout(r, 1000));
-        
-        if (initialData?.id) {
-          result = await supabase.from("blog_posts").update(postData).eq("id", initialData.id).select("id").maybeSingle();
-        } else {
-          result = await supabase.from("blog_posts").insert([postData]).select("id").maybeSingle();
-        }
-      }
-
-      if (result.error) throw result.error;
-      if (!result.data?.id) throw new Error("Save failed: no row returned");
+      // Use the server action for saving
+      const { saveBlogPost } = await import("./actions");
+      await saveBlogPost(postData, initialData?.id);
 
       router.push("/admin/blog");
       router.refresh();
     } catch (e: any) {
       console.error("[blog] save failed", e);
-      const msg =
-        typeof e?.message === "string"
-          ? e.message
-          : typeof e === "string"
-            ? e
-            : JSON.stringify(e);
-      setError(msg);
+      setError(e?.message || "Failed to save post");
     } finally {
       setLoading(false);
     }

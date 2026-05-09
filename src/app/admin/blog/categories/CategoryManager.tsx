@@ -43,17 +43,16 @@ export default function CategoryManager() {
     setError(null);
     const slug = newCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
-    const { error } = await supabase
-      .from("blog_categories")
-      .insert([{ name: newCategoryName, slug }]);
-    
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      const { saveBlogCategory } = await import("../actions");
+      await saveBlogCategory({ name: newCategoryName, slug });
       setNewCategoryName("");
       fetchCategories();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
     }
-    setActionLoading(false);
   }
 
   async function updateCategory(id: string) {
@@ -63,18 +62,16 @@ export default function CategoryManager() {
     setError(null);
     const slug = editName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
-    const { error } = await supabase
-      .from("blog_categories")
-      .update({ name: editName, slug })
-      .eq("id", id);
-    
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      const { saveBlogCategory } = await import("../actions");
+      await saveBlogCategory({ name: editName, slug }, id);
       setEditingId(null);
       fetchCategories();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
     }
-    setActionLoading(false);
   }
 
   async function deleteCategory(id: string) {
@@ -82,17 +79,16 @@ export default function CategoryManager() {
     
     setActionLoading(true);
     setError(null);
-    const { error } = await supabase
-      .from("blog_categories")
-      .delete()
-      .eq("id", id);
     
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      const { deleteBlogCategory } = await import("../actions");
+      await deleteBlogCategory(id);
       fetchCategories();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setActionLoading(false);
     }
-    setActionLoading(false);
   }
 
   return (

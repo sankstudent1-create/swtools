@@ -20,18 +20,15 @@ export default function PostList({ initialPosts }: PostListProps) {
     if (!confirm("Are you sure you want to delete this post?")) return;
     
     setDeletingId(id);
-    const { error } = await supabase
-      .from("blog_posts")
-      .delete()
-      .eq("id", id);
-    
-    if (error) {
-      alert(error.message);
-      setDeletingId(null);
-    } else {
+    try {
+      const { deleteBlogPost } = await import("./actions");
+      await deleteBlogPost(id);
       setPosts(posts.filter(p => p.id !== id));
-      setDeletingId(null);
       router.refresh();
+    } catch (e: any) {
+      alert(e.message || "Failed to delete post");
+    } finally {
+      setDeletingId(null);
     }
   }
 
