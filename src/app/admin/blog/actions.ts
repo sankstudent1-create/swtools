@@ -113,3 +113,28 @@ export async function deleteBlogCategory(id: string) {
   revalidatePath('/admin/blog/categories')
   return { success: true }
 }
+
+export async function uploadBlogMedia(formData: FormData) {
+  const { isAdmin } = await requireAdmin()
+  if (!isAdmin) throw new Error('Unauthorized')
+
+  const file = formData.get('file') as File
+  if (!file) throw new Error('No file provided')
+
+  const admin = createSupabaseAdminClient()
+  const safeExt = (file.name.split(".").pop() || "png").toLowerCase();
+  const path = `uploads/${Date.now()}-${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+  const { error } = await admin.storage
+    .from('blog')
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type
+    })
+
+  if (error) throw new Error(error.message)
+
+  const { data: urlData } = admin.storage.from('blog').getPublicUrl(path)
+  return { publicUrl: urlData.publicUrl }
+}

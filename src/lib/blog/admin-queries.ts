@@ -35,3 +35,16 @@ export async function getPostByIdForAdmin(id: string) {
   if (error) throw new Error(error.message);
   return data;
 }
+
+export async function listMediaFiles() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.storage.from("blog").list("", {
+    limit: 100,
+    offset: 0,
+    sortBy: { column: "created_at", order: "desc" }
+  });
+
+  if (error) throw new Error(error.message);
+  // Filter out system files
+  return (data || []).filter(f => f.name !== ".emptyKeep");
+}
