@@ -149,6 +149,9 @@ export default function ConnectionDiagnostic() {
           details: "Sign in as Admin to manage blog"
         });
       }
+    } catch (e: any) {
+      addLog(`Profile/RPC check error: ${e.message}`);
+    }
 
     // 3. Storage Bucket Check
     try {
