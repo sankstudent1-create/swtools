@@ -11,19 +11,18 @@ export default function ConnectionDiagnostic() {
   const [showRaw, setShowRaw] = useState(false);
   const [rawOutput, setRawOutput] = useState("");
 
+  const addLog = useCallback((msg: string) => { 
+    setRawOutput(prev => prev + `[${new Date().toLocaleTimeString()}] ${msg}\n`); 
+  }, []);
+
+  const addTestResult = useCallback((test: any) => {
+    setResults(prev => [...prev, test]);
+  }, []);
+
   const runDiagnostic = useCallback(async () => {
     setLoading(true);
     setResults([]);
-    let log = "Starting Diagnostic Log...\n";
-
-    const addLog = (msg: string) => { 
-      log += `[${new Date().toLocaleTimeString()}] ${msg}\n`; 
-      setRawOutput(log); 
-    };
-
-    const addTestResult = (test: any) => {
-      setResults(prev => [...prev, test]);
-    };
+    setRawOutput(`[${new Date().toLocaleTimeString()}] Starting Diagnostic Log...\n`);
 
     // 0. Env Check
     addLog("Checking environment variables...");
@@ -249,7 +248,7 @@ export default function ConnectionDiagnostic() {
     }
 
     setLoading(false);
-  }, [supabase]);
+  }, [supabase, addLog, addTestResult]);
 
   useEffect(() => {
     runDiagnostic();
