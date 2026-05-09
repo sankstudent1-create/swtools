@@ -118,8 +118,8 @@ export default function ConnectionDiagnostic() {
           details: isAdmin ? "Admin verified" : "You need 'admin' role in profiles table"
         });
         addLog(`Profile found: role=${profile?.role}`);
-      } else {
-        // 2.1 RPC Function Check
+
+        // 2.1 RPC Function Check (Inside user check)
         addLog("Testing public.is_admin() function via RPC...");
         const { data: rpcIsAdmin, error: rpcError } = await supabase.rpc('is_admin');
         
@@ -142,6 +142,12 @@ export default function ConnectionDiagnostic() {
         }
       } else {
         addLog("No user found, skipping profile and RPC checks");
+        addTestResult({
+          name: "User Auth Session",
+          status: "warning",
+          message: "No active session (Anonymous)",
+          details: "Sign in as Admin to manage blog"
+        });
       }
 
     // 3. Storage Bucket Check
