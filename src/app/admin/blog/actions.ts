@@ -16,8 +16,10 @@ export async function saveBlogPost(postData: any, id?: string) {
   const dataToSave = {
     ...postData,
     author_id: postData.author_id || user.id,
-    updated_at: new Date().toISOString()
-  }
+      seo_keywords: postData.seo_keywords || [],
+      seo_description: postData.seo_description || postData.excerpt,
+      updated_at: new Date().toISOString()
+    }
 
   let result
   if (id) {

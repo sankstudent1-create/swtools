@@ -34,7 +34,8 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
       : defaultDoc
   );
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.cover_image_url || "");
-  const [metaKeywords, setMetaKeywords] = useState(initialData?.meta_keywords || "");
+  const [seoKeywords, setSeoKeywords] = useState(initialData?.seo_keywords?.join(", ") || "");
+  const [seoDescription, setSeoDescription] = useState(initialData?.seo_description || initialData?.excerpt || "");
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
         .replace(/(^-|-$)/g, "");
       setSlug(generated);
     }
-  }, [title]);
+  }, [title, initialData]);
 
   const uploadCoverImage = async (file: File) => {
     setCoverUploading(true);
@@ -93,7 +94,8 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
       cover_image_url: coverImageUrl || null,
       author_id: authorId,
       published_at: publishedAt,
-      meta_keywords: metaKeywords,
+      seo_keywords: seoKeywords.split(",").map((k: string) => k.trim()).filter((k: string) => !!k),
+      seo_description: seoDescription || excerpt,
     };
 
     try {
@@ -350,8 +352,8 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
               <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Keywords</label>
               <input 
                 type="text" 
-                value={metaKeywords}
-                onChange={(e) => setMetaKeywords(e.target.value)}
+                value={seoKeywords}
+                onChange={(e) => setSeoKeywords(e.target.value)}
                 placeholder="typing, ssc, india post..."
                 className="w-full ui-input bg-white/5 border-white/10 text-xs py-3 rounded-xl focus:border-brand-orange/50 transition-all"
               />
