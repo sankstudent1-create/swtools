@@ -113,7 +113,29 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         Table.configure({ resizable: true }),
         TableRow,
         TableHeader,
-        TableCell,
+        TableCell.extend({
+          // Allow Escape to exit table by inserting paragraph after
+          addKeyboardShortcuts() {
+            return {
+              Escape: () => {
+                const { state, dispatch } = this.editor.view;
+                const { $head } = state.selection;
+                let depth = $head.depth;
+                while (depth > 0) {
+                  const node = $head.node(depth);
+                  if (node.type.name === "table") {
+                    const after = $head.after(depth);
+                    const tr = state.tr.insert(after, state.schema.nodes.paragraph.create());
+                    dispatch(tr.setSelection(state.selection.constructor.near(tr.doc.resolve(after + 1)) as any));
+                    return true;
+                  }
+                  depth--;
+                }
+                return false;
+              },
+            };
+          },
+        }),
       ],
       content: safeContent,
       editable,
@@ -147,14 +169,25 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
 
   const setLink = useCallback(() => {
     if (!editor) return;
-    const prev = editor.getAttributes("link").href;
-    const url = window.prompt("Link URL", prev || "https://");
-    if (url === null) return;
-    if (url === "") {
+    const prev = editor.getAttributes("link").href as string | undefined;
+    const url = window.prompt("Enter URL (leave empty to remove link):", prev ?? "");
+    if (url === null) return; // cancelled
+    if (!url.trim()) {
       editor.chain().focus().unsetLink().run();
       return;
     }
-    editor.chain().focus().setLink({ href: url }).run();
+    const href = url.startsWith("http") ? url : `https://${url}`;
+    editor.chain().focus().setLink({ href }).run();
+  }, [editor]);
+
+  const insertEmbed = useCallback((platform?: string) => {
+    if (!editor) return;
+    const label = platform
+      ? `Paste ${platform} post URL or embed code:`
+      : "Paste YouTube, Facebook, Twitter/X, Instagram URL or iframe embed code:";
+    const input = window.prompt(label);
+    if (!input?.trim()) return;
+    editor.chain().focus().setIframeEmbed({ src: input.trim() }).run();
   }, [editor]);
 
   if (!editor) return (
@@ -329,20 +362,23 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             </ToolbarButton>
             <ToolbarButton
               onClick={() => {
-                const url = window.prompt("YouTube URL");
+                const url = window.prompt("YouTube URL:");
                 if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run();
               }}
               title="YouTube video"
             >
               <VideoIcon size={16} />
             </ToolbarButton>
-            <ToolbarButton
-              onClick={() => {
-                const input = window.prompt("Embed URL or iframe HTML");
-                if (input) editor.chain().focus().setIframeEmbed({ src: input }).run();
-              }}
-              title="Embed (Facebook, etc.)"
-            >
+            <ToolbarButton onClick={() => insertEmbed("Facebook")} title="Facebook post/video">
+              <span className="text-[11px] font-black">FB</span>
+            </ToolbarButton>
+            <ToolbarButton onClick={() => insertEmbed("Twitter/X")} title="Tweet embed">
+              <span className="text-[11px] font-black">𝕏</span>
+            </ToolbarButton>
+            <ToolbarButton onClick={() => insertEmbed("Instagram")} title="Instagram post">
+              <span className="text-[11px] font-black">IG</span>
+            </ToolbarButton>
+            <ToolbarButton onClick={() => insertEmbed()} title="Any embed / iframe">
               <Share2 size={16} />
             </ToolbarButton>
 
@@ -421,7 +457,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             prose-table:border prose-table:border-white/10 prose-table:rounded-xl prose-table:overflow-hidden
             prose-th:bg-white/[0.04] prose-th:text-white prose-th:font-bold prose-th:border-white/10 prose-th:p-3
             prose-td:border prose-td:border-white/5 prose-td:p-3
-                px-8 py-6 min-h-[500px] cursor-text
+            px-8 py-6 min-h-[500px] cursor-text
           `}
         >
           <EditorContent editor={editor} />

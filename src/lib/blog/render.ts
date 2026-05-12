@@ -8,6 +8,11 @@ import { IframeEmbed } from "@/lib/blog/iframe-extension";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
+import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
+import Superscript from "@tiptap/extension-superscript";
+import Subscript from "@tiptap/extension-subscript";
 import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
@@ -24,8 +29,13 @@ export function renderTipTapToHtml(content: unknown): string {
       Youtube,
       IframeEmbed,
       Underline,
-      Highlight,
+      Highlight.configure({ multicolor: true }),
       HorizontalRule,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      TextStyle,
+      Color,
+      Superscript,
+      Subscript,
       Table,
       TableRow,
       TableHeader,
