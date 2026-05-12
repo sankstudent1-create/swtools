@@ -18,8 +18,26 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 
+/** Remove any embed nodes with null/empty src to prevent renderHTML crashes */
+function sanitizeContent(json: any): any {
+  if (!json || typeof json !== "object") return json;
+  if (Array.isArray(json)) return json.map(sanitizeContent).filter(Boolean);
+
+  const srcRequired = ["youtube", "iframeEmbed"];
+  if (srcRequired.includes(json.type) && !json.attrs?.src) {
+    return null;
+  }
+
+  const result: any = { ...json };
+  if (Array.isArray(json.content)) {
+    result.content = json.content.map(sanitizeContent).filter(Boolean);
+  }
+  return result;
+}
+
 export function renderTipTapToHtml(content: unknown): string {
-  const json = (content ?? {}) as JSONContent;
+  const raw = (content ?? {}) as JSONContent;
+  const json = sanitizeContent(raw) as JSONContent;
 
   try {
     return generateHTML(json, [
