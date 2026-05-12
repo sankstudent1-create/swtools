@@ -41,7 +41,7 @@ export const SafeYoutube = Youtube.extend({
               allowfullscreen: "true",
               frameborder: "0",
               allow:
-                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
             },
             // Only merge safe attributes from HTMLAttributes (skip null src)
             Object.fromEntries(
