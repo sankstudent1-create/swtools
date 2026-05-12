@@ -3,6 +3,7 @@
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
+import { TextSelection } from "prosemirror-state";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
@@ -126,7 +127,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
                   if (node.type.name === "table") {
                     const after = $head.after(depth);
                     const tr = state.tr.insert(after, state.schema.nodes.paragraph.create());
-                    dispatch(tr.setSelection(state.selection.constructor.near(tr.doc.resolve(after + 1)) as any));
+                    dispatch(tr.setSelection(TextSelection.near(tr.doc.resolve(after + 1))));
                     return true;
                   }
                   depth--;
