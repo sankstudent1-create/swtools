@@ -19,8 +19,7 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import Superscript from "@tiptap/extension-superscript";
 import Subscript from "@tiptap/extension-subscript";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
+
 import { IframeEmbed } from "@/lib/blog/iframe-extension";
 import {
   Bold, Italic, List, ListOrdered, Image as ImageIcon,
@@ -28,7 +27,7 @@ import {
   Undo, Redo, Share2, Underline as UnderlineIcon, Highlighter,
   Minus, Table as TableIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Superscript as SuperscriptIcon, Subscript as SubscriptIcon,
-  ListChecks, Palette, Code, Code2, Quote, Upload, Eye, EyeOff, 
+  Palette, Code, Code2, Quote, Upload, Eye, EyeOff, 
   Type, Maximize2, Minimize2, CornerDownLeft
 } from "lucide-react";
 
@@ -111,8 +110,6 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         Color,
         Superscript,
         Subscript,
-        TaskList,
-        TaskItem.configure({ nested: true }),
         Table.configure({ resizable: true }),
         TableRow,
         TableHeader,
@@ -289,9 +286,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered list">
               <ListOrdered size={16} />
             </ToolbarButton>
-            <ToolbarButton onClick={() => editor.chain().focus().toggleList("taskList", "taskItem").run()} active={editor.isActive("taskList")} title="Task list">
-              <ListChecks size={16} />
-            </ToolbarButton>
+
 
             <Separator />
 
@@ -426,9 +421,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             prose-table:border prose-table:border-white/10 prose-table:rounded-xl prose-table:overflow-hidden
             prose-th:bg-white/[0.04] prose-th:text-white prose-th:font-bold prose-th:border-white/10 prose-th:p-3
             prose-td:border prose-td:border-white/5 prose-td:p-3
-            [&_.task-list]:list-none [&_.task-list]:pl-0
-            [&_.task-list-item]:flex [&_.task-list-item]:items-start [&_.task-list-item]:gap-2
-            px-8 py-6 min-h-[500px] cursor-text
+                px-8 py-6 min-h-[500px] cursor-text
           `}
         >
           <EditorContent editor={editor} />
@@ -473,13 +466,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
           border-radius: 1rem;
           border: 1px solid rgba(255,255,255,0.1);
         }
-        .ProseMirror .task-list { padding-left: 0; }
-        .ProseMirror .task-list-item { display: flex; align-items: flex-start; gap: 0.5rem; }
-        .ProseMirror .task-list-item input[type="checkbox"] {
-          accent-color: #ff6b00;
-          margin-top: 0.2rem;
-          cursor: pointer;
-        }
+
         .ProseMirror table { border-collapse: collapse; width: 100%; }
         .ProseMirror th, .ProseMirror td {
           border: 1px solid rgba(255,255,255,0.1);
