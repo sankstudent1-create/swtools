@@ -80,37 +80,36 @@ export const IframeEmbed = Node.create({
 
   renderHTML({ HTMLAttributes }) {
     const embedType = HTMLAttributes.embedType || "iframe";
+    const src = HTMLAttributes.src as string | null;
+
+    // Guard: don't render if src is missing
+    if (!src) {
+      return ["div", { class: "embed-placeholder", style: "display:none" }];
+    }
 
     if (embedType === "twitter") {
-      // Render a Twitter blockquote embed container
       return [
         "div",
-        mergeAttributes({ "data-embed-type": "twitter", "data-tweet-url": HTMLAttributes.src }),
+        mergeAttributes({ "data-embed-type": "twitter", "data-tweet-url": src }),
         [
           "blockquote",
-          {
-            class: "twitter-tweet",
-            "data-dnt": "true",
-          },
-          ["a", { href: HTMLAttributes.src }, HTMLAttributes.src],
+          { class: "twitter-tweet", "data-dnt": "true" },
+          ["a", { href: src }, src],
         ],
       ];
     }
 
-    // Default: iframe (YouTube, Facebook plugins, Instagram embed, raw iframes)
-    const attrs: Record<string, any> = {
-      ...HTMLAttributes,
-      "data-embed": "true",
-    };
-    if (attrs.allowfullscreen) attrs.allowfullscreen = "true";
-
+    // Default: iframe
     return [
       "iframe",
-      mergeAttributes(attrs, {
-        src: attrs.src ?? undefined,
-        frameborder: "0",
-        allow: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
-      }),
+      mergeAttributes(
+        { "data-embed": "true", allowfullscreen: "true" },
+        {
+          src,
+          frameborder: "0",
+          allow: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
+        }
+      ),
     ];
   },
 

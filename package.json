@@ -11,6 +11,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.49.1",
+    "@tailwindcss/typography": "^0.5.19",
     "@tiptap/extension-color": "^3.23.1",
     "@tiptap/extension-highlight": "^2.11.7",
     "@tiptap/extension-horizontal-rule": "^2.11.7",

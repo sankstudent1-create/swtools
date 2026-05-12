@@ -440,27 +440,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         className={`relative flex-1 overflow-auto ${isFullscreen ? "min-h-0" : ""}`}
         onClick={() => editor?.chain().focus().run()}
       >
-        <div
-          className={`
-            prose prose-invert max-w-none
-            prose-headings:font-black prose-headings:tracking-tighter prose-headings:text-white
-            prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
-            prose-p:text-white/80 prose-p:leading-relaxed
-            prose-a:text-brand-orange prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-white prose-strong:font-bold
-            prose-em:text-white/80
-            prose-code:text-brand-orange prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:hidden prose-code:after:hidden
-            prose-pre:bg-[#0a0c14] prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl prose-pre:text-sm
-            prose-blockquote:border-l-brand-orange prose-blockquote:bg-white/[0.02] prose-blockquote:rounded-r-xl prose-blockquote:py-2 prose-blockquote:not-italic prose-blockquote:text-white/60
-            prose-img:rounded-2xl prose-img:border prose-img:border-white/10 prose-img:my-6
-            prose-hr:border-white/10
-            prose-li:text-white/80
-            prose-table:border prose-table:border-white/10 prose-table:rounded-xl prose-table:overflow-hidden
-            prose-th:bg-white/[0.04] prose-th:text-white prose-th:font-bold prose-th:border-white/10 prose-th:p-3
-            prose-td:border prose-td:border-white/5 prose-td:p-3
-            px-8 py-6 min-h-[500px] cursor-text
-          `}
-        >
+        <div className="blog-content px-8 py-6 min-h-[500px] cursor-text">
           <EditorContent editor={editor} />
         </div>
       </div>

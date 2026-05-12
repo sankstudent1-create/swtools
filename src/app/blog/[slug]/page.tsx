@@ -155,23 +155,7 @@ export default async function BlogPostPage({
         <div className="mx-auto max-w-4xl px-6 py-16">
           <article>
             <div
-              className="
-                prose prose-invert prose-lg max-w-none
-                prose-headings:font-black prose-headings:tracking-tighter
-                prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
-                prose-p:text-white/70 prose-p:leading-relaxed
-                prose-a:text-brand-orange prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-white prose-strong:font-bold
-                prose-code:text-brand-orange prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:hidden prose-code:after:hidden
-                prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-2xl
-                prose-blockquote:border-l-brand-orange prose-blockquote:bg-white/[0.02] prose-blockquote:rounded-r-xl prose-blockquote:py-1 prose-blockquote:not-italic
-                prose-img:rounded-2xl prose-img:border prose-img:border-white/10
-                prose-hr:border-white/10
-                prose-li:text-white/70
-                prose-table:border prose-table:border-white/10 prose-table:rounded-xl
-                prose-th:bg-white/5 prose-th:text-white prose-th:font-bold
-                prose-td:border prose-td:border-white/5
-              "
+              className="blog-content"
               dangerouslySetInnerHTML={{ __html: html || "" }}
             />
           </article>
