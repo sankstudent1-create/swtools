@@ -16,6 +16,7 @@
     "@tiptap/extension-horizontal-rule": "^2.11.7",
     "@tiptap/extension-image": "^2.11.7",
     "@tiptap/extension-link": "^2.11.7",
+    "@tiptap/extension-list": "^3.23.1",
     "@tiptap/extension-subscript": "^3.23.1",
     "@tiptap/extension-superscript": "^3.23.1",
     "@tiptap/extension-table": "^2.11.7",
