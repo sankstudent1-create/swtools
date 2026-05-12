@@ -8,6 +8,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Youtube from "@tiptap/extension-youtube";
+import { SafeYoutube } from "@/lib/blog/safe-youtube";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
 import { Table } from "@tiptap/extension-table";
@@ -80,6 +81,26 @@ const COLORS = [
   { label: "Purple", value: "#a78bfa" },
 ];
 
+/** Strip any embed nodes with null/empty src to prevent TipTap renderHTML crashes */
+function sanitizeContent(json: any): any {
+  if (!json || typeof json !== "object") return json;
+  if (Array.isArray(json)) return json.map(sanitizeContent);
+
+  // Node types that require a valid src — remove them if src is missing
+  const srcRequiredTypes = ["youtube", "iframeEmbed"];
+  if (srcRequiredTypes.includes(json.type) && !json.attrs?.src) {
+    return null; // will be filtered out below
+  }
+
+  const result: any = { ...json };
+  if (Array.isArray(json.content)) {
+    result.content = json.content
+      .map(sanitizeContent)
+      .filter((n: any) => n !== null);
+  }
+  return result;
+}
+
 export default function BlogEditor({ content, onChange, editable = true }: BlogEditorProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -87,13 +108,12 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
 
-  const safeContent =
-    content &&
-    typeof content === "object" &&
-    (content as any).type === "doc" &&
-    Array.isArray((content as any).content)
+  const safeContent = (() => {
+    const raw = content && typeof content === "object" && (content as any).type === "doc" && Array.isArray((content as any).content)
       ? content
       : { type: "doc", content: [{ type: "paragraph" }] };
+    return sanitizeContent(raw);
+  })();
 
   const editor = useEditor(
     {
@@ -101,7 +121,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         StarterKit.configure({ horizontalRule: false }),
         Image.configure({ allowBase64: true }),
         Link.configure({ openOnClick: false, HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
-        Youtube.configure({ width: 640, height: 360, nocookie: true }),
+        SafeYoutube.configure({ width: 640, height: 360, nocookie: true }),
         IframeEmbed,
         Underline,
         Highlight.configure({ multicolor: true }),

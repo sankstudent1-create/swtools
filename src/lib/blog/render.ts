@@ -1,7 +1,7 @@
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import Youtube from "@tiptap/extension-youtube";
+import { SafeYoutube } from "@/lib/blog/safe-youtube";
 import { generateHTML } from "@tiptap/html";
 import type { JSONContent } from "@tiptap/core";
 import { IframeEmbed } from "@/lib/blog/iframe-extension";
@@ -26,7 +26,7 @@ export function renderTipTapToHtml(content: unknown): string {
       StarterKit,
       Image,
       Link,
-      Youtube,
+      SafeYoutube,
       IframeEmbed,
       Underline,
       Highlight.configure({ multicolor: true }),
