@@ -487,46 +487,6 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
         </div>
       )}
 
-      <style jsx global>{`
-        .ProseMirror:focus { outline: none; }
-        .ProseMirror p.is-editor-empty:first-child::before {
-          content: attr(data-placeholder);
-          float: left;
-          color: rgba(255,255,255,0.1);
-          pointer-events: none;
-          height: 0;
-          font-style: italic;
-        }
-        .ProseMirror iframe {
-          width: 100%;
-          aspect-ratio: 16 / 9;
-          border-radius: 1rem;
-          border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .ProseMirror table { border-collapse: collapse; width: 100%; }
-        .ProseMirror th, .ProseMirror td {
-          border: 1px solid rgba(255,255,255,0.1);
-          padding: 0.5rem 0.75rem;
-          min-width: 80px;
-        }
-        .ProseMirror th { background: rgba(255,255,255,0.04); font-weight: bold; }
-        .ProseMirror .selectedCell::after {
-          background: rgba(255, 107, 0, 0.1);
-          content: "";
-          left: 0; right: 0; top: 0; bottom: 0;
-          pointer-events: none;
-          position: absolute;
-          z-index: 2;
-        }
-        .ProseMirror .column-resize-handle {
-          background-color: #ff6b00;
-          bottom: -2px; position: absolute; right: -2px; top: 0;
-          pointer-events: none; width: 4px;
-        }
-        .tableWrapper { overflow-x: auto; }
-        .resize-cursor { cursor: col-resize; }
-      `}</style>
     </div>
   );
 }

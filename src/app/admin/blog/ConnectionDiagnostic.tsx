@@ -250,9 +250,7 @@ export default function ConnectionDiagnostic() {
     setLoading(false);
   }, [supabase, addLog, addTestResult]);
 
-  useEffect(() => {
-    runDiagnostic();
-  }, [runDiagnostic]);
+  // Diagnostic runs only when user clicks "Run Test" — not on mount
 
   return (
     <div className="ui-modal-shell p-6 bg-indigo-500/5 border-indigo-500/20 mb-10 overflow-hidden">
