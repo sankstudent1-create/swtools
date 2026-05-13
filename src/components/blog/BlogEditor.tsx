@@ -363,8 +363,10 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             </ToolbarButton>
             <ToolbarButton
               onClick={() => {
-                const url = window.prompt("Image URL");
-                if (url) editor.chain().focus().setImage({ src: url }).run();
+                const url = window.prompt("Image URL:");
+                if (!url?.trim()) return;
+                try { new URL(url.trim()); } catch { alert("Invalid URL"); return; }
+                editor.chain().focus().setImage({ src: url.trim() }).run();
               }}
               title="Image from URL"
             >
@@ -384,7 +386,16 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
             <ToolbarButton
               onClick={() => {
                 const url = window.prompt("YouTube URL:");
-                if (url) editor.chain().focus().setYoutubeVideo({ src: url }).run();
+                if (!url?.trim()) return;
+                // Try native command first; if it fails (invalid URL), insert directly
+                const ran = editor.chain().focus().setYoutubeVideo({ src: url.trim() }).run();
+                if (!ran) {
+                  // Fallback: insert directly (bypasses upstream validation)
+                  editor.chain().focus().insertContent({
+                    type: "youtube",
+                    attrs: { src: url.trim(), width: 640, height: 360, start: 0 },
+                  }).run();
+                }
               }}
               title="YouTube video"
             >

@@ -23,7 +23,8 @@ function sanitizeContent(json: any): any {
   if (!json || typeof json !== "object") return json;
   if (Array.isArray(json)) return json.map(sanitizeContent).filter(Boolean);
 
-  const srcRequired = ["youtube", "iframeEmbed"];
+  // Node types that require a non-empty src attribute
+  const srcRequired = ["youtube", "iframeEmbed", "image"];
   if (srcRequired.includes(json.type) && !json.attrs?.src) {
     return null;
   }
@@ -59,7 +60,8 @@ export function renderTipTapToHtml(content: unknown): string {
       TableHeader,
       TableCell,
     ]);
-  } catch {
+  } catch (err) {
+    console.error("[blog] renderTipTapToHtml failed:", err);
     return "";
   }
 }

@@ -5,6 +5,13 @@ import { getPublishedPostBySlug, listPublishedPosts } from "@/lib/blog/queries";
 import { renderTipTapToHtml } from "@/lib/blog/render";
 import { Calendar, Clock, Tag, ChevronLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
 
+/** Scan content_json for specific embed types */
+function hasEmbed(content_json: any, embedType: string): boolean {
+  if (!content_json) return false;
+  const str = JSON.stringify(content_json);
+  return str.includes(`"${embedType}"`);
+}
+
 function estimateReadTime(post: any): number {
   try {
     const text = JSON.stringify(post.content_json);
@@ -35,6 +42,8 @@ export default async function BlogPostPage({
   const published = post.published_at ? new Date(post.published_at) : null;
   const html = renderTipTapToHtml(post.content_json);
   const readTime = estimateReadTime(post);
+  const hasTwitter = hasEmbed(post.content_json, "twitter");
+  const hasInstagram = hasEmbed(post.content_json, "instagram");
 
   // Fetch related posts
   const allPosts = await listPublishedPosts(6);
@@ -59,6 +68,20 @@ export default async function BlogPostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
       />
+      {hasTwitter && (
+        <Script
+          id="twitter-widgets"
+          src="https://platform.twitter.com/widgets.js"
+          strategy="lazyOnload"
+        />
+      )}
+      {hasInstagram && (
+        <Script
+          id="instagram-embed"
+          src="https://www.instagram.com/embed.js"
+          strategy="lazyOnload"
+        />
+      )}
 
       <main className="min-h-screen">
         {/* Hero */}
