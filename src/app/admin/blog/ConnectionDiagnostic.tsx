@@ -165,7 +165,7 @@ export default function ConnectionDiagnostic() {
           details: bucketError.message
         });
       } else {
-        const blogBucket = buckets?.find(b => b.id === 'blog');
+        const blogBucket = buckets?.find((b: any) => b.id === 'blog');
         addLog(`Bucket 'blog' exists: ${!!blogBucket}`);
         addTestResult({
           name: "Storage: Blog Bucket",
