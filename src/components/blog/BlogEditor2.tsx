@@ -21,7 +21,7 @@ import { IframeEmbed } from "@/lib/blog/iframe-extension";
 import { useState, useCallback, useEffect } from "react";
 import { 
   Bold, Italic, List, ListOrdered, Quote, Undo, Redo, 
-  Link as LinkIcon, Image as ImageIcon, Youtube, Code, 
+  Link as LinkIcon, Image as ImageIcon, Video, Code, 
   Type, AlignLeft, AlignCenter, AlignRight, Underline as UnderlineIcon,
   Table as TableIcon, Minus, Hash, Highlighter, Maximize, ExternalLink, X
 } from "lucide-react";
@@ -189,7 +189,7 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
             }} 
             title="YouTube Video"
           >
-            <Youtube size={18} />
+            <Video size={18} />
           </MenuButton>
           <MenuButton 
             onClick={() => {
@@ -253,7 +253,7 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-2xl bg-brand-orange/10 border border-brand-orange/20 text-brand-orange">
-                  {mediaType === "youtube" ? <Youtube size={24} /> : <ExternalLink size={24} />}
+                  {mediaType === "youtube" ? <Video size={24} /> : <ExternalLink size={24} />}
                 </div>
                 <div>
                   <h3 className="text-xl font-black italic uppercase tracking-tighter">Insert {mediaType}</h3>
