@@ -50,10 +50,18 @@ export default function PostEditor2({ initialData, categories }: PostEditor2Prop
     
     setIsSaving(true);
     try {
-      await saveBlogPost({
+      const cleanedData = {
         ...formData,
+        slug: formData.slug.trim() || formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        category_id: formData.category_id || null,
+        cover_image_url: formData.cover_image_url || null,
+        excerpt: formData.excerpt || null,
+        published_at: formData.status === 'published' ? (initialData?.published_at || new Date().toISOString()) : null,
+        seo_description: formData.excerpt || formData.title,
         content_json: contentJson,
-      }, initialData?.id);
+      };
+
+      await saveBlogPost(cleanedData, initialData?.id);
 
       router.push("/admin/blog2");
       router.refresh();

@@ -10,45 +10,51 @@ export async function saveBlogPost(postData: any, id?: string) {
     throw new Error('Unauthorized')
   }
 
-  const admin = createSupabaseAdminClient()
-  
-  // Ensure the author_id is set to the current user if not provided
-  const dataToSave = {
-    ...postData,
-    author_id: postData.author_id || user.id,
+  try {
+    const admin = createSupabaseAdminClient()
+    
+    // Ensure the author_id is set to the current user if not provided
+    const dataToSave = {
+      ...postData,
+      author_id: postData.author_id || user.id,
       seo_keywords: postData.seo_keywords || [],
       seo_description: postData.seo_description || postData.excerpt,
       updated_at: new Date().toISOString()
     }
 
-  let result
-  if (id) {
-    result = await admin
-      .from('blog_posts')
-      .update(dataToSave)
-      .eq('id', id)
-      .select('id')
-      .single()
-  } else {
-    result = await admin
-      .from('blog_posts')
-      .insert([dataToSave])
-      .select('id')
-      .single()
-  }
+    let result
+    if (id) {
+      result = await admin
+        .from('blog_posts')
+        .update(dataToSave)
+        .eq('id', id)
+        .select('id')
+        .single()
+    } else {
+      result = await admin
+        .from('blog_posts')
+        .insert([dataToSave])
+        .select('id')
+        .single()
+    }
 
-  if (result.error) {
-    console.error('[blog-action] save failed:', result.error)
-    throw new Error(result.error.message)
-  }
+    if (result.error) {
+      console.error('[blog-action] database error:', result.error)
+      throw new Error(result.error.message)
+    }
 
-  revalidatePath('/admin/blog')
-  revalidatePath('/blog')
-  if (postData.slug) {
-    revalidatePath(`/blog/${postData.slug}`)
-  }
+    revalidatePath('/admin/blog')
+    revalidatePath('/admin/blog2')
+    revalidatePath('/blog')
+    if (postData.slug) {
+      revalidatePath(`/blog/${postData.slug}`)
+    }
 
-  return result.data
+    return result.data
+  } catch (error: any) {
+    console.error('[blog-action] crash:', error)
+    throw error // Re-throw so the client sees it
+  }
 }
 
 export async function deleteBlogPost(id: string) {
