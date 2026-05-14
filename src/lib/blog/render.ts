@@ -44,7 +44,9 @@ export function renderTipTapToHtml(content: unknown): string {
     return generateHTML(json, [
       StarterKit,
       Image,
-      Link,
+      Link.configure({ 
+        HTMLAttributes: { rel: "noopener noreferrer", target: "_blank", class: "text-brand-orange hover:underline font-medium" } 
+      }),
       SafeYoutube,
       IframeEmbed,
       Underline,

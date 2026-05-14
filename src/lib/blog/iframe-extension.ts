@@ -17,20 +17,17 @@ declare module "@tiptap/core" {
 function normalizeEmbedSrc(input: string): { src: string; type: "iframe" | "twitter" | "facebook" | "instagram" } {
   const trimmed = input.trim();
 
-  // Already an iframe tag — grab the src
-  const iframeSrc = trimmed.match(/src=[\"']([^\"']+)[\"']/i)?.[1];
+  // Already an iframe tag — grab the src (improved regex to handle various quote types and no quotes)
+  const iframeSrc = trimmed.match(/src\s*=\s*["']?([^"'\s>]+)["']?/i)?.[1];
   if (iframeSrc) return { src: iframeSrc, type: "iframe" };
 
-  // Twitter / X tweet URL → convert to embed
-  // https://twitter.com/user/status/ID or https://x.com/user/status/ID
+  // Twitter / X tweet URL
   const tweetMatch = trimmed.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/i);
   if (tweetMatch) {
-    // Return original URL; we render Twitter via blockquote+script approach — flag as twitter
     return { src: trimmed, type: "twitter" };
   }
 
-  // Facebook post / video embed URL
-  // https://www.facebook.com/... → use FB embed endpoint
+  // Facebook post / video
   if (/facebook\.com\/(.*?)/.test(trimmed) && !trimmed.includes("plugins/post.php")) {
     const encoded = encodeURIComponent(trimmed);
     return {
@@ -39,8 +36,7 @@ function normalizeEmbedSrc(input: string): { src: string; type: "iframe" | "twit
     };
   }
 
-  // Instagram post URL → convert to embed
-  // https://www.instagram.com/p/CODE/
+  // Instagram
   if (/instagram\.com\/p\//.test(trimmed)) {
     const cleanUrl = trimmed.replace(/\/$/, "");
     return {
@@ -49,7 +45,6 @@ function normalizeEmbedSrc(input: string): { src: string; type: "iframe" | "twit
     };
   }
 
-  // Raw iframe src (assumed)
   return { src: trimmed, type: "iframe" };
 }
 
@@ -71,9 +66,17 @@ export const IframeEmbed = Node.create({
     return [
       {
         tag: "iframe[data-embed=\"true\"]",
+        getAttrs: (dom) => ({
+          src: (dom as HTMLElement).getAttribute("src"),
+          embedType: "iframe",
+        }),
       },
       {
         tag: "div[data-embed-type]",
+        getAttrs: (dom) => ({
+          src: (dom as HTMLElement).getAttribute("data-tweet-url") || (dom as HTMLElement).getAttribute("src"),
+          embedType: (dom as HTMLElement).getAttribute("data-embed-type"),
+        }),
       },
     ];
   },
@@ -82,7 +85,6 @@ export const IframeEmbed = Node.create({
     const embedType = HTMLAttributes.embedType || "iframe";
     const src = HTMLAttributes.src as string | null;
 
-    // Guard: don't render if src is missing
     if (!src) {
       return ["div", { class: "embed-placeholder", style: "display:none" }];
     }
@@ -99,7 +101,6 @@ export const IframeEmbed = Node.create({
       ];
     }
 
-    // Default: iframe
     return [
       "iframe",
       mergeAttributes(
@@ -108,6 +109,7 @@ export const IframeEmbed = Node.create({
           src,
           frameborder: "0",
           allow: "autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share",
+          style: "width: 100%; aspect-ratio: 16/9; border-radius: 12px;",
         }
       ),
     ];

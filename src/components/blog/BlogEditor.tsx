@@ -87,7 +87,7 @@ function sanitizeContent(json: any): any {
   if (Array.isArray(json)) return json.map(sanitizeContent);
 
   // Node types that require a valid src — remove them if src is missing
-  const srcRequiredTypes = ["youtube", "iframeEmbed"];
+  const srcRequiredTypes = ["youtube", "iframeEmbed", "image"];
   if (srcRequiredTypes.includes(json.type) && !json.attrs?.src) {
     return null; // will be filtered out below
   }
@@ -120,7 +120,11 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
       extensions: [
         StarterKit.configure({ horizontalRule: false }),
         Image.configure({ allowBase64: true }),
-        Link.configure({ openOnClick: false, HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
+        Link.configure({ 
+          openOnClick: false, 
+          autolink: true,
+          HTMLAttributes: { rel: "noopener noreferrer", target: "_blank", class: "text-brand-orange hover:underline font-medium" } 
+        }),
         SafeYoutube.configure({ width: 640, height: 360, nocookie: true }),
         IframeEmbed,
         Underline,
@@ -391,7 +395,11 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
                 // Directly insert content to bypass upstream extension validation that was stripping URLs
                 editor.chain().focus().insertContent({
                   type: "youtube",
-                  attrs: { src: url.trim(), width: 640, height: 360, start: 0 },
+                  attrs: { 
+                    src: url.trim(), 
+                    width: "100%", 
+                    height: "auto"
+                  },
                 }).run();
               }}
               title="YouTube video"

@@ -45,7 +45,7 @@ export default function Navigation() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event: any, session: any) => {
       setUser(session?.user ?? null);
       await resolveAdmin(session);
     });
