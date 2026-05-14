@@ -91,9 +91,10 @@ export default function PostList({ initialPosts }: PostListProps) {
                     <div className="flex items-center gap-1.5 text-white/40 group-hover:text-white/60 transition-colors">
                       <Clock size={12} />
                       <span className="text-xs font-medium">
-                        {new Date(post.updated_at).toLocaleDateString(undefined, {
+                        {new Date(post.updated_at).toLocaleDateString("en-US", {
                           month: 'short',
                           day: 'numeric',
+                          timeZone: 'UTC'
                         })}
                       </span>
                     </div>
