@@ -86,7 +86,7 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
     if (mediaType === "youtube") {
       editor.chain().focus().insertContent({
         type: "youtube",
-        attrs: { src: mediaUrl.trim(), width: "100%", height: "auto" },
+        attrs: { src: mediaUrl.trim() },
       }).run();
     } else {
       // @ts-ignore

@@ -396,9 +396,7 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
                 editor.chain().focus().insertContent({
                   type: "youtube",
                   attrs: { 
-                    src: url.trim(), 
-                    width: "100%", 
-                    height: "auto"
+                    src: url.trim()
                   },
                 }).run();
               }}

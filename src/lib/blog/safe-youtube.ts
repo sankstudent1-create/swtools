@@ -1,11 +1,8 @@
 /**
- * Patched YouTube extension — fully self-contained.
- * The upstream @tiptap/extension-youtube crashes on null src because
- * getEmbedUrlFromYoutubeUrl() calls url.match(regex) without a null guard.
- * This wrapper replaces renderHTML entirely with a crash-proof implementation.
+ * Standalone YouTube node for TipTap.
+ * Replaces the buggy upstream extension with a robust, attribute-safe version.
  */
-import Youtube from "@tiptap/extension-youtube";
-import { mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes } from "@tiptap/core";
 
 const YOUTUBE_REGEX =
   /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|youtube-nocookie\.com)(?:\/(?:[\w-]+\?v=|embed\/|v\/|shorts\/)?)?([\w-]{11})(?:\S+)?$/;
@@ -24,7 +21,45 @@ function toEmbedUrl(raw: string | null | undefined, nocookie = true): string | n
   return `https://${host}/embed/${m[1]}`;
 }
 
-export const SafeYoutube = Youtube.extend({
+export interface YoutubeOptions {
+  width: number;
+  height: number;
+  nocookie: boolean;
+  allowFullscreen: boolean;
+}
+
+export const SafeYoutube = Node.create<YoutubeOptions>({
+  name: "youtube",
+  group: "block",
+  atom: true,
+
+  addOptions() {
+    return {
+      width: 640,
+      height: 360,
+      nocookie: true,
+      allowFullscreen: true,
+    };
+  },
+
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("src"),
+        renderHTML: (attributes) => ({
+          src: attributes.src,
+        }),
+      },
+      width: {
+        default: this.options.width,
+      },
+      height: {
+        default: this.options.height,
+      },
+    };
+  },
+
   parseHTML() {
     return [
       {
@@ -37,42 +72,36 @@ export const SafeYoutube = Youtube.extend({
   },
 
   renderHTML({ HTMLAttributes }) {
-    try {
-      const src = HTMLAttributes?.src as string | null | undefined;
-      if (!src) {
-        return ["div", { "data-youtube-video": "", style: "display:none" }];
-      }
-
-      const embedUrl = toEmbedUrl(src, true) ?? src;
-
-      return [
-        "div",
-        { "data-youtube-video": "", class: "youtube-embed-wrapper" },
-        [
-          "iframe",
-          mergeAttributes(
-            {
-              src: embedUrl,
-              width: this.options.width ?? 640,
-              height: this.options.height ?? 360,
-              allowfullscreen: "true",
-              frameborder: "0",
-              allow:
-                "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
-              style: "width: 100%; aspect-ratio: 16/9; border-radius: 12px;",
-            },
-            // Only merge safe attributes from HTMLAttributes (skip null src)
-            Object.fromEntries(
-              Object.entries(HTMLAttributes).filter(
-                ([k, v]) => v != null && k !== "src"
-              )
-            )
-          ),
-        ],
-      ];
-    } catch {
-      // Absolute last resort — never crash the editor
+    const src = HTMLAttributes.src as string | null | undefined;
+    
+    if (!src) {
       return ["div", { "data-youtube-video": "", style: "display:none" }];
     }
+
+    const embedUrl = toEmbedUrl(src, this.options.nocookie) ?? src;
+
+    return [
+      "div",
+      { 
+        "data-youtube-video": "", 
+        class: "youtube-embed-wrapper",
+        style: "position: relative; width: 100%; aspect-ratio: 16/9; overflow: hidden; border-radius: 12px; margin: 2rem 0;"
+      },
+      [
+        "iframe",
+        mergeAttributes(
+          {
+            src: embedUrl,
+            width: this.options.width,
+            height: this.options.height,
+            allowfullscreen: this.options.allowFullscreen ? "true" : "false",
+            frameborder: "0",
+            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+            style: "position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;",
+          },
+          HTMLAttributes
+        ),
+      ],
+    ];
   },
 });
