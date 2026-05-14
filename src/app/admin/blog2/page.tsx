@@ -45,7 +45,7 @@ export default async function AdminBlog2Page() {
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-[10px] font-black uppercase tracking-widest">Experimental Console</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white italic">
+          <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white italic font-outfit">
             Blog <span className="bg-gradient-to-r from-brand-orange to-indigo-400 bg-clip-text text-transparent">V2</span>
           </h1>
           <p className="text-white/40 text-lg max-w-xl font-medium leading-relaxed">

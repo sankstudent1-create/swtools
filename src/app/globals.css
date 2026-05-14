@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&display=swap');
 
 :root {
   --background: #07090f;
@@ -37,10 +38,14 @@ body {
     radial-gradient(circle at 50% 100%, color-mix(in oklab, var(--brand-pink) 16%, transparent), transparent 48%),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   letter-spacing: -0.008em;
 }
+
+.font-inter { font-family: 'Inter', sans-serif; }
+.font-outfit { font-family: 'Outfit', sans-serif; }
+
 
 @keyframes fadeInUp {
   from {
@@ -466,38 +471,29 @@ p {
 
 .blog-content h1,
 .blog-content h2,
-.blog-content h3,
-.blog-content h4,
-.blog-content h5,
-.blog-content h6 {
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  color: #e5e9f6;
-  margin-top: 2em;
-  margin-bottom: 0.6em;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.125rem;
 }
 
-.blog-content h1 { font-size: 2.25rem; }
-.blog-content h2 { font-size: 1.75rem; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 0.35em; }
-.blog-content h3 { font-size: 1.35rem; }
-.blog-content h4 { font-size: 1.1rem; }
+.blog-content h1, 
+.blog-content h2, 
+.blog-content h3, 
+.blog-content h4 {
+  font-family: 'Outfit', sans-serif;
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin-top: 2.5em;
+  margin-bottom: 1em;
+  line-height: 1.1;
+  font-style: italic;
+}
+
+.blog-content h1 { font-size: 3.5rem; }
+.blog-content h2 { font-size: 2.5rem; }
+.blog-content h3 { font-size: 1.8rem; }
 
 .blog-content p {
-  margin-top: 0;
-  margin-bottom: 1.25em;
-  color: rgba(229, 233, 246, 0.8);
-}
-
-.blog-content a {
-  color: var(--brand-orange);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 150ms;
-}
-.blog-content a:hover { border-bottom-color: var(--brand-orange); }
-
-.blog-content strong { color: #e5e9f6; font-weight: 700; }
 .blog-content em { color: rgba(229, 233, 246, 0.8); }
 
 .blog-content ul,
