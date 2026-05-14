@@ -108,6 +108,15 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
 
+  const extractSrc = (input: string): string => {
+    const trimmed = input.trim();
+    if (trimmed.startsWith("<iframe")) {
+      const match = trimmed.match(/src=["']([^"']+)["']/);
+      return match ? match[1] : trimmed;
+    }
+    return trimmed;
+  };
+
   const safeContent = (() => {
     const raw = content && typeof content === "object" && (content as any).type === "doc" && Array.isArray((content as any).content)
       ? content
@@ -212,7 +221,8 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
       : "Paste YouTube, Facebook, Twitter/X, Instagram URL or iframe embed code:";
     const input = window.prompt(label);
     if (!input?.trim()) return;
-    editor.chain().focus().setIframeEmbed({ src: input.trim() }).run();
+    const sanitized = extractSrc(input);
+    editor.chain().focus().setIframeEmbed({ src: sanitized }).run();
   }, [editor]);
 
   if (!editor) return (
@@ -393,10 +403,11 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
                 if (!url?.trim()) return;
                 
                 // Directly insert content to bypass upstream extension validation that was stripping URLs
+                const sanitized = extractSrc(url);
                 editor.chain().focus().insertContent({
                   type: "youtube",
                   attrs: { 
-                    src: url.trim()
+                    src: sanitized
                   },
                 }).run();
               }}

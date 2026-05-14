@@ -125,17 +125,28 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
     if (currentJson) auditContent(currentJson);
   }, [currentJson, auditContent]);
 
+  const extractSrc = (input: string): string => {
+    const trimmed = input.trim();
+    if (trimmed.startsWith("<iframe")) {
+      const match = trimmed.match(/src=["']([^"']+)["']/);
+      return match ? match[1] : trimmed;
+    }
+    return trimmed;
+  };
+
   const insertMedia = () => {
     if (!mediaUrl || !editor) return;
+
+    const sanitizedUrl = extractSrc(mediaUrl);
 
     if (mediaType === "youtube") {
       editor.chain().focus().insertContent({
         type: "youtube",
-        attrs: { src: mediaUrl.trim() },
+        attrs: { src: sanitizedUrl },
       }).run();
     } else {
       // @ts-ignore
-      editor.commands.setIframeEmbed({ src: mediaUrl.trim() });
+      editor.commands.setIframeEmbed({ src: sanitizedUrl });
     }
 
     setMediaUrl("");
