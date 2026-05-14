@@ -21,7 +21,7 @@ export default function PostList({ initialPosts }: PostListProps) {
     try {
       const { deleteBlogPost } = await import("./actions");
       await deleteBlogPost(id);
-      setPosts(posts.filter(p => p.id !== id));
+      setPosts(posts.filter((p: any) => p.id !== id));
       router.refresh();
     } catch (e: any) {
       alert(e.message || "Failed to delete story");

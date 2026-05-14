@@ -33,8 +33,8 @@ export default async function AdminBlogPage() {
   
   const stats = {
     total: posts.length,
-    published: posts.filter(p => p.status === 'published').length,
-    drafts: posts.filter(p => p.status === 'draft').length,
+    published: posts.filter((p: any) => p.status === 'published').length,
+    drafts: posts.filter((p: any) => p.status === 'draft').length,
     categories: categories.length
   };
 

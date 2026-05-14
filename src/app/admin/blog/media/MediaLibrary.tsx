@@ -29,7 +29,7 @@ export default function MediaLibrary() {
     
     if (data) {
       // Filter out system files if any
-      setFiles(data.filter(f => f.name !== ".emptyKeep"));
+      setFiles(data.filter((f: any) => f.name !== ".emptyKeep"));
     }
     setLoading(false);
   }

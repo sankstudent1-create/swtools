@@ -74,7 +74,7 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
       const { deleteBlogCategory } = await import("../actions");
       await deleteBlogCategory(id);
       // Immediate UI update
-      setCategories(prev => prev.filter(c => c.id !== id));
+      setCategories(prev => prev.filter((c: any) => c.id !== id));
       refresh();
     } catch (e: any) {
       setError(e.message);
