@@ -80,7 +80,7 @@ export default function PremiumToolWrapper({
     
     initUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       const currentUser = session?.user ?? null
       setUser(currentUser)
       if (currentUser) {
