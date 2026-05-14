@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import { TextSelection } from "prosemirror-state";
 import StarterKit from "@tiptap/starter-kit";
@@ -101,7 +101,8 @@ function sanitizeContent(json: any): any {
   return result;
 }
 
-export default function BlogEditor({ content, onChange, editable = true }: BlogEditorProps) {
+const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
+  const { content, onChange, editable = true } = props;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -182,6 +183,10 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
     },
     [editable]
   );
+
+  useImperativeHandle(ref, () => ({
+    getEditor: () => editor
+  }));
 
   const uploadAndInsertImage = useCallback(
     async (file: File) => {
@@ -402,14 +407,10 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
                 const url = window.prompt("YouTube URL:");
                 if (!url?.trim()) return;
                 
-                // Directly insert content to bypass upstream extension validation that was stripping URLs
+                // Use custom command to ensure attributes are properly set and persisted
                 const sanitized = extractSrc(url);
-                editor.chain().focus().insertContent({
-                  type: "youtube",
-                  attrs: { 
-                    src: sanitized
-                  },
-                }).run();
+                // @ts-ignore
+                editor.commands.setYoutubeVideo({ src: sanitized });
               }}
               title="YouTube video"
             >
@@ -514,4 +515,6 @@ export default function BlogEditor({ content, onChange, editable = true }: BlogE
 
     </div>
   );
-}
+});
+
+export default BlogEditor;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { saveBlogPost } from "../blog/actions"; // Reuse existing actions
 import BlogEditor2 from "@/components/blog/BlogEditor2";
@@ -25,6 +25,7 @@ interface PostEditor2Props {
 
 export default function PostEditor2({ initialData, categories }: PostEditor2Props) {
   const router = useRouter();
+  const editorRef = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
@@ -67,9 +68,21 @@ export default function PostEditor2({ initialData, categories }: PostEditor2Prop
           ? (cleanedData.content_json.content as any[]).map((n: any) => n.type) 
           : "invalid"
       });
-      console.log("[PostEditor2] Full JSON:", JSON.stringify(cleanedData.content_json));
+      const editor = editorRef.current?.getEditor();
+      const json = editor?.getJSON() || contentJson;
+      console.log("[PostEditor2] Full JSON:", JSON.stringify(json, null, 2));
 
-      await saveBlogPost(cleanedData, initialData?.id);
+      // Integrity Check: Scan for media nodes without attributes
+      const missingAttrs = (json?.content || []).filter(
+        (node: any) => (node.type === "youtube" || node.type === "iframeEmbed") && !node.attrs?.src
+      );
+
+      if (missingAttrs.length > 0) {
+        console.error("[PostEditor2] CRITICAL: Media nodes found with MISSING attributes!", missingAttrs);
+        alert(`Warning: ${missingAttrs.length} media item(s) are missing their links. Please try re-inserting them.`);
+      }
+
+      await saveBlogPost({ ...cleanedData, content_json: json }, initialData?.id);
 
       router.push("/admin/blog2");
       router.refresh();
@@ -127,6 +140,7 @@ export default function PostEditor2({ initialData, categories }: PostEditor2Prop
 
       <div className="pt-32 pb-20 px-6 mx-auto max-w-5xl">
         <BlogEditor2 
+          ref={editorRef}
           initialContent={contentJson} 
           onChange={setContentJson} 
         />

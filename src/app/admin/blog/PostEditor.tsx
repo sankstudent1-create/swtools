@@ -14,6 +14,7 @@ interface PostEditorProps {
 
 export default function PostEditor({ initialData, categories, authorId }: PostEditorProps) {
   const router = useRouter();
+  const editorRef = useRef<any>(null);
   const coverFileInputRef = useRef<HTMLInputElement | null>(null);
   const [coverUploading, setCoverUploading] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -84,13 +85,29 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
     const postStatus = newStatus || status;
     const publishedAt = postStatus === "published" ? (initialData?.published_at || new Date().toISOString()) : null;
 
+    const editor = editorRef.current?.getEditor();
+    const finalContent = editor?.getJSON() || contentJson;
+
+    // Integrity Check: Scan for media nodes without attributes
+    const missingAttrs = (finalContent?.content || []).filter(
+      (node: any) => (node.type === "youtube" || node.type === "iframeEmbed") && !node.attrs?.src
+    );
+
+    if (missingAttrs.length > 0) {
+      console.error("[PostEditor] Media nodes found with MISSING attributes!", missingAttrs);
+      if (!window.confirm(`Warning: ${missingAttrs.length} media item(s) are missing their links. Save anyway?`)) {
+        setLoading(false);
+        return;
+      }
+    }
+
     const postData = {
       title,
       slug,
       excerpt,
       category_id: categoryId || null,
       status: postStatus,
-      content_json: contentJson,
+      content_json: finalContent,
       cover_image_url: coverImageUrl || null,
       author_id: authorId,
       published_at: publishedAt,
@@ -208,6 +225,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
 
           <div className="ui-modal-shell p-2 bg-white/[0.01] border-white/5 rounded-3xl min-h-[600px] shadow-2xl overflow-hidden group focus-within:border-brand-orange/20 transition-colors">
             <BlogEditor 
+              ref={editorRef}
               content={contentJson} 
               onChange={setContentJson} 
             />

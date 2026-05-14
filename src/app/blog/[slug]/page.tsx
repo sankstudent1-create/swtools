@@ -125,7 +125,7 @@ export default async function BlogPostPage({
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.05] text-white font-outfit italic">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.05] text-white font-outfit">
               {post.title}
             </h1>
 
@@ -203,7 +203,7 @@ export default async function BlogPostPage({
           <section className="border-t border-white/5 bg-white/[0.01]">
             <div className="mx-auto max-w-7xl px-6 py-16">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-black tracking-tighter text-white italic">More Stories</h2>
+                <h2 className="text-xl font-black tracking-tighter text-white">More Stories</h2>
                 <Link href="/blog" className="flex items-center gap-1 text-xs font-bold text-white/30 hover:text-brand-orange transition-colors">
                   View all
                   <ArrowRight size={12} />

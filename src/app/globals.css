@@ -281,9 +281,9 @@ body {
 /* Main Article Container */
 .blog-content {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.125rem;
+  line-height: 1.7;
+  color: #e5e9f6;
+  font-size: 1.1rem;
 }
 
 .blog-content h1, 
@@ -292,12 +292,9 @@ body {
 .blog-content h4 {
   font-family: 'Outfit', sans-serif;
   color: #ffffff;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  margin-top: 2.5em;
-  margin-bottom: 1em;
-  line-height: 1.1;
-  font-style: italic;
+  font-weight: 800;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .blog-content h1 { font-size: 3.5rem; }

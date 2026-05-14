@@ -18,7 +18,7 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { SafeYoutube } from "@/lib/blog/safe-youtube";
 import { IframeEmbed } from "@/lib/blog/iframe-extension";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, forwardRef, useImperativeHandle } from "react";
 import { 
   Bold, Italic, List, ListOrdered, Quote, Undo, Redo, 
   Link as LinkIcon, Image as ImageIcon, Video, Code, 
@@ -32,7 +32,8 @@ interface BlogEditor2Props {
   onChange: (json: any) => void;
 }
 
-export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Props) {
+const BlogEditor2 = forwardRef((props: BlogEditor2Props, ref) => {
+  const { initialContent, onChange } = props;
   const [wordCount, setWordCount] = useState(0);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [mediaType, setMediaType] = useState<"youtube" | "iframe">("youtube");
@@ -87,6 +88,10 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
     },
   });
 
+  useImperativeHandle(ref, () => ({
+    getEditor: () => editor
+  }));
+
   const auditContent = useCallback((json: any) => {
     const logs: any[] = [];
     const srcRequired = ["youtube", "iframeEmbed", "image"];
@@ -140,10 +145,8 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
     const sanitizedUrl = extractSrc(mediaUrl);
 
     if (mediaType === "youtube") {
-      editor.chain().focus().insertContent({
-        type: "youtube",
-        attrs: { src: sanitizedUrl },
-      }).run();
+      // @ts-ignore
+      editor.commands.setYoutubeVideo({ src: sanitizedUrl });
     } else {
       // @ts-ignore
       editor.commands.setIframeEmbed({ src: sanitizedUrl });
@@ -375,4 +378,6 @@ export default function BlogEditor2({ initialContent, onChange }: BlogEditor2Pro
       )}
     </div>
   );
-}
+});
+
+export default BlogEditor2;

@@ -55,10 +55,34 @@ export const IframeEmbed = Node.create({
 
   addAttributes() {
     return {
-      src: { default: null },
-      title: { default: null },
-      embedType: { default: "iframe" }, // "iframe" | "twitter" | "facebook" | "instagram"
-      allowfullscreen: { default: true },
+      src: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("src"),
+        renderHTML: (attributes) => ({
+          src: attributes.src,
+        }),
+      },
+      title: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("title"),
+        renderHTML: (attributes) => ({
+          title: attributes.title,
+        }),
+      },
+      embedType: {
+        default: "iframe",
+        parseHTML: (element) => element.getAttribute("data-embed-type") || "iframe",
+        renderHTML: (attributes) => ({
+          "data-embed-type": attributes.embedType,
+        }),
+      },
+      allowfullscreen: {
+        default: true,
+        parseHTML: (element) => element.getAttribute("allowfullscreen") !== "false",
+        renderHTML: (attributes) => ({
+          allowfullscreen: attributes.allowfullscreen ? "true" : "false",
+        }),
+      },
     };
   },
 

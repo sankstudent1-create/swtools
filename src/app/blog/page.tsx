@@ -45,7 +45,7 @@ export default async function BlogIndexPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-brand-orange">Live Feed</span>
             </div>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter italic text-white leading-none">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-none">
             Stories &<br />
             <span className="bg-gradient-to-r from-brand-orange via-amber-400 to-brand-orange bg-clip-text text-transparent">
               Dispatches
@@ -218,7 +218,7 @@ export default async function BlogIndexPage() {
             <div className="w-24 h-24 rounded-[2rem] bg-white/[0.02] border border-white/5 flex items-center justify-center mb-6">
               <BookOpen size={40} className="text-white/10" />
             </div>
-            <h2 className="text-2xl font-black text-white italic tracking-tighter">NO STORIES YET</h2>
+            <h2 className="text-2xl font-black text-white tracking-tighter">NO STORIES YET</h2>
             <p className="text-white/30 mt-2 max-w-sm">The chronicles are being written. Come back soon for the latest updates.</p>
           </div>
         )}

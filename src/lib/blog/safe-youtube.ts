@@ -46,12 +46,24 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
     return {
       src: {
         default: null,
+        parseHTML: (element) => element.getAttribute("src"),
+        renderHTML: (attributes) => ({
+          src: attributes.src,
+        }),
       },
       width: {
         default: this.options.width,
+        parseHTML: (element) => element.getAttribute("width"),
+        renderHTML: (attributes) => ({
+          width: attributes.width,
+        }),
       },
       height: {
         default: this.options.height,
+        parseHTML: (element) => element.getAttribute("height"),
+        renderHTML: (attributes) => ({
+          height: attributes.height,
+        }),
       },
     };
   },
@@ -99,5 +111,18 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
         ),
       ],
     ];
+  },
+
+  addCommands() {
+    return {
+      setYoutubeVideo:
+        (options: { src: string; width?: number; height?: number }) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
+    };
   },
 });
