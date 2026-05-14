@@ -83,7 +83,10 @@ body {
 }
 
 .ui-modal-shell {
-  @apply ui-glass rounded-[2rem];
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2rem;
 }
 
 .ui-btn-primary {
@@ -153,7 +156,17 @@ body {
 
 /* --- Tool Cards --- */
 .tool-card {
-  @apply ui-modal-shell p-8 hover:border-brand-orange/30 hover:bg-brand-orange/[0.02] transition-all duration-500 group;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2rem;
+  padding: 2rem;
+  transition: all 500ms;
+}
+
+.tool-card:hover {
+  border-color: rgba(242, 154, 74, 0.3);
+  background-color: rgba(242, 154, 74, 0.02);
 }
 
 .tool-card-icon {
@@ -187,7 +200,12 @@ body {
 
 /* TD Commission Dashboard Specifics */
 .td-commission-card {
-  @apply ui-modal-shell p-6 border-white/5 bg-white/[0.01];
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.01);
 }
 
 /* Background Gradients & Effects */
@@ -232,7 +250,16 @@ body {
 
 /* --- Banner & Alerts --- */
 .alert-premium {
-  @apply ui-modal-shell p-6 border-brand-orange/20 bg-brand-orange/[0.03] text-brand-orange flex items-center gap-4;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(242, 154, 74, 0.2);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  background-color: rgba(242, 154, 74, 0.03);
+  color: var(--brand-orange);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 /* Tool Header Modernization */
