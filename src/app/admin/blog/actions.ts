@@ -11,6 +11,12 @@ export async function saveBlogPost(postData: any, id?: string) {
   }
 
   try {
+    console.log("[server-action] saveBlogPost received:", {
+      title: postData.title,
+      content_nodes: postData.content_json?.content?.map((n: any) => n.type),
+      media_has_attrs: postData.content_json?.content?.filter((n: any) => n.type === 'youtube' || n.type === 'iframeEmbed').map((n: any) => !!n.attrs)
+    });
+
     const admin = createSupabaseAdminClient()
     
     // Ensure the author_id is set to the current user if not provided

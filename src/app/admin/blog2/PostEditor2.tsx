@@ -61,6 +61,14 @@ export default function PostEditor2({ initialData, categories }: PostEditor2Prop
         content_json: contentJson,
       };
 
+      console.log("[PostEditor2] Data to save:", {
+        title: cleanedData.title,
+        content_json_summary: Array.isArray(cleanedData.content_json?.content) 
+          ? (cleanedData.content_json.content as any[]).map((n: any) => n.type) 
+          : "invalid"
+      });
+      console.log("[PostEditor2] Full JSON:", JSON.stringify(cleanedData.content_json));
+
       await saveBlogPost(cleanedData, initialData?.id);
 
       router.push("/admin/blog2");

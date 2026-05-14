@@ -46,10 +46,6 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
     return {
       src: {
         default: null,
-        parseHTML: (element) => element.getAttribute("src"),
-        renderHTML: (attributes) => ({
-          src: attributes.src,
-        }),
       },
       width: {
         default: this.options.width,
