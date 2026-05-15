@@ -21,7 +21,20 @@ export async function fetchInstagramMedia(url: string) {
       return { error: 'Failed to fetch Instagram metadata. Make sure the post is public or not age-restricted.' };
     }
 
-    const data = await res.json();
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Instagram OEmbed returned non-JSON:', text.substring(0, 100));
+      return { error: 'Instagram returned an invalid response. This post might be private or restricted.' };
+    }
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      console.error('Failed to parse Instagram JSON:', e);
+      return { error: 'Failed to interpret Instagram response. Please try again later.' };
+    }
     
     return {
       success: true,
