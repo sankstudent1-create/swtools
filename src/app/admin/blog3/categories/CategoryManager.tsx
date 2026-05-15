@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Edit2, Check, X, Tag, AlertCircle, Loader2, ArrowLeft, Layout, Folder, Sparkles } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, Tag, AlertCircle, Loader2, ArrowLeft, Layout } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { saveBlogCategoryV3, deleteBlogCategoryV3 } from "../actions";
 
 interface CategoryManagerProps {
   initialCategories: any[];
@@ -30,10 +31,8 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
     const slug = newCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
     try {
-      const { saveBlogCategory } = await import("../actions");
-      const saved = await saveBlogCategory({ name: newCategoryName, slug });
+      const saved = await saveBlogCategoryV3({ name: newCategoryName, slug });
       setNewCategoryName("");
-      // Immediate UI update
       setCategories(prev => [...prev, saved].sort((a,b) => a.name.localeCompare(b.name)));
       refresh();
     } catch (e: any) {
@@ -51,10 +50,8 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
     const slug = editName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     
     try {
-      const { saveBlogCategory } = await import("../actions");
-      await saveBlogCategory({ name: editName, slug }, id);
+      await saveBlogCategoryV3({ name: editName, slug }, id);
       setEditingId(null);
-      // Immediate UI update
       setCategories(prev => prev.map(c => c.id === id ? { ...c, name: editName, slug } : c).sort((a,b) => a.name.localeCompare(b.name)));
       refresh();
     } catch (e: any) {
@@ -71,9 +68,7 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
     setError(null);
     
     try {
-      const { deleteBlogCategory } = await import("../actions");
-      await deleteBlogCategory(id);
-      // Immediate UI update
+      await deleteBlogCategoryV3(id);
       setCategories(prev => prev.filter((c: any) => c.id !== id));
       refresh();
     } catch (e: any) {
@@ -90,9 +85,9 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
         
         <div className="relative space-y-4">
-          <Link href="/admin/blog" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-2 group">
+          <Link href="/admin/blog3" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-2 group">
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            Back to Blog Management
+            Back to V3 Console
           </Link>
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
@@ -100,9 +95,9 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
             </div>
             <div>
               <h1 className="text-4xl font-black tracking-tight text-white italic">
-                Category <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Manager</span>
+                Category <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Manager V3</span>
               </h1>
-              <p className="text-white/40 mt-1">Organize your content into meaningful sections.</p>
+              <p className="text-white/40 mt-1">Organize your V3 content into meaningful sections.</p>
             </div>
           </div>
         </div>
@@ -122,7 +117,7 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
       )}
 
       {/* Add New Section */}
-      <div className="ui-modal-shell p-8 mb-10 bg-white/[0.02] border-white/5 backdrop-blur-md overflow-hidden relative group">
+      <div className="ui-modal-shell p-8 mb-10 bg-white/[0.02] border-white/5 backdrop-blur-md overflow-hidden relative group rounded-3xl">
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
           <Plus size={80} className="text-white" />
         </div>
@@ -139,13 +134,13 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
               onChange={(e) => setNewCategoryName(e.target.value)}
               disabled={actionLoading}
               placeholder="e.g. India Post News"
-              className="ui-input flex-grow bg-white/5 border-white/10 hover:border-brand-orange/30 focus:border-brand-orange/50 transition-all rounded-xl"
+              className="ui-input flex-grow bg-white/5 border-white/10 hover:border-brand-orange/30 focus:border-brand-orange/50 transition-all rounded-xl p-4 text-white"
               onKeyDown={(e) => e.key === "Enter" && addCategory()}
             />
             <button
               onClick={addCategory}
               disabled={actionLoading || !newCategoryName.trim()}
-              className="ui-btn-primary px-8 rounded-xl font-bold whitespace-nowrap flex items-center justify-center gap-2 group"
+              className="px-8 py-4 rounded-xl bg-brand-orange hover:bg-brand-orange/90 text-white font-bold whitespace-nowrap flex items-center justify-center gap-2 group transition-all"
             >
               {actionLoading ? <Loader2 size={20} className="animate-spin" /> : <Plus size={20} className="group-hover:rotate-90 transition-transform" />}
               Add Category
@@ -176,7 +171,7 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="ui-input flex-grow bg-indigo-500/5 border-indigo-500/30 rounded-xl px-4 py-2 text-sm focus:outline-none transition-all"
+                    className="flex-grow bg-indigo-500/5 border border-indigo-500/30 rounded-xl px-4 py-2 text-sm text-white focus:outline-none transition-all"
                     onKeyDown={(e) => e.key === "Enter" && updateCategory(cat.id)}
                   />
                   <div className="flex items-center gap-1">

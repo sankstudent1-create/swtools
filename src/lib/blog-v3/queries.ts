@@ -28,13 +28,17 @@ export async function getPostV3(idOrSlug: string) {
   return data;
 }
 
-export async function getPostsV3() {
+export async function getPostsV3(onlyPublished = true) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from('blog_posts_v3')
-    .select('*, blog_categories_v3(*)')
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
+    .select('*, blog_categories_v3(*)');
+  
+  if (onlyPublished) {
+    query = query.eq('status', 'published');
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
     
   if (error) {
     console.error('Database error in getPostsV3:', error);

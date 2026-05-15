@@ -71,3 +71,70 @@ export async function getCategoriesV3() {
   if (error) throw error;
   return data;
 }
+
+export async function saveBlogCategoryV3(category: { name: string; slug: string; description?: string }, id?: string) {
+  const supabase = await createClient();
+  
+  if (id) {
+    const { data, error } = await supabase
+      .from('blog_categories_v3')
+      .update(category)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from('blog_categories_v3')
+      .insert([category])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+}
+
+export async function deleteBlogCategoryV3(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('blog_categories_v3')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+export async function getCommentsV3() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('blog_comments_v3')
+    .select('*, post:blog_posts_v3(title)')
+    .order('created_at', { ascending: false });
+    
+  if (error) throw error;
+  return data;
+}
+
+export async function updateCommentStatusV3(id: string, status: 'approved' | 'spam' | 'pending') {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('blog_comments_v3')
+    .update({ status })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCommentV3(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('blog_comments_v3')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
