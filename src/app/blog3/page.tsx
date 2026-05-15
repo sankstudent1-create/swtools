@@ -1,4 +1,4 @@
-import { getPostsV3 } from "../admin/blog3/actions";
+import { getPostsV3 } from "@/lib/blog-v3/queries";
 import Link from "next/link";
 import { Calendar, User, ArrowRight, Layout, Clock } from "lucide-react";
 

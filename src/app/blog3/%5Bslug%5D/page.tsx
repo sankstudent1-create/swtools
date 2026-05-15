@@ -1,25 +1,30 @@
-import { getPostV3 } from "../../admin/blog3/actions";
+import { getPostV3 } from "@/lib/blog-v3/queries";
 import { notFound } from "next/navigation";
-import { Calendar, User, ArrowLeft, Share2, Globe, Mail } from "lucide-react";
+import { ArrowLeft, Clock, Share2, Tag, User, Calendar, Play } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: BlogPostV3PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPostV3(slug);
-  
-  if (!post) return { title: 'Post Not Found' };
+  try {
+    const { slug } = await params;
+    const post = await getPostV3(slug);
+    
+    if (!post) return { title: 'Post Not Found | SW Tools' };
 
-  return {
-    title: post.seo_title || post.title,
-    description: post.seo_description || post.excerpt,
-    keywords: post.seo_keywords || [],
-    openGraph: {
+    return {
       title: post.seo_title || post.title,
       description: post.seo_description || post.excerpt,
-      images: post.cover_image_url ? [post.cover_image_url] : [],
-    }
-  };
+      keywords: post.seo_keywords || [],
+      openGraph: {
+        title: post.seo_title || post.title,
+        description: post.seo_description || post.excerpt,
+        images: post.cover_image_url ? [post.cover_image_url] : [],
+      }
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return { title: 'SW Tools Blog' };
+  }
 }
 
 interface BlogPostV3PageProps {

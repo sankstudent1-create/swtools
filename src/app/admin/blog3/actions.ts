@@ -1,5 +1,6 @@
 'use server';
 
+import { getPostV3, getPostsV3 } from "@/lib/blog-v3/queries";
 import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 
 export type BlockType = 'text' | 'image' | 'youtube' | 'heading' | 'divider';
@@ -7,63 +8,30 @@ export type BlockType = 'text' | 'image' | 'youtube' | 'heading' | 'divider';
 export interface BlogBlock {
   id: string;
   type: BlockType;
-  content: any; // data specific to the block type
+  content: any;
 }
 
 export interface PostV3 {
   id?: string;
   title: string;
   slug: string;
-  excerpt: string;
+  excerpt: string | null;
   content_blocks: BlogBlock[];
   cover_image_url: string | null;
   category_id: string | null;
-  status: 'draft' | 'published';
   author_id: string;
+  status: 'draft' | 'published';
+  published_at?: string | null;
+  updated_at?: string;
   seo_title?: string | null;
   seo_description?: string | null;
-  seo_keywords?: string[] | null;
-  published_at?: string | null;
+  seo_keywords?: string[];
+  blog_categories_v3?: {
+    name: string;
+  } | null;
 }
 
-export async function getPostsV3() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('blog_posts_v3')
-    .select('*, blog_categories_v3(name)')
-    .order('created_at', { ascending: false });
-    
-  if (error) throw error;
-  return data;
-}
-
-export async function getPostV3(idOrSlug: string) {
-  const supabase = await createClient();
-  
-  // Check if it's a UUID to avoid Supabase errors when querying the id column
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
-  
-  console.log('Fetching post with idOrSlug:', idOrSlug, 'isUuid:', isUuid);
-
-  let query = supabase
-    .from('blog_posts_v3')
-    .select('*');
-
-  if (isUuid) {
-    query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
-  } else {
-    query = query.eq('slug', idOrSlug);
-  }
-
-  const { data, error } = await query.maybeSingle();
-    
-  if (error) {
-    console.error('Database error in getPostV3:', error);
-    return null;
-  }
-  
-  return data;
-}
+export { getPostV3, getPostsV3 };
 
 export async function savePostV3(post: PostV3) {
   const supabase = await createClient();

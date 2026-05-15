@@ -32,28 +32,65 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
   const [seoTitle, setSeoTitle] = useState(initialData?.seo_title || "");
   const [seoDescription, setSeoDescription] = useState(initialData?.seo_description || "");
   const [seoKeywords, setSeoKeywords] = useState<string>(initialData?.seo_keywords?.join(", ") || "");
-  const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'seo' | 'bulk'>('content');
+  const [bulkContent, setBulkContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-generate slug
+  // Global Paste Listener
   useEffect(() => {
-    if (!initialData && title && !slug) {
-      setSlug(title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""));
-    }
-  }, [title, initialData]);
+    const handlePaste = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
-  const addBlock = (type: BlockType) => {
+      const text = e.clipboardData?.getData('text');
+      if (!text) return;
+
+      if (text.includes('youtube.com') || text.includes('youtu.be')) {
+        addBlock('youtube', { src: text });
+      } else if (text.match(/\.(jpeg|jpg|gif|png|webp)$/)) {
+        addBlock('image', { src: text, alt: '' });
+      } else if (text.length > 0 && text.length < 500) {
+        addBlock('text', { text });
+      }
+    };
+
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [blocks]);
+
+  const addBlock = (type: BlockType, content: any = {}) => {
     const newBlock: BlogBlock = {
       id: Math.random().toString(36).substr(2, 9),
       type,
-      content: type === 'text' ? { text: '' } : 
-               type === 'image' ? { src: '', alt: '' } :
-               type === 'youtube' ? { src: '' } :
-               type === 'heading' ? { text: '', level: 2 } :
-               { text: '', url: '' }
+      content: type === 'text' ? { text: '', ...content } : 
+               type === 'image' ? { src: '', alt: '', ...content } :
+               type === 'youtube' ? { src: '', ...content } :
+               type === 'heading' ? { text: '', level: 2, ...content } :
+               { text: '', url: '', ...content }
     };
     setBlocks([...blocks, newBlock]);
+  };
+
+  const handleBulkImport = () => {
+    const lines = bulkContent.split('\n').filter(l => l.trim().length > 0);
+    const newBlocks: BlogBlock[] = lines.map(line => {
+      const val = line.trim();
+      if (val.includes('youtube.com') || val.includes('youtu.be')) {
+        return { id: Math.random().toString(36).substr(2, 9), type: 'youtube', content: { src: val } };
+      } else if (val.match(/\.(jpeg|jpg|gif|png|webp)$/)) {
+        return { id: Math.random().toString(36).substr(2, 9), type: 'image', content: { src: val, alt: '' } };
+      } else if (val.startsWith('# ')) {
+        return { id: Math.random().toString(36).substr(2, 9), type: 'heading', content: { text: val.replace('# ', ''), level: 1 } };
+      } else if (val.startsWith('## ')) {
+        return { id: Math.random().toString(36).substr(2, 9), type: 'heading', content: { text: val.replace('## ', ''), level: 2 } };
+      } else {
+        return { id: Math.random().toString(36).substr(2, 9), type: 'text', content: { text: val } };
+      }
+    });
+    setBlocks([...blocks, ...newBlocks]);
+    setBulkContent("");
+    setActiveTab('content');
   };
 
   const removeBlock = (id: string) => {
