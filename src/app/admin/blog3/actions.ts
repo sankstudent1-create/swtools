@@ -1,4 +1,6 @@
-import { createSupabaseBrowserClient as createClient } from "@/lib/supabase/client";
+'use server';
+
+import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 
 export type BlockType = 'text' | 'image' | 'youtube' | 'heading' | 'divider';
 
@@ -24,7 +26,7 @@ export interface PostV3 {
 }
 
 export async function getPostsV3() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('blog_posts_v3')
     .select('*, blog_categories_v3(name)')
@@ -35,7 +37,7 @@ export async function getPostsV3() {
 }
 
 export async function getPostV3(idOrSlug: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('blog_posts_v3')
     .select('*, blog_categories_v3(*)')
@@ -47,7 +49,7 @@ export async function getPostV3(idOrSlug: string) {
 }
 
 export async function savePostV3(post: PostV3) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   if (post.id) {
     const { data, error } = await supabase
@@ -75,7 +77,7 @@ export async function savePostV3(post: PostV3) {
 }
 
 export async function getCategoriesV3() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('blog_categories_v3')
     .select('*')
