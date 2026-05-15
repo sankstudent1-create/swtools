@@ -164,7 +164,7 @@ export default async function BlogPostPage({
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
                   <span className="text-sm font-black text-white/60">
-                    {post.author?.full_name?.charAt(0) || "S"}
+                    S
                   </span>
                 </div>
                 <div>
