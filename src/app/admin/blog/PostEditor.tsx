@@ -11,13 +11,13 @@ import { BlogBlock, BlockType, PostV3, savePostV3 } from "./actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface PostEditor3Props {
+interface PostEditorProps {
   initialData?: PostV3;
   categories: any[];
   authorId: string;
 }
 
-export default function PostEditor3({ initialData, categories, authorId }: PostEditor3Props) {
+export default function PostEditor({ initialData, categories, authorId }: PostEditorProps) {
   const router = useRouter();
   const [blocks, setBlocks] = useState<BlogBlock[]>(initialData?.content_blocks || [
     { id: '1', type: 'heading', content: { text: '', level: 1 } },
@@ -104,7 +104,7 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
 
     try {
       await savePostV3(postData);
-      router.push("/admin/blog3");
+      router.push("/admin/blog");
       router.refresh();
     } catch (e: any) {
       setError(e.message || "Failed to save post");
@@ -119,7 +119,7 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
       <nav className="sticky top-0 z-50 bg-[#07090f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <Link href="/admin/blog3" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white border border-white/5 transition-all">
+            <Link href="/admin/blog" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white border border-white/5 transition-all">
               <ArrowLeft size={20} />
             </Link>
             <div className="h-6 w-px bg-white/10 hidden md:block" />
@@ -203,7 +203,7 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
                   <div className="flex items-center gap-3 py-4 border-y border-white/5 px-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Canonical Path:</span>
                     <div className="flex items-center text-sm font-mono text-indigo-400/60 flex-grow">
-                      <span>/blog3/</span>
+                      <span>/blog/</span>
                       <input 
                         value={slug} 
                         onChange={(e) => setSlug(e.target.value)} 
@@ -504,7 +504,7 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
                 
                 <div className="flex flex-col gap-3">
                   <Link 
-                    href={initialData?.slug ? `/blog3/${initialData.slug}` : "#"} 
+                    href={initialData?.slug ? `/blog/${initialData.slug}` : "#"} 
                     target="_blank"
                     className={`flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all group ${!initialData?.slug ? 'opacity-20 pointer-events-none' : ''}`}
                   >

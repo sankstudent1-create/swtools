@@ -46,3 +46,19 @@ export async function getPostsV3(onlyPublished = true) {
   }
   return data;
 }
+
+export async function getCommentsForPostV3(postId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('blog_comments_v3')
+    .select('*')
+    .eq('post_id', postId)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Database error in getCommentsForPostV3:', error);
+    throw error;
+  }
+  return data;
+}

@@ -1,4 +1,4 @@
-import PostEditor3 from "../../PostEditor3";
+import PostEditor from "../../PostEditor";
 import { getPostV3, getCategoriesV3 } from "../../actions";
 import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
@@ -28,7 +28,7 @@ export default async function EditPostV3Page({ params }: EditPostV3PageProps) {
   }
 
   return (
-    <PostEditor3 
+    <PostEditor 
       initialData={post}
       categories={categories}
       authorId={user.id}

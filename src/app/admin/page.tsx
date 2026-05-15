@@ -110,7 +110,7 @@ export default async function AdminPage() {
     {
       title: 'Blog Management',
       desc: 'Create and manage blog posts, categories, and comments.',
-      href: '/admin/blog3',
+      href: '/admin/blog',
       icon: LayoutDashboard,
       color: 'text-indigo-400',
       bg: 'bg-indigo-500/10',
