@@ -36,6 +36,7 @@ export async function getPostsV3() {
   const { data, error } = await supabase
     .from('blog_posts_v3')
     .select('*, blog_categories_v3(*)')
+    .eq('status', 'published')
     .order('created_at', { ascending: false });
     
   if (error) {
