@@ -168,7 +168,7 @@ export default async function BlogPostPage({
                   </span>
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">{post.author?.full_name || "SW Tools"}</div>
+                  <div className="text-sm font-bold text-white">SW Tools</div>
 
                   <div className="text-[11px] text-white/30">Author</div>
                 </div>
