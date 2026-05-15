@@ -88,17 +88,42 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
     const editor = editorRef.current?.getEditor();
     const finalContent = editor?.getJSON() || contentJson;
 
+    // Deep inspection: log ALL nodes and their attributes for debugging
+    const allNodes = (finalContent?.content || []);
+    const mediaNodes = allNodes.filter(
+      (node: any) => node.type === "youtube" || node.type === "iframeEmbed" || node.type === "image"
+    );
+    
+    console.log("[PostEditor] Save inspection:", {
+      totalNodes: allNodes.length,
+      mediaNodes: mediaNodes.map((n: any) => ({
+        type: n.type,
+        src: n.attrs?.src,
+        hasAttrs: !!n.attrs,
+        attrKeys: n.attrs ? Object.keys(n.attrs) : [],
+      })),
+    });
+
     // Integrity Check: Scan for media nodes without attributes
-    const missingAttrs = (finalContent?.content || []).filter(
-      (node: any) => (node.type === "youtube" || node.type === "iframeEmbed") && !node.attrs?.src
+    const missingAttrs = mediaNodes.filter(
+      (node: any) => !node.attrs?.src
     );
 
     if (missingAttrs.length > 0) {
       console.error("[PostEditor] Media nodes found with MISSING attributes!", missingAttrs);
-      if (!window.confirm(`Warning: ${missingAttrs.length} media item(s) are missing their links. Save anyway?`)) {
+      if (!window.confirm(`Warning: ${missingAttrs.length} media item(s) are missing their links. Save anyway? (Broken items will be removed)`)) {
         setLoading(false);
         return;
       }
+      // Auto-repair: remove broken media nodes from the content before saving
+      finalContent.content = allNodes.filter(
+        (node: any) => {
+          if ((node.type === "youtube" || node.type === "iframeEmbed" || node.type === "image") && !node.attrs?.src) {
+            return false; // Remove broken media node
+          }
+          return true;
+        }
+      );
     }
 
     const postData = {

@@ -3,6 +3,15 @@
  * Replaces the buggy upstream extension with a robust, attribute-safe version.
  */
 import { Node, mergeAttributes } from "@tiptap/core";
+import type { CommandProps } from "@tiptap/core";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    youtube: {
+      setYoutubeVideo: (options: { src: string; width?: number; height?: number }) => ReturnType;
+    };
+  }
+}
 
 const YOUTUBE_REGEX =
   /^(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|youtube-nocookie\.com)(?:\/(?:[\w-]+\?v=|embed\/|v\/|shorts\/)?)?([\w-]{11})(?:\S+)?$/;
@@ -46,21 +55,38 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
     return {
       src: {
         default: null,
-        parseHTML: (element) => element.getAttribute("src"),
-        renderHTML: (attributes) => ({
-          src: attributes.src,
-        }),
+        keepOnSplit: false,
+        parseHTML: (element) => {
+          // Try the element's src first, then check parent div for nested iframe
+          const src = element.getAttribute("src");
+          if (src) return src;
+          // If element is the wrapper div, look for nested iframe
+          const iframe = element.querySelector?.("iframe");
+          return iframe?.getAttribute("src") || null;
+        },
+        renderHTML: (attributes) => {
+          if (!attributes.src) return {};
+          return { src: attributes.src };
+        },
       },
       width: {
         default: this.options.width,
-        parseHTML: (element) => element.getAttribute("width"),
+        keepOnSplit: false,
+        parseHTML: (element) => {
+          const w = element.getAttribute("width");
+          return w ? parseInt(w, 10) : null;
+        },
         renderHTML: (attributes) => ({
           width: attributes.width,
         }),
       },
       height: {
         default: this.options.height,
-        parseHTML: (element) => element.getAttribute("height"),
+        keepOnSplit: false,
+        parseHTML: (element) => {
+          const h = element.getAttribute("height");
+          return h ? parseInt(h, 10) : null;
+        },
         renderHTML: (attributes) => ({
           height: attributes.height,
         }),
@@ -75,6 +101,16 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
         getAttrs: (dom) => ({
           src: (dom as HTMLElement).getAttribute("src"),
         }),
+      },
+      {
+        tag: "div[data-youtube-video]",
+        getAttrs: (dom) => {
+          const iframe = (dom as HTMLElement).querySelector("iframe");
+          if (!iframe) return false;
+          return {
+            src: iframe.getAttribute("src"),
+          };
+        },
       },
     ];
   },
@@ -117,7 +153,7 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
     return {
       setYoutubeVideo:
         (options: { src: string; width?: number; height?: number }) =>
-        ({ commands }) => {
+        ({ commands }: CommandProps) => {
           return commands.insertContent({
             type: this.name,
             attrs: options,
@@ -126,3 +162,4 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
     };
   },
 });
+

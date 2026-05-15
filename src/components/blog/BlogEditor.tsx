@@ -7,7 +7,6 @@ import { TextSelection } from "prosemirror-state";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
-import Youtube from "@tiptap/extension-youtube";
 import { SafeYoutube } from "@/lib/blog/safe-youtube";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -175,7 +174,16 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
       content: safeContent,
       editable,
       onUpdate: ({ editor }) => {
-        onChange(editor.getJSON());
+        const json = editor.getJSON();
+        // Deep-verify: log if any youtube/iframeEmbed nodes are missing src
+        const mediaNodes = (json?.content || []).filter(
+          (n: any) => n.type === "youtube" || n.type === "iframeEmbed"
+        );
+        const broken = mediaNodes.filter((n: any) => !n.attrs?.src);
+        if (broken.length > 0) {
+          console.warn("[BlogEditor] onUpdate: media nodes missing src!", broken);
+        }
+        onChange(json);
         // Rough word count from text content
         const text = editor.getText();
         setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0);
@@ -407,9 +415,16 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
                 const url = window.prompt("YouTube URL:");
                 if (!url?.trim()) return;
                 
-                // Use custom command to ensure attributes are properly set and persisted
                 const sanitized = extractSrc(url);
-                // @ts-ignore
+                
+                // Validate it's a recognizable YouTube URL before inserting
+                const ytRegex = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
+                if (!ytRegex.test(sanitized)) {
+                  alert("That doesn't look like a YouTube URL. Please paste a valid YouTube link.");
+                  return;
+                }
+                
+                // @ts-ignore — SafeYoutube's setYoutubeVideo command
                 editor.commands.setYoutubeVideo({ src: sanitized });
               }}
               title="YouTube video"
