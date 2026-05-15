@@ -2,6 +2,25 @@ import { getPostV3 } from "../../admin/blog3/actions";
 import { notFound } from "next/navigation";
 import { Calendar, User, ArrowLeft, Share2, Globe, Mail } from "lucide-react";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: BlogPostV3PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPostV3(slug);
+  
+  if (!post) return { title: 'Post Not Found' };
+
+  return {
+    title: post.seo_title || post.title,
+    description: post.seo_description || post.excerpt,
+    keywords: post.seo_keywords || [],
+    openGraph: {
+      title: post.seo_title || post.title,
+      description: post.seo_description || post.excerpt,
+      images: post.cover_image_url ? [post.cover_image_url] : [],
+    }
+  };
+}
 
 interface BlogPostV3PageProps {
   params: {
