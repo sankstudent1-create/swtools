@@ -19,7 +19,7 @@ export async function generateMetadata({
     };
   }
 
-  const canonicalPath = post.canonical_path ?? `/blog/${post.slug}`;
+  const canonicalPath = `/blog/${post.slug}`;
   const description = buildPostDescription(
     post.seo_description ?? post.excerpt,
     "Latest news and updates from SW Tools."
