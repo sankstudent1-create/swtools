@@ -50,6 +50,8 @@ function BlockRenderer({ block }: { block: any }) {
   }
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
   const { slug } = await params;
   const post = await getPostV3(slug);

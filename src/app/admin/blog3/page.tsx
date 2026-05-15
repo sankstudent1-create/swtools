@@ -2,6 +2,8 @@ import { getPostsV3, getCategoriesV3 } from "./actions";
 import Link from "next/link";
 import { Plus, Layout, Eye, Edit, Trash2, Calendar, User } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function Blog3AdminPage() {
   const posts = await getPostsV3();
   const categories = await getCategoriesV3();
@@ -54,7 +56,7 @@ export default async function Blog3AdminPage() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest">
                   <Calendar size={12} />
-                  {new Date(post.created_at).toLocaleDateString()}
+                  {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Pending'}
                 </div>
               </div>
 

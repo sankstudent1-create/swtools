@@ -2,6 +2,8 @@ import { getPostsV3 } from "../admin/blog3/actions";
 import Link from "next/link";
 import { Calendar, User, ArrowRight, Layout } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function Blog3PublicPage() {
   const posts = await getPostsV3();
   const publishedPosts = posts.filter((p: any) => p.status === 'published');
