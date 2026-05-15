@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS public.blog_posts_v3 (
     author_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     status TEXT NOT NULL DEFAULT 'draft', -- 'draft', 'published'
     published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     
     -- SEO
