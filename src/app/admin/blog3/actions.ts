@@ -43,9 +43,11 @@ export async function getPostV3(idOrSlug: string) {
   // Check if it's a UUID to avoid Supabase errors when querying the id column
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
   
+  console.log('Fetching post with idOrSlug:', idOrSlug, 'isUuid:', isUuid);
+
   let query = supabase
     .from('blog_posts_v3')
-    .select('*, blog_categories_v3(*)');
+    .select('*');
 
   if (isUuid) {
     query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
