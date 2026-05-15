@@ -18,9 +18,9 @@ export interface PostV3 {
   category_id: string | null;
   status: 'draft' | 'published';
   author_id: string;
-  seo_keywords?: string[];
-  seo_description?: string;
-  published_at?: string;
+  seo_keywords?: string[] | null;
+  seo_description?: string | null;
+  published_at?: string | null;
 }
 
 export async function getPostsV3() {
