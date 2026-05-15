@@ -53,11 +53,17 @@ function BlockRenderer({ block }: { block: any }) {
         </figure>
       );
     case 'youtube':
-      const videoId = block.content.src.includes('v=') 
-        ? block.content.src.split('v=')[1].split('&')[0]
-        : block.content.src.includes('youtu.be/')
-        ? block.content.src.split('youtu.be/')[1].split('?')[0]
-        : block.content.src;
+      let videoId = '';
+      if (block.content.src.includes('v=')) {
+        videoId = block.content.src.split('v=')[1].split('&')[0];
+      } else if (block.content.src.includes('youtu.be/')) {
+        videoId = block.content.src.split('youtu.be/')[1].split('?')[0];
+      } else if (block.content.src.includes('youtube.com/live/')) {
+        videoId = block.content.src.split('/live/')[1].split('?')[0];
+      } else {
+        // Fallback for raw IDs or other formats
+        videoId = block.content.src.split('/').pop()?.split('?')[0] || block.content.src;
+      }
         
       return (
         <div className="my-12 aspect-video rounded-3xl overflow-hidden border border-white/5 shadow-2xl">

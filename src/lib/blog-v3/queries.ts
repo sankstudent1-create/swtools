@@ -10,16 +10,13 @@ export async function getPostV3(idOrSlug: string) {
 
   let query = supabase
     .from('blog_posts_v3')
-    .select('*, blog_categories_v3(*)');
+    .select('*');
 
   if (isUuid) {
     query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
   } else {
     query = query.eq('slug', idOrSlug);
   }
-
-  // Ensure we only get published posts for public view
-  query = query.eq('status', 'published');
 
   const { data, error } = await query.maybeSingle();
   
