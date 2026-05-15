@@ -27,7 +27,7 @@
   --color-brand-orange: var(--brand-orange);
   --color-brand-pink: var(--brand-pink);
   --color-brand-sky: var(--brand-sky);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-outfit);
 }
 
 body {
@@ -37,7 +37,7 @@ body {
     radial-gradient(circle at 50% 100%, color-mix(in oklab, var(--brand-pink) 16%, transparent), transparent 48%),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   letter-spacing: -0.008em;
 }
@@ -461,7 +461,7 @@ p {
   color: rgba(229, 233, 246, 0.85);
   font-size: 1.0625rem;
   line-height: 1.8;
-  font-family: var(--font-inter, system-ui, sans-serif);
+  font-family: var(--font-outfit, system-ui, sans-serif);
 }
 
 .blog-content h1,
@@ -797,7 +797,7 @@ div[data-youtube-video] iframe {
 
 /* GDS printing styles */
 .gds-print-container {
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-outfit), system-ui, sans-serif;
   color: #333;
   line-height: 1.5;
 }

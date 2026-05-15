@@ -204,7 +204,11 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
         formData.append("file", file);
         const { uploadBlogMedia } = await import("@/app/admin/blog/actions");
         const { publicUrl } = await uploadBlogMedia(formData);
-        editor?.chain().focus().setImage({ src: publicUrl }).run();
+        const alt = window.prompt("Enter image description (alt text for SEO):") || "";
+        editor?.chain().focus().insertContent({
+          type: "image",
+          attrs: { src: publicUrl, alt: alt.trim(), title: alt.trim() }
+        }).run();
       } catch (e: any) {
         window.alert(e?.message || "Failed to upload image");
       } finally {
@@ -235,7 +239,10 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
     const input = window.prompt(label);
     if (!input?.trim()) return;
     const sanitized = extractSrc(input);
-    editor.chain().focus().setIframeEmbed({ src: sanitized }).run();
+    editor.chain().focus().insertContent({
+      type: "iframeEmbed",
+      attrs: { src: sanitized }
+    }).run();
   }, [editor]);
 
   if (!editor) return (
@@ -393,7 +400,11 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
                 const url = window.prompt("Image URL:");
                 if (!url?.trim()) return;
                 try { new URL(url.trim()); } catch { alert("Invalid URL"); return; }
-                editor.chain().focus().setImage({ src: url.trim() }).run();
+                const alt = window.prompt("Enter image description (alt text for SEO):") || "";
+                editor.chain().focus().insertContent({
+                  type: "image",
+                  attrs: { src: url.trim(), alt: alt.trim(), title: alt.trim() }
+                }).run();
               }}
               title="Image from URL"
             >
@@ -417,15 +428,10 @@ const BlogEditor = forwardRef((props: BlogEditorProps, ref) => {
                 
                 const sanitized = extractSrc(url);
                 
-                // Validate it's a recognizable YouTube URL before inserting
-                const ytRegex = /(?:youtube\.com|youtu\.be|youtube-nocookie\.com)/i;
-                if (!ytRegex.test(sanitized)) {
-                  alert("That doesn't look like a YouTube URL. Please paste a valid YouTube link.");
-                  return;
-                }
-                
-                // @ts-ignore — SafeYoutube's setYoutubeVideo command
-                editor.commands.setYoutubeVideo({ src: sanitized });
+                editor.chain().focus().insertContent({
+                  type: "youtube",
+                  attrs: { src: sanitized, width: 640, height: 360, start: 0 }
+                }).run();
               }}
               title="YouTube video"
             >

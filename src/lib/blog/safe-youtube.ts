@@ -54,7 +54,7 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
   addAttributes() {
     return {
       src: {
-        default: null,
+        default: "",
         keepOnSplit: false,
         parseHTML: (element) => {
           // Try the element's src first, then check parent div for nested iframe
@@ -70,7 +70,7 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
         },
       },
       width: {
-        default: this.options.width,
+        default: this.options.width || 640,
         keepOnSplit: false,
         parseHTML: (element) => {
           const w = element.getAttribute("width");
@@ -81,7 +81,7 @@ export const SafeYoutube = Node.create<YoutubeOptions>({
         }),
       },
       height: {
-        default: this.options.height,
+        default: this.options.height || 360,
         keepOnSplit: false,
         parseHTML: (element) => {
           const h = element.getAttribute("height");

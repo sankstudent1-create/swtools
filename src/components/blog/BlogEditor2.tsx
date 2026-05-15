@@ -145,11 +145,15 @@ const BlogEditor2 = forwardRef((props: BlogEditor2Props, ref) => {
     const sanitizedUrl = extractSrc(mediaUrl);
 
     if (mediaType === "youtube") {
-      // @ts-ignore
-      editor.commands.setYoutubeVideo({ src: sanitizedUrl });
+      editor.chain().focus().insertContent({
+        type: "youtube",
+        attrs: { src: sanitizedUrl, width: 640, height: 360, start: 0 }
+      }).run();
     } else {
-      // @ts-ignore
-      editor.commands.setIframeEmbed({ src: sanitizedUrl });
+      editor.chain().focus().insertContent({
+        type: "iframeEmbed",
+        attrs: { src: sanitizedUrl }
+      }).run();
     }
 
     setMediaUrl("");

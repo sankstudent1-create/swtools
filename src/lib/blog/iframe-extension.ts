@@ -56,14 +56,14 @@ export const IframeEmbed = Node.create({
   addAttributes() {
     return {
       src: {
-        default: null,
+        default: "",
         parseHTML: (element) => element.getAttribute("src"),
         renderHTML: (attributes) => ({
           src: attributes.src,
         }),
       },
       title: {
-        default: null,
+        default: "",
         parseHTML: (element) => element.getAttribute("title"),
         renderHTML: (attributes) => ({
           title: attributes.title,
