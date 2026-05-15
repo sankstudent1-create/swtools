@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 function estimateReadTime(post: any): number {
   try {
-    const json = post.content_json as any;
-    const text = JSON.stringify(json);
+    const blocks = post.content_blocks || [];
+    const text = blocks.map((b: any) => b.content?.text || '').join(' ');
     const words = text.split(/\s+/).length;
     return Math.max(1, Math.round(words / 200));
   } catch {

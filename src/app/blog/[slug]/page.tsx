@@ -5,16 +5,57 @@ import { getPublishedPostBySlug, listPublishedPosts } from "@/lib/blog/queries";
 import { renderTipTapToHtml } from "@/lib/blog/render";
 import { Calendar, Clock, Tag, ChevronLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
 
-/** Scan content_json for specific embed types */
-function hasEmbed(content_json: any, embedType: string): boolean {
-  if (!content_json) return false;
-  const str = JSON.stringify(content_json);
-  return str.includes(`"${embedType}"`);
+function BlockRenderer({ block }: { block: any }) {
+  switch (block.type) {
+    case 'heading':
+      const Tag = `h${block.content.level || 2}` as keyof JSX.IntrinsicElements;
+      return <Tag className="text-3xl md:text-4xl font-black tracking-tight text-white italic mt-12 mb-6">{block.content.text}</Tag>;
+    case 'text':
+      return <p className="text-lg text-white/70 leading-relaxed mb-6 whitespace-pre-wrap">{block.content.text}</p>;
+    case 'image':
+      return (
+        <figure className="my-12 space-y-3">
+          <div className="rounded-3xl overflow-hidden border border-white/5 bg-white/5">
+            <img src={block.content.src} alt={block.content.alt} className="w-full h-auto" />
+          </div>
+          {block.content.alt && (
+            <figcaption className="text-center text-[10px] font-black uppercase tracking-widest text-white/20">
+              {block.content.alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+    case 'youtube':
+      let videoId = '';
+      if (block.content.src.includes('v=')) {
+        videoId = block.content.src.split('v=')[1].split('&')[0];
+      } else if (block.content.src.includes('youtu.be/')) {
+        videoId = block.content.src.split('youtu.be/')[1].split('?')[0];
+      } else if (block.content.src.includes('youtube.com/live/')) {
+        videoId = block.content.src.split('/live/')[1].split('?')[0];
+      } else {
+        videoId = block.content.src.split('/').pop()?.split('?')[0] || block.content.src;
+      }
+        
+      return (
+        <div className="my-12 aspect-video rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    default:
+      return null;
+  }
 }
 
 function estimateReadTime(post: any): number {
   try {
-    const text = JSON.stringify(post.content_json);
+    const blocks = post.content_blocks || [];
+    const text = blocks.map((b: any) => b.content?.text || '').join(' ');
     const words = text.split(/\s+/).length;
     return Math.max(1, Math.round(words / 200));
   } catch {
@@ -40,14 +81,7 @@ export default async function BlogPostPage({
   if (!post) return notFound();
 
   const published = post.published_at ? new Date(post.published_at) : null;
-  const html = renderTipTapToHtml(post.content_json);
   const readTime = estimateReadTime(post);
-  const hasTwitter = hasEmbed(post.content_json, "twitter");
-  const hasInstagram = hasEmbed(post.content_json, "instagram");
-
-  // Fetch related posts
-  const allPosts = await listPublishedPosts(6);
-  const related = allPosts.filter(p => p.slug !== slug && p.category?.id === post.category?.id).slice(0, 3);
 
   const articleLd = {
     "@context": "https://schema.org",
@@ -55,33 +89,23 @@ export default async function BlogPostPage({
     headline: post.title,
     datePublished: published ? published.toISOString() : undefined,
     dateModified: new Date(post.updated_at).toISOString(),
-    author: post.author?.full_name
-      ? { "@type": "Person", name: post.author.full_name }
-      : undefined,
     image: post.cover_image_url ? [post.cover_image_url] : undefined,
   };
 
+  // Fetch related posts
+  const allPosts = await listPublishedPosts(6);
+  const related = allPosts.filter(p => p.slug !== slug && p.category?.id === post.category?.id).slice(0, 3);
+
   return (
+
     <>
       <Script
         id="post-jsonld"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
       />
-      {hasTwitter && (
-        <Script
-          id="twitter-widgets"
-          src="https://platform.twitter.com/widgets.js"
-          strategy="lazyOnload"
-        />
-      )}
-      {hasInstagram && (
-        <Script
-          id="instagram-embed"
-          src="https://www.instagram.com/embed.js"
-          strategy="lazyOnload"
-        />
-      )}
+      {/* No more twitter/instagram scripts needed if using standard V3 blocks for now */}
+
 
       <main className="min-h-screen">
         {/* Hero */}
@@ -146,9 +170,11 @@ export default async function BlogPostPage({
                 </div>
                 <div>
                   <div className="text-sm font-bold text-white">{post.author?.full_name || "SW Tools"}</div>
+
                   <div className="text-[11px] text-white/30">Author</div>
                 </div>
               </div>
+
 
               <button
                 onClick={undefined}
@@ -176,12 +202,12 @@ export default async function BlogPostPage({
 
         {/* Article Content */}
         <div className="mx-auto max-w-4xl px-6 py-16">
-          <article>
-            <div
-              className="blog-content"
-              dangerouslySetInnerHTML={{ __html: html || "" }}
-            />
+          <article className="prose prose-invert max-w-none">
+            {post.content_blocks?.map((block: any) => (
+              <BlockRenderer key={block.id} block={block} />
+            ))}
           </article>
+
 
           {/* SEO Tags */}
           {post.seo_keywords?.length > 0 && (

@@ -12,7 +12,7 @@ export type BlogPost = {
   slug: string;
   title: string;
   excerpt: string | null;
-  content_json: unknown;
+  content_blocks: any[]; // Changed from content_json to content_blocks
   cover_image_url: string | null;
   status: "draft" | "published";
   published_at: string | null;
@@ -20,7 +20,6 @@ export type BlogPost = {
   seo_title: string | null;
   seo_description: string | null;
   seo_keywords: string[];
-  canonical_path: string | null;
   category: BlogCategory | null;
   author: { id: string; full_name: string | null } | null;
 };
@@ -28,9 +27,9 @@ export type BlogPost = {
 export async function listPublishedPosts(limit = 20) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("blog_posts")
+    .from("blog_posts_v3")
     .select(
-      "id,slug,title,excerpt,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords,canonical_path, category:blog_categories(id,slug,name,description), author:profiles(id,full_name)"
+      "id,slug,title,excerpt,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords,content_blocks, category:blog_categories_v3(id,slug,name,description), author:profiles(id,full_name)"
     )
     .eq("status", "published")
     .order("published_at", { ascending: false })
@@ -43,14 +42,16 @@ export async function listPublishedPosts(limit = 20) {
 export async function getPublishedPostBySlug(slug: string) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("blog_posts")
+    .from("blog_posts_v3")
     .select(
-      "id,slug,title,excerpt,content_json,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords,canonical_path, category:blog_categories(id,slug,name,description), author:profiles(id,full_name)"
+      "id,slug,title,excerpt,content_blocks,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords, category:blog_categories_v3(id,slug,name,description), author:profiles(id,full_name)"
     )
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
 
+
   if (error) throw new Error(error.message);
   return (data ?? null) as unknown as BlogPost | null;
 }
+
