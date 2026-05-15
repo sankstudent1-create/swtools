@@ -1,6 +1,6 @@
 import { getPostV3 } from "@/lib/blog-v3/queries";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Share2, Tag, User, Calendar, Play } from "lucide-react";
+import { ArrowLeft, Clock, Share2, Tag, User, Calendar, Play, Globe, Mail } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
