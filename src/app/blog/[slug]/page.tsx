@@ -3,13 +3,13 @@ import Script from "next/script";
 import Link from "next/link";
 import { getPublishedPostBySlug, listPublishedPosts } from "@/lib/blog/queries";
 import { renderTipTapToHtml } from "@/lib/blog/render";
-import { Calendar, Clock, Tag, ChevronLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
+import { Calendar, Clock, Tag as TagIcon, ChevronLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
 
 function BlockRenderer({ block }: { block: any }) {
   switch (block.type) {
     case 'heading':
-      const Tag = `h${block.content.level || 2}` as keyof JSX.IntrinsicElements;
-      return <Tag className="text-3xl md:text-4xl font-black tracking-tight text-white italic mt-12 mb-6">{block.content.text}</Tag>;
+      const HeadingTag = `h${block.content.level || 2}` as any;
+      return <HeadingTag className="text-3xl md:text-4xl font-black tracking-tight text-white italic mt-12 mb-6">{block.content.text}</HeadingTag>;
     case 'text':
       return <p className="text-lg text-white/70 leading-relaxed mb-6 whitespace-pre-wrap">{block.content.text}</p>;
     case 'image':
@@ -213,7 +213,7 @@ export default async function BlogPostPage({
           {post.seo_keywords?.length > 0 && (
             <div className="mt-16 pt-8 border-t border-white/5">
               <div className="flex items-center gap-2 flex-wrap">
-                <Tag size={12} className="text-white/20" />
+                <TagIcon size={12} className="text-white/20" />
                 {post.seo_keywords.map(kw => (
                   <span key={kw} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-medium text-white/30">
                     {kw}
