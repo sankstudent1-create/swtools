@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/client";
+import { createSupabaseBrowserClient as createClient } from "@/lib/supabase/client";
 
 export type BlockType = 'text' | 'image' | 'youtube' | 'heading' | 'divider';
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { 
   Plus, Trash2, GripVertical, Type, Image as ImageIcon, 
-  Youtube, Heading1, Link as LinkIcon, MoveUp, MoveDown,
+  Play, Heading1, Link as LinkIcon, MoveUp, MoveDown,
   Save, Globe, ArrowLeft, Settings, Sparkles, X, Layout
 } from "lucide-react";
 import { BlogBlock, BlockType, PostV3, savePostV3 } from "./actions";
@@ -231,7 +231,7 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
               <ImageIcon size={14} className="text-brand-orange" /> Image
             </button>
             <button onClick={() => addBlock('youtube')} className="flex items-center gap-2 px-4 py-2 hover:bg-white/10 rounded-xl transition-all text-xs font-bold">
-              <Youtube size={14} className="text-rose-500" /> YouTube
+              <Play size={14} className="text-rose-500" /> YouTube
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import PostEditor3 from "../PostEditor3";
 import { getCategoriesV3 } from "../actions";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function NewPostV3Page() {

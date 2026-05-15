@@ -1,6 +1,6 @@
 import PostEditor3 from "../../PostEditor3";
 import { getPostV3, getCategoriesV3 } from "../../actions";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 
 interface EditPostV3PageProps {

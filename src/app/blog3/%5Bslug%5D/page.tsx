@@ -1,6 +1,6 @@
-import { getPostV3 } from "../admin/blog3/actions";
+import { getPostV3 } from "../../admin/blog3/actions";
 import { notFound } from "next/navigation";
-import { Calendar, User, ArrowLeft, Share2, Facebook, Twitter, Linkedin } from "lucide-react";
+import { Calendar, User, ArrowLeft, Share2, Globe, Mail } from "lucide-react";
 import Link from "next/link";
 
 interface BlogPostV3PageProps {
@@ -111,14 +111,11 @@ export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
           <div>
             <h4 className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-4">Share this Story</h4>
             <div className="flex items-center gap-4">
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#1877F2] text-white flex items-center justify-center transition-all">
-                <Facebook size={18} />
+              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
+                <Globe size={18} />
               </button>
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#1DA1F2] text-white flex items-center justify-center transition-all">
-                <Twitter size={18} />
-              </button>
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-[#0A66C2] text-white flex items-center justify-center transition-all">
-                <Linkedin size={18} />
+              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
+                <Mail size={18} />
               </button>
               <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
                 <Share2 size={18} />
