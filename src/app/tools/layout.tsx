@@ -29,7 +29,7 @@ function toTitleCase(value: string): string {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ slug?: string[] } | any>;
 }): Promise<Metadata> {
   const { slug } = await params;
 

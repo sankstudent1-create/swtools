@@ -6,12 +6,13 @@ import { MessageSquare, Send, User, CheckCircle2, Clock, Lock } from "lucide-rea
 
 interface CommentSectionProps {
   postId: string;
+  postSlug: string;
   initialComments: any[];
   isLoggedIn: boolean;
   user: any;
 }
 
-export default function CommentSection({ postId, initialComments, isLoggedIn, user }: CommentSectionProps) {
+export default function CommentSection({ postId, postSlug, initialComments, isLoggedIn, user }: CommentSectionProps) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -24,9 +25,13 @@ export default function CommentSection({ postId, initialComments, isLoggedIn, us
     setMessage(null);
 
     try {
-      await submitComment(postId, content);
-      setContent("");
-      setMessage({ type: 'success', text: 'Thank you! Your comment is awaiting moderation.' });
+      const response = await submitComment(postId, content, postSlug);
+      if (response.error) {
+        setMessage({ type: 'error', text: response.error });
+      } else {
+        setContent("");
+        setMessage({ type: 'success', text: 'Thank you! Your comment is awaiting moderation.' });
+      }
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to post comment.' });
     } finally {

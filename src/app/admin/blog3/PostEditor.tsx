@@ -5,7 +5,7 @@ import {
   Plus, Trash2, Type, Image as ImageIcon, 
   Play, Heading1, MoveUp, MoveDown,
   Save, Globe, ArrowLeft, Settings, Sparkles, X, Layout, 
-  ChevronRight, MoreVertical, Layers, Search, Eye, Share2
+  ChevronRight, MoreVertical, Layers, Search, Eye, Share2, BarChart3
 } from "lucide-react";
 import { BlogBlock, BlockType, PostV3, savePostV3 } from "./actions";
 import { useRouter } from "next/navigation";
@@ -528,10 +528,5 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
   );
 }
 
-// Simple Icon Fallback for TS
-const BarChart3 = ({ size, className }: any) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
-  </svg>
-);
+
 

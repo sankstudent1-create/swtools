@@ -165,6 +165,7 @@ export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
         {/* Comments Section */}
         <CommentSection 
           postId={post.id}
+          postSlug={post.slug}
           initialComments={comments}
           isLoggedIn={!!user}
           user={user}

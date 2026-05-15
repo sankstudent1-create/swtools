@@ -7,30 +7,34 @@ export async function fetchInstagramMedia(url: string) {
 
   try {
     // Try OEmbed first for metadata
-    const oembedUrl = `https://api.instagram.com/oembed?url=${url}`;
-    const res = await fetch(oembedUrl);
+    const encodedUrl = encodeURIComponent(url);
+    const oembedUrl = `https://api.instagram.com/oembed?url=${encodedUrl}`;
+    
+    // Add a basic User-Agent to avoid some simple bot blocks
+    const res = await fetch(oembedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
     
     if (!res.ok) {
-      throw new Error('Failed to fetch Instagram metadata. Make sure the post is public.');
+      return { error: 'Failed to fetch Instagram metadata. Make sure the post is public or not age-restricted.' };
     }
 
     const data = await res.json();
     
-    // Note: Instagram direct media URLs are hard to get without a key or scraper.
-    // We provide the metadata and a "Best Effort" direct link if possible, 
-    // or a specialized proxy link.
-    
     return {
-      title: data.title || "Instagram Post",
-      author_name: data.author_name,
-      author_url: data.author_url,
-      thumbnail_url: data.thumbnail_url,
-      html: data.html,
-      // For actual download, we might need a third party service or complex scraping.
-      // We'll provide the OEmbed data which is already useful for preview.
+      success: true,
+      data: {
+        title: data.title || "Instagram Post",
+        author_name: data.author_name,
+        author_url: data.author_url,
+        thumbnail_url: data.thumbnail_url,
+        html: data.html,
+      }
     };
   } catch (error: any) {
     console.error('Instagram Fetch Error:', error);
-    throw new Error(error.message || 'An error occurred while fetching media.');
+    return { error: error.message || 'An error occurred while connecting to Instagram. Please try again later.' };
   }
 }

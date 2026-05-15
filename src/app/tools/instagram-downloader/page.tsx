@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import React, { useState } from 'react';
 import { Instagram, Search, Download, Image as ImageIcon, Video, ExternalLink, Info, AlertCircle, CheckCircle2, Share2, Globe, Heart, MessageCircle } from 'lucide-react';
@@ -19,10 +20,17 @@ export default function InstagramDownloaderPage() {
     setResult(null);
 
     try {
-      const data = await fetchInstagramMedia(url);
-      setResult(data);
+      const response = await fetchInstagramMedia(url);
+      if (response.error) {
+        setError(response.error);
+      } else if (response.success && response.data) {
+        setResult(response.data);
+      } else {
+        // Fallback for unexpected response structure
+        setResult(response);
+      }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

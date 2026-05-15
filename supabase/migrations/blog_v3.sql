@@ -70,3 +70,4 @@ CREATE POLICY "Public Read Approved Comments V3" ON public.blog_comments_v3 FOR 
 CREATE POLICY "Admin All Categories V3" ON public.blog_categories_v3 FOR ALL USING (is_admin());
 CREATE POLICY "Admin All Posts V3" ON public.blog_posts_v3 FOR ALL USING (is_admin());
 CREATE POLICY "Admin All Comments V3" ON public.blog_comments_v3 FOR ALL USING (is_admin());
+CREATE POLICY "Auth Users Insert Comments V3" ON public.blog_comments_v3 FOR INSERT WITH CHECK (auth.role() = 'authenticated');
