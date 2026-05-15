@@ -21,7 +21,6 @@ export type BlogPost = {
   seo_description: string | null;
   seo_keywords: string[];
   category: BlogCategory | null;
-  author: { id: string; full_name: string | null } | null;
 };
 
 export async function listPublishedPosts(limit = 20) {
@@ -29,7 +28,7 @@ export async function listPublishedPosts(limit = 20) {
   const { data, error } = await supabase
     .from("blog_posts_v3")
     .select(
-      "id,slug,title,excerpt,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords,content_blocks, category:blog_categories_v3(id,slug,name,description), author:profiles(id,full_name)"
+      "id,slug,title,excerpt,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords,content_blocks, category:blog_categories_v3(id,slug,name,description)"
     )
     .eq("status", "published")
     .order("published_at", { ascending: false })
@@ -44,11 +43,12 @@ export async function getPublishedPostBySlug(slug: string) {
   const { data, error } = await supabase
     .from("blog_posts_v3")
     .select(
-      "id,slug,title,excerpt,content_blocks,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords, category:blog_categories_v3(id,slug,name,description), author:profiles(id,full_name)"
+      "id,slug,title,excerpt,content_blocks,cover_image_url,status,published_at,updated_at,seo_title,seo_description,seo_keywords, category:blog_categories_v3(id,slug,name,description)"
     )
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
+
 
 
   if (error) throw new Error(error.message);

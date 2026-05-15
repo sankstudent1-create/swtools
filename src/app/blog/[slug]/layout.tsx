@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata } from "next";
 import { getPublishedPostBySlug } from "@/lib/blog/queries";
 import { buildPostDescription, buildPostKeywords } from "@/lib/blog/seo";

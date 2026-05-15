@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
 import { getPublishedPostBySlug, listPublishedPosts } from "@/lib/blog/queries";
-import { renderTipTapToHtml } from "@/lib/blog/render";
 import { Calendar, Clock, Tag as TagIcon, ChevronLeft, ArrowRight, Share2, BookOpen } from "lucide-react";
 
 function BlockRenderer({ block }: { block: any }) {
