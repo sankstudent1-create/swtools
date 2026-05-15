@@ -85,7 +85,7 @@ export default function CategoryManager({ initialCategories }: CategoryManagerPr
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
         
         <div className="relative space-y-4">
-          <Link href="/admin/blog" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-2 group">
+          <Link href="/admin/blog3" className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-2 group">
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             Back to V3 Console
           </Link>

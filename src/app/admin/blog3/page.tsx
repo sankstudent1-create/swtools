@@ -40,19 +40,19 @@ export default async function BlogAdminPage() {
 
           <div className="flex flex-wrap items-center gap-3">
              <Link 
-              href="/admin/blog/categories"
+              href="/admin/blog3/categories"
               className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2"
             >
               <Tag size={16} /> Categories
             </Link>
             <Link 
-              href="/admin/blog/comments"
+              href="/admin/blog3/comments"
               className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2"
             >
               <MessageSquare size={16} /> Comments
             </Link>
             <Link 
-              href="/admin/blog/new"
+              href="/admin/blog3/new"
               className="px-8 py-3 rounded-2xl bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-2xl shadow-brand-orange/20 transition-all group"
             >
               <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
@@ -132,7 +132,7 @@ export default async function BlogAdminPage() {
 
               <div className="flex items-center gap-3">
                 <Link 
-                  href={`/admin/blog/edit/${post.id}`}
+                  href={`/admin/blog3/edit/${post.id}`}
                   className="flex-grow py-4 rounded-2xl bg-white/5 hover:bg-brand-orange hover:text-white border border-white/5 text-white/60 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-widest transition-all shadow-xl hover:shadow-brand-orange/20"
                 >
                   <Edit size={16} /> Edit Dispatch
@@ -157,7 +157,7 @@ export default async function BlogAdminPage() {
             </div>
             <h3 className="text-2xl font-black text-white mb-2">The desk is clear</h3>
             <p className="text-white/30 text-lg">No V3 dispatches have been drafted yet.</p>
-            <Link href="/admin/blog/new" className="mt-8 inline-flex items-center gap-2 text-brand-orange font-bold hover:gap-4 transition-all uppercase tracking-widest text-[10px]">
+            <Link href="/admin/blog3/new" className="mt-8 inline-flex items-center gap-2 text-brand-orange font-bold hover:gap-4 transition-all uppercase tracking-widest text-[10px]">
               Create First Post <ChevronRight size={16} />
             </Link>
           </div>

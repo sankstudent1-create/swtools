@@ -104,7 +104,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
 
     try {
       await savePostV3(postData);
-      router.push("/admin/blog");
+      router.push("/admin/blog3");
       router.refresh();
     } catch (e: any) {
       setError(e.message || "Failed to save post");
@@ -119,7 +119,7 @@ export default function PostEditor({ initialData, categories, authorId }: PostEd
       <nav className="sticky top-0 z-50 bg-[#07090f]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <Link href="/admin/blog" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white border border-white/5 transition-all">
+            <Link href="/admin/blog3" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white border border-white/5 transition-all">
               <ArrowLeft size={20} />
             </Link>
             <div className="h-6 w-px bg-white/10 hidden md:block" />
