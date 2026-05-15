@@ -20,8 +20,9 @@ export interface PostV3 {
   category_id: string | null;
   status: 'draft' | 'published';
   author_id: string;
-  seo_keywords?: string[] | null;
+  seo_title?: string | null;
   seo_description?: string | null;
+  seo_keywords?: string[] | null;
   published_at?: string | null;
 }
 
@@ -38,13 +39,26 @@ export async function getPostsV3() {
 
 export async function getPostV3(idOrSlug: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  
+  // Check if it's a UUID to avoid Supabase errors when querying the id column
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+  
+  let query = supabase
     .from('blog_posts_v3')
-    .select('*, blog_categories_v3(*)')
-    .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
-    .single();
+    .select('*, blog_categories_v3(*)');
+
+  if (isUuid) {
+    query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`);
+  } else {
+    query = query.eq('slug', idOrSlug);
+  }
+
+  const { data, error } = await query.single();
     
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching post:', error);
+    return null;
+  }
   return data;
 }
 

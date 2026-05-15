@@ -29,6 +29,10 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
   const [categoryId, setCategoryId] = useState(initialData?.category_id || "");
   const [status, setStatus] = useState(initialData?.status || "draft");
   const [coverImageUrl, setCoverImageUrl] = useState(initialData?.cover_image_url || "");
+  const [seoTitle, setSeoTitle] = useState(initialData?.seo_title || "");
+  const [seoDescription, setSeoDescription] = useState(initialData?.seo_description || "");
+  const [seoKeywords, setSeoKeywords] = useState<string>(initialData?.seo_keywords?.join(", ") || "");
+  const [activeTab, setActiveTab] = useState<'content' | 'seo'>('content');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +86,9 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
       category_id: categoryId || null,
       status: newStatus || status,
       author_id: authorId,
+      seo_title: seoTitle || null,
+      seo_description: seoDescription || null,
+      seo_keywords: seoKeywords ? seoKeywords.split(",").map(s => s.trim()) : [],
       published_at: (newStatus || status) === 'published' ? (initialData?.published_at || new Date().toISOString()) : null
     };
 
@@ -117,6 +124,20 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex bg-white/5 rounded-xl p-1 border border-white/5 mr-4">
+            <button 
+              onClick={() => setActiveTab('content')}
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'content' ? 'bg-brand-orange text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+            >
+              Content
+            </button>
+            <button 
+              onClick={() => setActiveTab('seo')}
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'seo' ? 'bg-indigo-500 text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+            >
+              SEO Meta
+            </button>
+          </div>
           <button onClick={() => handleSave('draft')} disabled={loading} className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold flex items-center gap-2 transition-all">
             <Save size={18} /> Save Draft
           </button>
@@ -128,22 +149,54 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
-          {/* Metadata */}
-          <div className="space-y-4">
-            <input
-              placeholder="Post Title..."
-              className="w-full bg-transparent text-5xl font-black tracking-tighter border-none focus:ring-0 placeholder-white/10 p-0 italic"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <div className="flex items-center gap-4 py-2 border-y border-white/5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/20">slug:</span>
-              <input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-transparent border-none p-0 text-sm font-mono text-indigo-400 focus:ring-0 w-full" />
-            </div>
-          </div>
+          {activeTab === 'content' ? (
+            <>
+              {/* Metadata */}
+              <div className="space-y-4">
+                <input
+                  placeholder="Post Title..."
+                  className="w-full bg-transparent text-5xl font-black tracking-tighter border-none focus:ring-0 placeholder-white/10 p-0 italic"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <div className="flex items-center gap-4 py-2 border-y border-white/5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/20">slug:</span>
+                  <input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-transparent border-none p-0 text-sm font-mono text-indigo-400 focus:ring-0 w-full" />
+                </div>
+              </div>
 
-          {/* Blocks List */}
-          <div className="space-y-4">
+              {/* Smart Add Bar */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-orange/20 to-indigo-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+                <div className="relative bg-white/5 border border-white/10 rounded-3xl p-1 flex items-center gap-2">
+                  <input 
+                    placeholder="Paste a link (Image, YouTube) or start typing..."
+                    className="flex-grow bg-transparent border-none focus:ring-0 text-sm px-4 py-3"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = e.currentTarget.value;
+                        if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                          const newBlock: BlogBlock = { id: Math.random().toString(36).substr(2, 9), type: 'youtube', content: { src: val } };
+                          setBlocks([...blocks, newBlock]);
+                        } else if (val.match(/\.(jpeg|jpg|gif|png|webp)$/) || val.startsWith('https://images.unsplash.com')) {
+                          const newBlock: BlogBlock = { id: Math.random().toString(36).substr(2, 9), type: 'image', content: { src: val, alt: '' } };
+                          setBlocks([...blocks, newBlock]);
+                        } else if (val.length > 0) {
+                          const newBlock: BlogBlock = { id: Math.random().toString(36).substr(2, 9), type: 'text', content: { text: val } };
+                          setBlocks([...blocks, newBlock]);
+                        }
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                  <div className="flex items-center gap-1 pr-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20 px-2 py-1 bg-white/5 rounded-lg border border-white/5">Press Enter to Add</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Blocks List */}
+              <div className="space-y-4">
             {blocks.map((block, index) => (
               <div key={block.id} className="group relative bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all">
                 <div className="absolute -left-12 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -239,40 +292,100 @@ export default function PostEditor3({ initialData, categories, authorId }: PostE
               <Play size={14} className="text-rose-500" /> YouTube
             </button>
           </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="ui-modal-shell p-8 bg-white/[0.01] border-white/5 rounded-3xl space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
-              <Settings size={14} className="text-brand-orange" /> Settings
-            </h3>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Category</label>
-                <select 
-                  value={categoryId} 
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none"
-                >
-                  <option value="" className="bg-[#07090f]">Unclassified</option>
-                  {categories.map(c => <option key={c.id} value={c.id} className="bg-[#07090f]">{c.name}</option>)}
-                </select>
+        </>
+      ) : (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white/[0.02] border border-white/5 rounded-[32px] p-10 space-y-8">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                <Sparkles size={24} />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Excerpt</label>
+              <div>
+                <h3 className="text-xl font-black tracking-tight text-white italic">Search Optimization</h3>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">Boost your story visibility</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">SEO Title</label>
+                <input 
+                  value={seoTitle} 
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                  placeholder="Custom meta title for Google..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">SEO Description</label>
                 <textarea 
-                  value={excerpt} 
-                  onChange={(e) => setExcerpt(e.target.value)}
+                  value={seoDescription} 
+                  onChange={(e) => setSeoDescription(e.target.value)}
                   rows={4}
-                  className="w-full bg-white/5 border border-white/10 text-xs py-3 rounded-xl focus:ring-0 resize-none"
-                  placeholder="Summary..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none"
+                  placeholder="Meta description for search results..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Keywords (Comma separated)</label>
+                <input 
+                  value={seoKeywords} 
+                  onChange={(e) => setSeoKeywords(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                  placeholder="tech, design, future..."
                 />
               </div>
             </div>
           </div>
         </div>
+      )}
+    </div>
+
+    {/* Sidebar */}
+    <div className="lg:col-span-4 space-y-6">
+      <div className="ui-modal-shell p-8 bg-white/[0.01] border-white/5 rounded-3xl space-y-6 sticky top-12">
+        <h3 className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
+          <Settings size={14} className="text-brand-orange" /> Publishing Options
+        </h3>
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Category</label>
+            <select 
+              value={categoryId} 
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:outline-none appearance-none"
+            >
+              <option value="" className="bg-[#07090f]">Unclassified</option>
+              {categories.map(c => <option key={c.id} value={c.id} className="bg-[#07090f]">{c.name}</option>)}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Cover Image URL</label>
+            <input 
+              value={coverImageUrl} 
+              onChange={(e) => setCoverImageUrl(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs focus:outline-none"
+              placeholder="https://..."
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-white/20 block px-1">Quick Excerpt</label>
+            <textarea 
+              value={excerpt} 
+              onChange={(e) => setExcerpt(e.target.value)}
+              rows={4}
+              className="w-full bg-white/5 border border-white/10 text-xs py-3 px-3 rounded-xl focus:ring-0 resize-none"
+              placeholder="Summary for cards..."
+            />
+          </div>
+        </div>
       </div>
     </div>
-  );
+  </div>
+</div>
+);
 }
