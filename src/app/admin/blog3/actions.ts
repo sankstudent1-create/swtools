@@ -53,12 +53,13 @@ export async function getPostV3(idOrSlug: string) {
     query = query.eq('slug', idOrSlug);
   }
 
-  const { data, error } = await query.single();
+  const { data, error } = await query.maybeSingle();
     
   if (error) {
-    console.error('Error fetching post:', error);
+    console.error('Database error in getPostV3:', error);
     return null;
   }
+  
   return data;
 }
 

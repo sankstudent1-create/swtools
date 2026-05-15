@@ -23,9 +23,9 @@ export async function generateMetadata({ params }: BlogPostV3PageProps): Promise
 }
 
 interface BlogPostV3PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 function BlockRenderer({ block }: { block: any }) {
