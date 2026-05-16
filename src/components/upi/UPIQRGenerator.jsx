@@ -75,7 +75,7 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 4, 
+        scale: 5, // Ultra-high quality
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
@@ -83,20 +83,15 @@ const UPIQRGenerator = ({
         onclone: (clonedDoc) => {
           const card = clonedDoc.getElementById('upi-qr-card-container');
           if (card) {
-            // Traverse all elements to remove oklab/oklch colors which crash html2canvas
+            // Fix modern colors that html2canvas can't parse
             const elements = card.getElementsByTagName('*');
             for (let i = 0; i < elements.length; i++) {
               const el = elements[i];
               const style = window.getComputedStyle(el);
-              
-              // If any color property contains 'oklch' or 'oklab', force to rgb
               const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
               props.forEach(prop => {
                 const val = style[prop];
                 if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
-                  // We use a safe fallback or try to get the computed rgb
-                  // In most browsers style[prop] already returns rgb for computed styles
-                  // but in some cases with Tailwind v4 it might keep the modern function
                   el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
                 }
               });
@@ -105,7 +100,7 @@ const UPIQRGenerator = ({
         }
       });
       const link = document.createElement('a');
-      link.download = `upi-payment-${upiId.replace(/[@.]/g, '-') || 'qr'}.png`;
+      link.download = `upi-qr-${upiId.replace(/[@.]/g, '-') || 'payment'}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     } catch (err) {
@@ -118,7 +113,7 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
@@ -200,8 +195,16 @@ const UPIQRGenerator = ({
       >
         {/* Subtle background gradient pattern */}
         <div 
-          className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] blur-3xl rounded-full" 
-          style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', pointerEvents: 'none' }}
+          className="absolute inset-0 opacity-[0.05]" 
+          style={{ 
+            background: `
+              radial-gradient(at 0% 0%, #3b82f6 0px, transparent 50%),
+              radial-gradient(at 100% 0%, #8b5cf6 0px, transparent 50%),
+              radial-gradient(at 100% 100%, #ec4899 0px, transparent 50%),
+              radial-gradient(at 0% 100%, #f97316 0px, transparent 50%)
+            `,
+            pointerEvents: 'none' 
+          }}
         ></div>
 
         {/* Branding Header - SW Tools Logo */}
@@ -221,19 +224,12 @@ const UPIQRGenerator = ({
           </div>
           <div className="flex items-center gap-2">
             <div className="h-6 w-px" style={{ backgroundColor: '#e5e7eb' }}></div>
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(135deg, #f97316, #ec4899)',
-                boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06)'
-              }}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" className="w-4 h-4">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-            </div>
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo.png/800px-UPI-Logo.png" 
+              alt="UPI" 
+              className="h-4 w-auto object-contain opacity-80" 
+              crossOrigin="anonymous"
+            />
           </div>
         </div>
 
@@ -271,20 +267,22 @@ const UPIQRGenerator = ({
 
         {/* Payee Details */}
         <div className="mt-8 text-center w-full relative z-10">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="font-black text-2xl tracking-tight" style={{ color: '#000000', margin: 0 }}>{name || 'Secure Payment'}</p>
-            {name && (
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center gap-2 mb-1.5">
+              <p className="font-black text-3xl tracking-tighter" style={{ color: '#000000', margin: 0 }}>{name || 'Secure Merchant'}</p>
               <div 
-                className="w-5 h-5 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: '#10b981' }}
+                className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+                style={{ backgroundColor: '#10b981', boxShadow: '0 4px 10px rgba(16,185,129,0.3)' }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" className="w-3 h-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3.5" className="w-3.5 h-3.5">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
-            )}
+            </div>
+            <div className="flex items-center gap-2 py-1 px-3 rounded-full bg-blue-50/50 border border-blue-100">
+               <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: '#2563eb' }}>{upiId || 'PAYMENT ADDRESS'}</span>
+            </div>
           </div>
-          <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#3b82f6', opacity: 0.4, margin: 0 }}>{upiId || 'VIRTUAL PAYMENT ADDRESS'}</p>
           
           {amount && (
             <div className="mt-6 relative inline-block">

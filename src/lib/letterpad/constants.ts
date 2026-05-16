@@ -72,15 +72,15 @@ export function svgToDataUri(key: string): string {
 
 // ── Office Presets ────────────────────────────
 export const OFFICE_PRESETS: Record<string, OfficePreset> = {
-  dop:      { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'(Establishment Division)', ofc:'Dak Bhavan, Sansad Marg', city:'New Delhi', pin:'110 001', ph:'011-23096000', em:'directorpost@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
+  dop:      { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'(Establishment Division)', ofc:'Dak Bhavan, Sansad Marg', city:'New Delhi', pin:'110 001', ph:'011-23096000', em:'directorpost@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
   pm:       { h1:'', h2:'', e1:'', e2:'', dept:'Prime Minister', divn:'', ofc:'South Block', city:'New Delhi', pin:'110 001', ph:'011-23012312', em:'connect@pmindia.gov.in', wb:'www.pmindia.gov.in', ll:'ashoka', lr:null, t:'B' },
   minister: { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'Ministry of ___', dept:'Cabinet Minister', divn:'', ofc:'North Block', city:'New Delhi', pin:'110 001', ph:'', em:'', wb:'india.gov.in', ll:'ashoka', lr:null, t:'B' },
-  mp:       { h1:'लोक सभा', h2:'भारत', e1:'LOK SABHA', e2:'INDIA', dept:'Member of Parliament', divn:'', ofc:'Parliament House', city:'New Delhi', pin:'110 001', ph:'011-23034000', em:'', wb:'www.loksabha.nic.in', ll:'sansad', lr:'ashoka', t:'C' },
+  mp:       { h1:'लोक सभा', h2:'भारत', e1:'LOK SABHA', e2:'INDIA', dept:'Member of Parliament', divn:'', ofc:'Parliament House', city:'New Delhi', pin:'110 001', ph:'011-23034000', em:'', wb:'www.loksabha.nic.in', ll:'ashoka', lr:null, t:'C' },
   mla:      { h1:'विधान सभा', h2:'', e1:'VIDHAN SABHA', e2:'', dept:'Member of Legislative Assembly', divn:'', ofc:'Assembly Secretariat', city:'State Capital', pin:'', ph:'', em:'', wb:'', ll:'ashoka', lr:null, t:'D' },
-  district: { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'', ofc:'O/o the Supdt. of Post Offices', city:'Nagpur', pin:'440 001', ph:'0712-2540001', em:'spo-ngp@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
-  rms:      { h1:'भारत सरकार', h2:'रेल डाक सेवा', e1:'Government of India', e2:'Railway Mail Service', dept:'Dept of Posts – RMS', divn:'', ofc:'O/o the Sr. Supdt., RMS', city:'', pin:'', ph:'', em:'', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
-  savings:  { h1:'भारत सरकार', h2:'डाकघर बचत बैंक', e1:'Government of India', e2:'Post Office Savings Bank', dept:'Department of Posts', divn:'', ofc:'Head Post Office', city:'', pin:'', ph:'', em:'posb@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
-  custom:   { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'', dept:'', divn:'', ofc:'', city:'', pin:'', ph:'', em:'', wb:'', ll:null, lr:'ashoka', t:'A' },
+  district: { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'', ofc:'O/o the Supdt. of Post Offices', city:'Nagpur', pin:'440 001', ph:'0712-2540001', em:'spo-ngp@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
+  rms:      { h1:'भारत सरकार', h2:'रेल डाक सेवा', e1:'Government of India', e2:'Railway Mail Service', dept:'Dept of Posts – RMS', divn:'', ofc:'O/o the Sr. Supdt., RMS', city:'', pin:'', ph:'', em:'', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
+  savings:  { h1:'भारत सरकार', h2:'डाकघर बचत बैंक', e1:'Government of India', e2:'Post Office Savings Bank', dept:'Department of Posts', divn:'', ofc:'Head Post Office', city:'', pin:'', ph:'', em:'posb@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
+  custom:   { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'', dept:'', divn:'', ofc:'', city:'', pin:'', ph:'', em:'', wb:'', ll:'ashoka', lr:null, t:'A' },
 };
 
 // ── Default form values ───────────────────────

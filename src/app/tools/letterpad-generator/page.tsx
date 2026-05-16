@@ -146,6 +146,23 @@ export default function LetterpadGeneratorPage() {
 
   return (
     <div className={styles.letterpadRoot}>
+        {isCharging && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#07090f]/80 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-[#1c2332] border border-white/10 rounded-3xl p-8 flex flex-col items-center max-w-sm w-full mx-4 shadow-2xl">
+              <div className="w-16 h-16 relative mb-6">
+                <div className="absolute inset-0 border-4 border-brand-orange/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-brand-orange rounded-full animate-spin"></div>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Generating PDF...</h3>
+              <p className="text-white/60 text-center text-sm mb-6">
+                We are processing your document and increasing the output quality for a premium look.
+              </p>
+              <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-brand-orange to-brand-pink w-2/3 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Google Fonts */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link

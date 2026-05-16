@@ -109,22 +109,9 @@ export function useLetterState() {
       
       if (isFull) {
         const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2].join(' ').toLowerCase();
-        if (fullDeptStr.includes('post') || fullDeptStr.includes('dak') || fullDeptStr.includes('mail')) {
-          newLogoL = svgToDataUri('ip');
-          newLogoR = svgToDataUri('ashoka');
-        } else if (fullDeptStr.includes('prime minister') || fullDeptStr.includes('pm ')) {
-          newLogoL = svgToDataUri('ashoka');
-          newLogoR = null;
-        } else if (fullDeptStr.includes('parliament') || fullDeptStr.includes('sansad')) {
-          newLogoL = svgToDataUri('sansad');
-          newLogoR = svgToDataUri('ashoka');
-        } else if (fullDeptStr.includes('maharashtra')) {
-          newLogoL = svgToDataUri('mh');
-          newLogoR = null;
-        } else if (fullDeptStr.includes('government of india') || fullDeptStr.includes('ministry')) {
-          newLogoL = null;
-          newLogoR = svgToDataUri('ashoka');
-        }
+        // User requested to only keep Ashoka logo
+        newLogoL = svgToDataUri('ashoka');
+        newLogoR = null;
       }
 
       return {

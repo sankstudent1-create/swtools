@@ -41,12 +41,43 @@ export async function elementToPdfBlobA4(el: HTMLElement) {
   const { jsPDF } = await import('jspdf')
 
   const canvas = await html2canvas(el, {
-    scale: 3,
+    scale: 4, // Increased quality
     useCORS: true,
     backgroundColor: '#ffffff',
     logging: false,
     imageTimeout: 0,
-    allowTaint: true
+    allowTaint: true,
+    onclone: (clonedDoc) => {
+      // Hide all UI handles, buttons and hints that shouldn't be in the PDF
+      const selectorsToHide = [
+        '[class*="resizeHandle"]',
+        '[class*="delBtn"]',
+        '[class*="editHint"]'
+      ];
+      selectorsToHide.forEach(sel => {
+        const elements = clonedDoc.querySelectorAll(sel);
+        elements.forEach(e => (e as HTMLElement).style.display = 'none');
+      });
+
+      // Fix modern colors that html2canvas can't parse
+      const allElements = clonedDoc.getElementsByTagName('*');
+      for (let i = 0; i < allElements.length; i++) {
+        const element = allElements[i] as HTMLElement;
+        const style = window.getComputedStyle(element);
+        const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
+        props.forEach(prop => {
+          const val = style[prop as any];
+          if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
+            element.style[prop as any] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+          }
+        });
+        
+        // Ensure placeholders are hidden in print if empty
+        if (element.hasAttribute('data-placeholder') && !element.textContent?.trim()) {
+           element.style.visibility = 'hidden';
+        }
+      }
+    }
   })
 
   const imgData = canvas.toDataURL('image/jpeg', 1.0)
