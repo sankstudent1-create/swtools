@@ -114,7 +114,7 @@ export function useLetterState() {
         const ASHOKA_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHAZ8fV85dhWQVY6Ol8Nu_FnNEx9Wjs5NFgQ&s";
         const SWACHH_URL = "https://upload.wikimedia.org/wikipedia/commons/3/32/Swachh_Bharat_Mission_Logo.svg";
         const INDIA_POST_URL = "https://www.presentations.gov.in/wp-content/uploads/2020/06/India-Post_Preview.png";
-        const RAILWAY_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s";
+        const RAILWAY_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxs6uvgxa9E07NrWZrqMLUiT93LJgGhxFr4dhABFSAog&s";
 
         isHigherPost = isFull && (
           data.letter_type === 'pm_do' ||

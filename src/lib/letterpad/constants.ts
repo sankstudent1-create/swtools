@@ -65,7 +65,7 @@ ${SPOKES_24}
 export function svgToDataUri(key: string): string {
   if (key === 'ip') return 'https://www.presentations.gov.in/wp-content/uploads/2020/06/India-Post_Preview.png';
   if (key === 'ashoka') return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHAZ8fV85dhWQVY6Ol8Nu_FnNEx9Wjs5NFgQ&s';
-  if (key === 'railway') return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s';
+  if (key === 'railway') return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxs6uvgxa9E07NrWZrqMLUiT93LJgGhxFr4dhABFSAog&s';
   if (key === 'swachh') return 'https://upload.wikimedia.org/wikipedia/commons/3/32/Swachh_Bharat_Mission_Logo.svg';
   const svg = SVG_LOGOS[key];
   if (!svg) return '';
