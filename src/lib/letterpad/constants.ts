@@ -118,7 +118,7 @@ export const DEFAULT_FORM: LetterForm = {
   endorsement: '',
 };
 
-export const DEFAULT_LOGO_POS: LogoPos = { x: 42, y: 14, w: 100, placed: false };
+export const DEFAULT_LOGO_POS: LogoPos = { x: 42, y: 18, w: 100, placed: false };
 
 export const TEMPLATE_INFO: Record<TemplateType, { label: string; desc: string }> = {
   A: { label: 'Type-A · Classic DoP / Dak Bhavan', desc: 'FileNo left · Logo right · Stars divider' },

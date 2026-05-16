@@ -75,7 +75,7 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 6, // Ultra-high quality
+        scale: 8, // Extreme-high quality
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
@@ -216,34 +216,34 @@ const UPIQRGenerator = ({
         ></div>
 
         {/* Branding Header - SW Tools Logo */}
-        <div className="w-full flex justify-between items-center mb-10 relative z-10 pt-2">
-          <div className="flex items-center gap-4">
+        <div className="w-full flex justify-between items-center mb-8 relative z-10 pt-1">
+          <div className="flex items-center gap-3">
             <div 
-              className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
+              className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
               style={{ 
                 background: 'linear-gradient(135deg, #000000, #1f2937)', 
-                boxShadow: '0 8px 16px -4px rgba(0,0,0,0.2)' 
+                boxShadow: '0 4px 10px -2px rgba(0,0,0,0.2)' 
               }}
             >
-              <img src="/icon-512.png" alt="SW Tools" className="w-9 h-9 object-contain" crossOrigin="anonymous" />
+              <img src="/icon-512.png" alt="SW Tools" className="w-7 h-7 object-contain" crossOrigin="anonymous" />
             </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-black uppercase tracking-[0.2em] leading-none" style={{ color: '#6b7280' }}>SW Info Systems</span>
-              <span className="text-2xl font-black tracking-tight leading-none" style={{ color: '#111827' }}>SW TOOLS</span>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[12px] font-bold tracking-wide text-green-600 uppercase">Secure UPI</span>
+            <div className="flex flex-col gap-0">
+              <span className="text-[10px] font-black uppercase tracking-[0.15em] leading-none mb-0.5" style={{ color: '#94a3b8' }}>SW Info Systems</span>
+              <span className="text-lg font-black tracking-tight leading-none" style={{ color: '#1e293b' }}>SW TOOLS</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-[10px] font-bold tracking-wider text-green-600 uppercase">Secure UPI</span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-col items-end gap-1">
             <img 
               src="https://www.npci.org.in/images/npci/upi/upi-logo.png" 
               alt="UPI" 
-              className="h-7 w-auto object-contain" 
+              className="h-5 w-auto object-contain opacity-90" 
               crossOrigin="anonymous"
             />
-            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-tighter">Unified Payments</span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">NPCI Verified</span>
           </div>
         </div>
 
@@ -280,49 +280,50 @@ const UPIQRGenerator = ({
         </div>
 
         {/* Payee Details */}
-        <div className="mt-10 text-center w-full relative z-10 px-2">
+        <div className="mt-8 text-center w-full relative z-10 px-2">
           <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center gap-2.5 mb-2">
-              <h3 className="font-black text-3xl tracking-tighter leading-tight" style={{ color: '#000000', margin: 0 }}>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h3 className="font-black text-2xl tracking-tight leading-none" style={{ color: '#0f172a', margin: 0 }}>
                 {name || 'Secure Merchant'}
               </h3>
               <div 
-                className="w-7 h-7 rounded-full flex items-center justify-center shadow-lg flex-shrink-0"
+                className="w-6 h-6 rounded-full flex items-center justify-center shadow-md flex-shrink-0"
                 style={{ 
                   background: 'linear-gradient(135deg, #10b981, #059669)', 
-                  boxShadow: '0 4px 12px rgba(16,185,129,0.3)' 
+                  boxShadow: '0 2px 8px rgba(16,185,129,0.3)' 
                 }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="4" className="w-4 h-4">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="4" className="w-3.5 h-3.5">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
             </div>
             
-            <div className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-blue-50 border border-blue-100/50 mb-6">
-               <span className="text-[11px] font-black tracking-[0.15em] uppercase" style={{ color: '#2563eb' }}>
+            <div className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-slate-50 border border-slate-200/60 mb-5">
+               <span className="text-[10px] font-black tracking-wider uppercase" style={{ color: '#64748b' }}>
                  {upiId || 'PAYMENT ADDRESS'}
                </span>
             </div>
           </div>
           
           {amount && (
-            <div className="relative inline-block w-full">
+            <div className="mt-4 relative inline-block w-full max-w-[200px]">
               <div 
-                className="absolute inset-x-0 -top-4 -bottom-4 blur-3xl opacity-[0.08] rounded-full"
-                style={{ backgroundColor: '#2563eb' }}
+                className="absolute inset-x-0 -top-2 -bottom-2 blur-xl opacity-[0.05] rounded-full"
+                style={{ backgroundColor: '#1e293b' }}
               ></div>
               <div 
-                className="relative py-4 px-8 rounded-[2rem] flex flex-col items-center gap-1"
+                className="relative py-3 px-6 rounded-2xl flex flex-col items-center gap-0.5"
                 style={{ 
-                  background: 'linear-gradient(135deg, #111827, #000000)',
-                  boxShadow: '0 15px 35px -5px rgba(0,0,0,0.2)'
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
                 }}
               >
-                <span className="text-[10px] font-black tracking-[0.25em] opacity-40 uppercase" style={{ color: '#ffffff' }}>Amount to Pay</span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-blue-400">₹</span>
-                  <span className="text-5xl font-black tracking-tighter text-white">{amount}</span>
+                <span className="text-[9px] font-black tracking-[0.2em] opacity-50 uppercase text-slate-500">Amount to Pay</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-black text-slate-400">₹</span>
+                  <span className="text-3xl font-black tracking-tighter text-slate-900">{amount}</span>
                 </div>
               </div>
             </div>
