@@ -12,8 +12,8 @@ const INITIAL_STATE: AppState = {
   officeType: 'dop',
   logoL: null,
   logoR: null,
-  posL: { ...DEFAULT_LOGO_POS, x: 42, y: 14, w: 68 },
-  posR: { ...DEFAULT_LOGO_POS, x: 700, y: 14, w: 68 },
+  posL: { ...DEFAULT_LOGO_POS, x: 42, y: 14, w: 92 },
+  posR: { ...DEFAULT_LOGO_POS, x: 660, y: 14, w: 92 },
   sigUrl: null,
   sigMode: 'draw',
   showEncl: false,
@@ -111,7 +111,7 @@ export function useLetterState() {
         const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2, data.signatory_designation].join(' ').toLowerCase();
         
         const ASHOKA_URL = "https://cdn.brandfetch.io/id5TIX5ySw/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773361983668";
-        const INDIA_POST_URL = "https://cdn.brandfetch.io/idFzXD7W3c/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1771316003295";
+        const INDIA_POST_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgyE5GVmnBOyQiy0AveMpnPmeiJhLjLZld_-aEpgH9KpT_YSedoqnMagbtR3uP0KZvo0iiGqgESWSetBUgwwL1z-frzblwInOhqxyrcGUztjB4cB5k0dHbR_0pcj4JCX3Gzzs26LOfMFdyG1nuI7sWt4UbLCrVEhXvwX5uStq1r2PaofAqlM0a4tZ-aPhI/s2620-rw/India%20Post%20Dak%20Sewa%20Jan%20Sewa%20New%20Logo%20Final.png";
         const RAILWAY_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s";
 
         if (fullDeptStr.includes('post') || fullDeptStr.includes('dak') || fullDeptStr.includes('mail')) {
@@ -159,8 +159,8 @@ export function useLetterState() {
       tpl: isHigherPost ? 'B' : (isFull ? 'A' : s.tpl),
       logoL: newLogoL,
       logoR: newLogoR,
-      posL: isHigherPost ? { ...s.posL, x: 363, y: 14, w: 68, placed: true } : (isFull ? { ...s.posL, x: 42, y: 14, w: 68, placed: true } : s.posL),
-      posR: (isFull && newLogoR) ? { ...s.posR, x: 682, y: 14, w: 68, placed: true } : s.posR,
+      posL: isHigherPost ? { ...s.posL, x: 351, y: 14, w: 92, placed: true } : (isFull ? { ...s.posL, x: 42, y: 14, w: 92, placed: true } : s.posL),
+      posR: (isFull && newLogoR) ? { ...s.posR, x: 660, y: 14, w: 92, placed: true } : s.posR,
       showEncl: !!(data.encl?.trim()),
       showCopy: !!(data.copy_to?.length),
       form: {

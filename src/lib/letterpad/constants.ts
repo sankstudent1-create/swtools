@@ -63,7 +63,7 @@ ${SPOKES_24}
 };
 
 export function svgToDataUri(key: string): string {
-  if (key === 'ip') return 'https://cdn.brandfetch.io/idFzXD7W3c/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1771316003295';
+  if (key === 'ip') return 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgyE5GVmnBOyQiy0AveMpnPmeiJhLjLZld_-aEpgH9KpT_YSedoqnMagbtR3uP0KZvo0iiGqgESWSetBUgwwL1z-frzblwInOhqxyrcGUztjB4cB5k0dHbR_0pcj4JCX3Gzzs26LOfMFdyG1nuI7sWt4UbLCrVEhXvwX5uStq1r2PaofAqlM0a4tZ-aPhI/s2620-rw/India%20Post%20Dak%20Sewa%20Jan%20Sewa%20New%20Logo%20Final.png';
   if (key === 'ashoka') return 'https://cdn.brandfetch.io/id5TIX5ySw/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773361983668';
   if (key === 'railway') return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s';
   const svg = SVG_LOGOS[key];
@@ -118,7 +118,7 @@ export const DEFAULT_FORM: LetterForm = {
   endorsement: '',
 };
 
-export const DEFAULT_LOGO_POS: LogoPos = { x: 42, y: 14, w: 68, placed: false };
+export const DEFAULT_LOGO_POS: LogoPos = { x: 42, y: 14, w: 92, placed: false };
 
 export const TEMPLATE_INFO: Record<TemplateType, { label: string; desc: string }> = {
   A: { label: 'Type-A · Classic DoP / Dak Bhavan', desc: 'FileNo left · Logo right · Stars divider' },
