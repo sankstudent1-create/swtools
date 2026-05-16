@@ -39,7 +39,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const SITE = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+const SITE = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://tools.swinfosystems.online");
 
 export const metadata: Metadata = {
   metadataBase: SITE,

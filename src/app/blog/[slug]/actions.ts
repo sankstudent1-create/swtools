@@ -3,14 +3,14 @@
 import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function submitComment(postId: string, content: string, slug: string) {
+export async function submitComment(postId: string, content: string) {
   const supabase = await createClient();
-  
+
   // Get authenticated user
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
-    return { error: "You must be logged in to comment." };
+    throw new Error("You must be logged in to comment.");
   }
 
   // Get user profile for name/email if possible, or use auth data
@@ -36,10 +36,9 @@ export async function submitComment(postId: string, content: string, slug: strin
 
   if (error) {
     console.error('Error submitting comment:', error);
-    return { error: "Failed to submit comment. Please ensure you are logged in." };
+    throw new Error("Failed to submit comment.");
   }
 
-  // Revalidate the specific blog post page
-  revalidatePath(`/blog/${slug}`); 
+  revalidatePath(`/blog/[slug]`, 'page');
   return { success: true };
 }

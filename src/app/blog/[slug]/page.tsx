@@ -5,12 +5,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createSupabaseServerClient as createClient } from "@/lib/supabase/server";
 import CommentSection from "./CommentSection";
+import ShareButtons from "./ShareButtons";
 
 export async function generateMetadata({ params }: BlogPostV3PageProps): Promise<Metadata> {
   try {
     const { slug } = await params;
     const post = await getPostV3(slug);
-    
+
     if (!post) return { title: 'Post Not Found | SW Tools' };
 
     return {
@@ -66,7 +67,7 @@ function BlockRenderer({ block }: { block: any }) {
         // Fallback for raw IDs or other formats
         videoId = block.content.src.split('/').pop()?.split('?')[0] || block.content.src;
       }
-        
+
       return (
         <div className="my-12 aspect-video rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
           <iframe
@@ -105,7 +106,7 @@ export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
           <Link href="/blog" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-brand-orange transition-colors mb-12">
             <ArrowLeft size={14} /> Back to Stories
           </Link>
-          
+
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 rounded-full bg-brand-orange/10 text-brand-orange text-[9px] font-black uppercase tracking-widest border border-brand-orange/20">
@@ -115,11 +116,11 @@ export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
                 <Calendar size={12} /> {new Date(post.published_at || post.created_at).toLocaleDateString()}
               </span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white italic leading-[0.95]">
               {post.title}
             </h1>
-            
+
             <p className="text-xl text-white/40 font-medium leading-relaxed italic">
               {post.excerpt}
             </p>
@@ -144,28 +145,20 @@ export default async function BlogPostV3Page({ params }: BlogPostV3PageProps) {
           ))}
         </div>
 
-        {/* Share Section */}
         <div className="mt-20 pt-12 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
             <h4 className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-4">Share this Story</h4>
-            <div className="flex items-center gap-4">
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
-                <Globe size={18} />
-              </button>
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
-                <Mail size={18} />
-              </button>
-              <button className="w-10 h-10 rounded-full bg-white/5 hover:bg-brand-orange text-white flex items-center justify-center transition-all">
-                <Share2 size={18} />
-              </button>
-            </div>
+            <ShareButtons 
+              title={post.title} 
+              excerpt={post.excerpt} 
+              url={`${process.env.NEXT_PUBLIC_SITE_URL}/blog/${post.slug}`} 
+            />
           </div>
         </div>
 
         {/* Comments Section */}
-        <CommentSection 
+        <CommentSection
           postId={post.id}
-          postSlug={post.slug}
           initialComments={comments}
           isLoggedIn={!!user}
           user={user}

@@ -2,7 +2,7 @@ import { getPostsV3 } from "@/lib/blog-v3/queries";
 
 export async function GET() {
   const posts = await getPostsV3(true);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://swtools.in';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://tools.swinfosystems.online';
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

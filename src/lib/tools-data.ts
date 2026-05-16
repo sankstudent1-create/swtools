@@ -17,7 +17,6 @@ import {
   Calculator,
   Smartphone,
   Video,
-  Instagram,
 } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
@@ -308,17 +307,6 @@ export const TOOLS_DATA: ToolEntry[] = [
     bg: "bg-red-400/10",
     border: "border-red-400/20",
     href: "/tools/youtube-stats",
-  },
-  {
-    id: "instagram-downloader",
-    name: "Instagram Media Downloader",
-    description: "Extract high-quality images and videos from Instagram posts and reels with ease.",
-    category: "Video Utility",
-    icon: Instagram,
-    accent: "text-pink-400",
-    bg: "bg-pink-400/10",
-    border: "border-pink-400/20",
-    href: "/tools/instagram-downloader",
   },
 ];
 

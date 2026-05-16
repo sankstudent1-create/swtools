@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { readdir } from "node:fs/promises";
 import path from "node:path";
+import { getPostsV3 } from "@/lib/blog-v3/queries";
 
 const EXCLUDED_APP_ROUTES = new Set([
   "api",
@@ -57,25 +58,32 @@ async function collectAppRoutes(): Promise<string[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tools.swinfosystems.online";
   const siteUrl = rawSiteUrl.replace(/\/+$/, "");
   const now = new Date();
+  
+  // Collect static routes
   const routes = await collectAppRoutes();
-
   const baseRoutes = routes.map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified: now,
-    changeFrequency: route === "" ? "weekly" : "monthly",
+    changeFrequency: route === "" ? "weekly" : "monthly" as any,
     priority: route === "" ? 1 : route === "/tools" ? 0.9 : 0.8,
   }));
 
-  return [
-    ...baseRoutes,
-    {
-      url: `${siteUrl}/blog/sitemap.xml`,
-      lastModified: now,
-      changeFrequency: "daily",
+  // Collect blog posts
+  let blogRoutes: any[] = [];
+  try {
+    const posts = await getPostsV3(true);
+    blogRoutes = posts.map((post: any) => ({
+      url: `${siteUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.updated_at || post.published_at || post.created_at),
+      changeFrequency: "weekly" as any,
       priority: 0.7,
-    }
-  ] as any;
+    }));
+  } catch (error) {
+    console.error("Error fetching posts for sitemap:", error);
+  }
+
+  return [...baseRoutes, ...blogRoutes];
 }

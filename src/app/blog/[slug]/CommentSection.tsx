@@ -6,13 +6,12 @@ import { MessageSquare, Send, User, CheckCircle2, Clock, Lock } from "lucide-rea
 
 interface CommentSectionProps {
   postId: string;
-  postSlug: string;
   initialComments: any[];
   isLoggedIn: boolean;
   user: any;
 }
 
-export default function CommentSection({ postId, postSlug, initialComments, isLoggedIn, user }: CommentSectionProps) {
+export default function CommentSection({ postId, initialComments, isLoggedIn, user }: CommentSectionProps) {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -25,13 +24,9 @@ export default function CommentSection({ postId, postSlug, initialComments, isLo
     setMessage(null);
 
     try {
-      const response = await submitComment(postId, content, postSlug);
-      if (response.error) {
-        setMessage({ type: 'error', text: response.error });
-      } else {
-        setContent("");
-        setMessage({ type: 'success', text: 'Thank you! Your comment is awaiting moderation.' });
-      }
+      await submitComment(postId, content);
+      setContent("");
+      setMessage({ type: 'success', text: 'Thank you! Your comment is awaiting moderation.' });
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message || 'Failed to post comment.' });
     } finally {
@@ -87,9 +82,8 @@ export default function CommentSection({ postId, postSlug, initialComments, isLo
             </div>
           </form>
           {message && (
-            <div className={`mt-4 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${
-              message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-            }`}>
+            <div className={`mt-4 p-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
               {message.type === 'success' ? <CheckCircle2 size={16} /> : <Clock size={16} />}
               <span className="text-xs font-bold uppercase tracking-widest">{message.text}</span>
             </div>

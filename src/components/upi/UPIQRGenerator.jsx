@@ -75,17 +75,19 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3,
+        scale: 4, // Higher scale for better quality
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
+        allowTaint: true,
       });
       const link = document.createElement('a');
-      link.download = `upi-payment-${upiId || 'qr'}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `upi-payment-${upiId.replace(/[@.]/g, '-') || 'qr'}.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     } catch (err) {
       console.error('Download error:', err);
+      alert('Unable to download QR code. Please try taking a screenshot.');
     }
   };
 
@@ -97,10 +99,13 @@ const UPIQRGenerator = ({
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
+        allowTaint: true,
       });
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) return;
-      const file = new File([blob], `upi-payment-${upiId || 'qr'}.png`, { type: 'image/png' });
+      
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.8));
+      if (!blob) throw new Error('Failed to create blob');
+      
+      const file = new File([blob], `upi-payment.png`, { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -112,11 +117,26 @@ const UPIQRGenerator = ({
         await navigator.share({
           title: 'UPI Payment',
           text: `Pay ${name || upiId} ₹${amount || ''} via UPI`,
-          url: buildUPIUri(),
+          url: window.location.href,
         });
+      } else {
+        // Fallback: Just download
+        handleDownload();
       }
     } catch (err) {
       console.error('Share error:', err);
+      // Fallback: Try sharing just the text/url
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'UPI Payment',
+            text: `Pay ${name || upiId} ₹${amount || ''} via UPI`,
+            url: window.location.href,
+          });
+        } catch (sErr) {
+          console.error('Secondary share error:', sErr);
+        }
+      }
     }
   };
 
@@ -133,7 +153,7 @@ const UPIQRGenerator = ({
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md overflow-hidden">
-              <img src="/icon-512.png" alt="SW Tools" className="w-6 h-6 object-contain" />
+              <img src="/icon-512.png" alt="SW Tools" className="w-6 h-6 object-contain" crossOrigin="anonymous" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-gray-900 uppercase tracking-[0.15em]">SW Info Systems</span>
@@ -192,13 +212,13 @@ const UPIQRGenerator = ({
         {/* Footer Branding - UPI App Logos */}
         <div className="mt-10 pt-6 border-t border-gray-200 w-full flex flex-col items-center gap-4">
           <div className="flex items-center justify-center gap-4 flex-wrap opacity-80 hover:opacity-100 transition-opacity duration-300">
-            <img src={LOGOS.gpay} alt="Google Pay" className="h-6 w-auto object-contain" />
-            <img src={LOGOS.phonepe} alt="PhonePe" className="h-6 w-auto object-contain" />
-            <img src={LOGOS.paytm} alt="Paytm" className="h-6 w-auto object-contain" />
-            <img src={LOGOS.amazon} alt="Amazon Pay" className="h-6 w-auto object-contain" />
-            <img src={LOGOS.ippb} alt="India Post Payments Bank" className="h-4 w-auto object-contain" />
-            <img src={LOGOS.cred} alt="Cred" className="h-6 w-auto object-contain" />
-            <img src={LOGOS.bhim} alt="BHIM" className="h-6 w-auto object-contain" />
+            <img src={LOGOS.gpay} alt="Google Pay" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.phonepe} alt="PhonePe" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.paytm} alt="Paytm" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.amazon} alt="Amazon Pay" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.ippb} alt="India Post Payments Bank" className="h-4 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.cred} alt="Cred" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.bhim} alt="BHIM" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
           </div>
           <div className="flex items-center gap-1.5">
             <span className="text-[9px] font-bold text-gray-500 tracking-[0.3em] uppercase">Powered by SWTools</span>
