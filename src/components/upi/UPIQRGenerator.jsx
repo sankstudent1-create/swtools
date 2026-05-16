@@ -323,6 +323,7 @@ const UPIQRGenerator = ({
             </div>
             <div className="flex items-center gap-1 opacity-40">
               <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">{upiId}</span>
+            </div>
           </div>
           
           {amount && (
