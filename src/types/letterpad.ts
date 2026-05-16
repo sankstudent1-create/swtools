@@ -105,6 +105,7 @@ export interface AILetterData {
   signatory_designation: string;
   encl: string;
   copy_to: string[];
+  letter_type?: string;
 }
 
 // ── Office preset data ──────────────────────────────────
