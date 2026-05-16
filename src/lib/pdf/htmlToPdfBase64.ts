@@ -67,8 +67,11 @@ export async function elementToPdfBlobA4(el: HTMLElement) {
         const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
         props.forEach(prop => {
           const val = style[prop as any];
-          if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
-            element.style[prop as any] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+          if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
+            element.style[prop as any] = val.replace(/oklch\([^)]+\)/g, '#000000')
+                                            .replace(/oklab\([^)]+\)/g, '#000000')
+                                            .replace(/lab\([^)]+\)/g, '#000000')
+                                            .replace(/color-mix\([^)]+\)/g, '#000000');
           }
         });
         

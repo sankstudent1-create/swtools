@@ -63,8 +63,9 @@ ${SPOKES_24}
 };
 
 export function svgToDataUri(key: string): string {
-  if (key === 'ip') return 'https://upload.wikimedia.org/wikipedia/commons/4/4b/India_Post_Logo.svg';
-  if (key === 'ashoka') return 'https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg';
+  if (key === 'ip') return 'https://cdn.brandfetch.io/idFzXD7W3c/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1771316003295';
+  if (key === 'ashoka') return 'https://cdn.brandfetch.io/id5TIX5ySw/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773361983668';
+  if (key === 'railway') return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s';
   const svg = SVG_LOGOS[key];
   if (!svg) return '';
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -72,14 +73,15 @@ export function svgToDataUri(key: string): string {
 
 // ── Office Presets ────────────────────────────
 export const OFFICE_PRESETS: Record<string, OfficePreset> = {
-  dop:      { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'(Establishment Division)', ofc:'Dak Bhavan, Sansad Marg', city:'New Delhi', pin:'110 001', ph:'011-23096000', em:'directorpost@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
+  dop:      { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'(Establishment Division)', ofc:'Dak Bhavan, Sansad Marg', city:'New Delhi', pin:'110 001', ph:'011-23096000', em:'directorpost@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:'ip', t:'A' },
   pm:       { h1:'', h2:'', e1:'', e2:'', dept:'Prime Minister', divn:'', ofc:'South Block', city:'New Delhi', pin:'110 001', ph:'011-23012312', em:'connect@pmindia.gov.in', wb:'www.pmindia.gov.in', ll:'ashoka', lr:null, t:'B' },
   minister: { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'Ministry of ___', dept:'Cabinet Minister', divn:'', ofc:'North Block', city:'New Delhi', pin:'110 001', ph:'', em:'', wb:'india.gov.in', ll:'ashoka', lr:null, t:'B' },
+  railway:  { h1:'भारत सरकार', h2:'रेल मंत्रालय', e1:'Government of India', e2:'Ministry of Railways', dept:'Railway Board', divn:'', ofc:'Rail Bhavan, Raisina Road', city:'New Delhi', pin:'110 001', ph:'', em:'', wb:'www.indianrailways.gov.in', ll:'ashoka', lr:'railway', t:'A' },
   mp:       { h1:'लोक सभा', h2:'भारत', e1:'LOK SABHA', e2:'INDIA', dept:'Member of Parliament', divn:'', ofc:'Parliament House', city:'New Delhi', pin:'110 001', ph:'011-23034000', em:'', wb:'www.loksabha.nic.in', ll:'ashoka', lr:null, t:'C' },
   mla:      { h1:'विधान सभा', h2:'', e1:'VIDHAN SABHA', e2:'', dept:'Member of Legislative Assembly', divn:'', ofc:'Assembly Secretariat', city:'State Capital', pin:'', ph:'', em:'', wb:'', ll:'ashoka', lr:null, t:'D' },
-  district: { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'', ofc:'O/o the Supdt. of Post Offices', city:'Nagpur', pin:'440 001', ph:'0712-2540001', em:'spo-ngp@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
-  rms:      { h1:'भारत सरकार', h2:'रेल डाक सेवा', e1:'Government of India', e2:'Railway Mail Service', dept:'Dept of Posts – RMS', divn:'', ofc:'O/o the Sr. Supdt., RMS', city:'', pin:'', ph:'', em:'', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
-  savings:  { h1:'भारत सरकार', h2:'डाकघर बचत बैंक', e1:'Government of India', e2:'Post Office Savings Bank', dept:'Department of Posts', divn:'', ofc:'Head Post Office', city:'', pin:'', ph:'', em:'posb@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:null, t:'A' },
+  district: { h1:'भारत सरकार', h2:'संचार मंत्रालय', e1:'Government of India', e2:'Ministry of Communications', dept:'Department of Posts', divn:'', ofc:'O/o the Supdt. of Post Offices', city:'Nagpur', pin:'440 001', ph:'0712-2540001', em:'spo-ngp@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:'ip', t:'A' },
+  rms:      { h1:'भारत सरकार', h2:'रेल डाक सेवा', e1:'Government of India', e2:'Railway Mail Service', dept:'Dept of Posts – RMS', divn:'', ofc:'O/o the Sr. Supdt., RMS', city:'', pin:'', ph:'', em:'', wb:'www.indiapost.gov.in', ll:'ashoka', lr:'ip', t:'A' },
+  savings:  { h1:'भारत सरकार', h2:'डाकघर बचत बैंक', e1:'Government of India', e2:'Post Office Savings Bank', dept:'Department of Posts', divn:'', ofc:'Head Post Office', city:'', pin:'', ph:'', em:'posb@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ashoka', lr:'ip', t:'A' },
   custom:   { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'', dept:'', divn:'', ofc:'', city:'', pin:'', ph:'', em:'', wb:'', ll:'ashoka', lr:null, t:'A' },
 };
 

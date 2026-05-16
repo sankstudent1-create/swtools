@@ -91,8 +91,11 @@ const UPIQRGenerator = ({
               const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
               props.forEach(prop => {
                 const val = style[prop];
-                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
-                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
+                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000')
+                                    .replace(/oklab\([^)]+\)/g, '#000000')
+                                    .replace(/lab\([^)]+\)/g, '#000000')
+                                    .replace(/color-mix\([^)]+\)/g, '#000000');
                 }
               });
             }
@@ -128,8 +131,11 @@ const UPIQRGenerator = ({
               const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
               props.forEach(prop => {
                 const val = style[prop];
-                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
-                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
+                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000')
+                                    .replace(/oklab\([^)]+\)/g, '#000000')
+                                    .replace(/lab\([^)]+\)/g, '#000000')
+                                    .replace(/color-mix\([^)]+\)/g, '#000000');
                 }
               });
             }
@@ -225,7 +231,7 @@ const UPIQRGenerator = ({
           <div className="flex items-center gap-2">
             <div className="h-6 w-px" style={{ backgroundColor: '#e5e7eb' }}></div>
             <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo.png/800px-UPI-Logo.png" 
+              src="https://www.npci.org.in/images/npci/upi/upi-logo.png" 
               alt="UPI" 
               className="h-4 w-auto object-contain opacity-80" 
               crossOrigin="anonymous"

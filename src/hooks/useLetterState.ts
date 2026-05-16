@@ -108,17 +108,59 @@ export function useLetterState() {
       let newLogoR = isFull ? null : s.logoR;
       
       if (isFull) {
-        const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2].join(' ').toLowerCase();
-        // User requested to only keep Ashoka logo
-        newLogoL = svgToDataUri('ashoka');
-        newLogoR = null;
+        const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2, data.signatory_designation].join(' ').toLowerCase();
+        
+        const ASHOKA_URL = "https://cdn.brandfetch.io/id5TIX5ySw/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1773361983668";
+        const INDIA_POST_URL = "https://cdn.brandfetch.io/idFzXD7W3c/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1771316003295";
+        const RAILWAY_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s";
+
+        if (fullDeptStr.includes('post') || fullDeptStr.includes('dak') || fullDeptStr.includes('mail')) {
+          newLogoL = ASHOKA_URL;
+          newLogoR = INDIA_POST_URL;
+        } else if (fullDeptStr.includes('railway') || fullDeptStr.includes('rail')) {
+          newLogoL = ASHOKA_URL;
+          newLogoR = RAILWAY_URL;
+        } else if (
+          fullDeptStr.includes('secretary') || 
+          fullDeptStr.includes('minister') || 
+          fullDeptStr.includes('director general') ||
+          fullDeptStr.includes('commissioner') ||
+          fullDeptStr.includes('pm') ||
+          fullDeptStr.includes('cm')
+        ) {
+          // Higher posts - center the logo
+          newLogoL = ASHOKA_URL;
+          newLogoR = null;
+          // We'll handle centering in the state return
+        } else {
+          // Default Gov
+          newLogoL = ASHOKA_URL;
+          newLogoR = null;
+        }
       }
+
+      const searchStr = [data.department, data.signatory_designation, data.dept_english_1, data.dept_english_2].join(' ').toLowerCase();
+      const isHigherPost = isFull && (
+        data.letter_type === 'pm_do' ||
+        searchStr.includes('secretary') ||
+        searchStr.includes('minister') ||
+        searchStr.includes('director general') ||
+        searchStr.includes('commissioner') ||
+        searchStr.includes('prime minister') ||
+        searchStr.includes('chief minister') ||
+        searchStr.includes('pm') ||
+        searchStr.includes('cm') ||
+        searchStr.includes('cabinet')
+      );
 
       return {
       ...s,
       officeType: isFull ? 'custom' : s.officeType,
+      tpl: isHigherPost ? 'B' : (isFull ? 'A' : s.tpl),
       logoL: newLogoL,
       logoR: newLogoR,
+      posL: isHigherPost ? { ...s.posL, x: 363, y: 14, w: 68, placed: true } : (isFull ? { ...s.posL, x: 42, y: 14, w: 68, placed: true } : s.posL),
+      posR: (isFull && newLogoR) ? { ...s.posR, x: 682, y: 14, w: 68, placed: true } : s.posR,
       showEncl: !!(data.encl?.trim()),
       showCopy: !!(data.copy_to?.length),
       form: {
