@@ -43,9 +43,6 @@ const SITE = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://tools.swinfosy
 
 export const metadata: Metadata = {
   metadataBase: SITE,
-  alternates: {
-    canonical: "/",
-  },
   title: {
     default: "SW Tools | Image, PDF, Signature and Document Utilities",
     template: "%s | SW Tools",
