@@ -216,34 +216,34 @@ const UPIQRGenerator = ({
         ></div>
 
         {/* Branding Header - SW Tools Logo */}
-        <div className="w-full flex justify-between items-start mb-10 relative z-10">
+        <div className="w-full flex justify-between items-center mb-10 relative z-10 pt-2">
           <div className="flex items-center gap-4">
             <div 
-              className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden"
               style={{ 
                 background: 'linear-gradient(135deg, #000000, #1f2937)', 
                 boxShadow: '0 8px 16px -4px rgba(0,0,0,0.2)' 
               }}
             >
-              <img src="/icon-512.png" alt="SW Tools" className="w-7 h-7 object-contain" crossOrigin="anonymous" />
+              <img src="/icon-512.png" alt="SW Tools" className="w-9 h-9 object-contain" crossOrigin="anonymous" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[11px] font-black uppercase tracking-[0.2em] leading-none" style={{ color: '#6b7280' }}>SW Info Systems</span>
-              <span className="text-xl font-black tracking-tight leading-none" style={{ color: '#111827' }}>SW TOOLS</span>
-              <div className="flex items-center gap-1.5 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[11px] font-bold tracking-wide text-green-600 uppercase">Secure UPI</span>
+              <span className="text-[12px] font-black uppercase tracking-[0.2em] leading-none" style={{ color: '#6b7280' }}>SW Info Systems</span>
+              <span className="text-2xl font-black tracking-tight leading-none" style={{ color: '#111827' }}>SW TOOLS</span>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-[12px] font-bold tracking-wide text-green-600 uppercase">Secure UPI</span>
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-1.5">
             <img 
               src="https://www.npci.org.in/images/npci/upi/upi-logo.png" 
               alt="UPI" 
-              className="h-5 w-auto object-contain" 
+              className="h-7 w-auto object-contain" 
               crossOrigin="anonymous"
             />
-            <span className="text-[9px] font-medium text-gray-400 uppercase tracking-tighter">Unified Payments</span>
+            <span className="text-[10px] font-medium text-gray-400 uppercase tracking-tighter">Unified Payments</span>
           </div>
         </div>
 
