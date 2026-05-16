@@ -21,7 +21,7 @@ export default function UPIQRPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col items-center py-12 px-4">
       {/* Back link */}
-      <Link href="/tools" className="self-start mb-6 flex items-center text-white/70 hover:text-white transition-colors">
+      <Link href="/tools" prefetch={false} className="self-start mb-6 flex items-center text-white/70 hover:text-white transition-colors">
         <ArrowLeft className="w-4 h-4 mr-1" />
         Back to Tools
       </Link>

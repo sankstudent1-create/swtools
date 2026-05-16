@@ -75,11 +75,34 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 4, // Higher scale for better quality
+        scale: 4, 
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
         allowTaint: true,
+        onclone: (clonedDoc) => {
+          const card = clonedDoc.getElementById('upi-qr-card-container');
+          if (card) {
+            // Traverse all elements to remove oklab/oklch colors which crash html2canvas
+            const elements = card.getElementsByTagName('*');
+            for (let i = 0; i < elements.length; i++) {
+              const el = elements[i];
+              const style = window.getComputedStyle(el);
+              
+              // If any color property contains 'oklch' or 'oklab', force to rgb
+              const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
+              props.forEach(prop => {
+                const val = style[prop];
+                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
+                  // We use a safe fallback or try to get the computed rgb
+                  // In most browsers style[prop] already returns rgb for computed styles
+                  // but in some cases with Tailwind v4 it might keep the modern function
+                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+                }
+              });
+            }
+          }
+        }
       });
       const link = document.createElement('a');
       link.download = `upi-payment-${upiId.replace(/[@.]/g, '-') || 'qr'}.png`;
@@ -100,6 +123,23 @@ const UPIQRGenerator = ({
         useCORS: true,
         logging: false,
         allowTaint: true,
+        onclone: (clonedDoc) => {
+          const card = clonedDoc.getElementById('upi-qr-card-container');
+          if (card) {
+            const elements = card.getElementsByTagName('*');
+            for (let i = 0; i < elements.length; i++) {
+              const el = elements[i];
+              const style = window.getComputedStyle(el);
+              const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
+              props.forEach(prop => {
+                const val = style[prop];
+                if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('color-mix'))) {
+                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000').replace(/oklab\([^)]+\)/g, '#000000');
+                }
+              });
+            }
+          }
+        }
       });
       
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.8));
@@ -149,9 +189,14 @@ const UPIQRGenerator = ({
     <div className="w-full max-w-sm flex flex-col gap-6">
       {/* Branded QR Card */}
       <div 
-        className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100" 
         ref={cardRef}
-        style={{ backgroundColor: '#ffffff', borderColor: '#f3f4f6' }}
+        id="upi-qr-card-container"
+        className="rounded-[2.5rem] p-8 flex flex-col items-center relative overflow-hidden border" 
+        style={{ 
+          backgroundColor: '#ffffff', 
+          borderColor: '#f3f4f6',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.1)'
+        }}
       >
         {/* Subtle background gradient pattern */}
         <div 
@@ -160,27 +205,30 @@ const UPIQRGenerator = ({
         ></div>
 
         {/* Branding Header - SW Tools Logo */}
-        <div className="w-full flex justify-between items-center mb-8">
+        <div className="w-full flex justify-between items-center mb-8 relative z-10">
           <div className="flex items-center gap-3">
             <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md overflow-hidden"
-              style={{ backgroundColor: '#000000' }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
+              style={{ backgroundColor: '#000000', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)' }}
             >
               <img src="/icon-512.png" alt="SW Tools" className="w-6 h-6 object-contain" crossOrigin="anonymous" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: '#111827' }}>SW Info Systems</span>
-              <span className="text-sm font-black tracking-tight leading-none" style={{ color: '#111827' }}>SW TOOLS</span>
-              <span className="text-[10px] font-semibold tracking-wider" style={{ color: '#9ca3af' }}>UPI Payment</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: '#111827', margin: 0 }}>SW Info Systems</span>
+              <span className="text-sm font-black tracking-tight leading-none" style={{ color: '#111827', margin: 0 }}>SW TOOLS</span>
+              <span className="text-[10px] font-semibold tracking-wider" style={{ color: '#9ca3af', margin: 0 }}>UPI Payment</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-6 w-px" style={{ backgroundColor: '#e5e7eb' }}></div>
             <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
-              style={{ background: 'linear-gradient(135deg, #f97316, #ec4899)' }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ 
+                background: 'linear-gradient(135deg, #f97316, #ec4899)',
+                boxShadow: '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06)'
+              }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-4 h-4">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" className="w-4 h-4">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
                 <path d="M2 12l10 5 10-5"/>
@@ -190,27 +238,33 @@ const UPIQRGenerator = ({
         </div>
 
         {/* QR Canvas with Center Logo */}
-        <div className="relative group">
+        <div className="relative group z-10">
           <div 
             className="absolute -inset-2 rounded-[2rem] blur-md opacity-10"
             style={{ background: 'linear-gradient(135deg, #f97316, #ec4899)' }}
           ></div>
           <div 
-            className="relative bg-white p-4 rounded-[1.8rem] border shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center"
-            style={{ backgroundColor: '#ffffff', borderColor: '#f9fafb' }}
+            className="relative p-4 rounded-[1.8rem] border flex items-center justify-center min-h-[260px] min-w-[260px]"
+            style={{ 
+              backgroundColor: '#ffffff', 
+              borderColor: '#f9fafb',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.03)'
+            }}
           >
             <div ref={canvasRef} className="qrcode-container" />
             
             {/* Center Logo overlay */}
             <div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border flex items-center justify-center z-10"
-              style={{ backgroundColor: '#ffffff', borderColor: '#f3f4f6' }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-xl flex items-center justify-center z-10 overflow-hidden"
+              style={{ 
+                backgroundColor: '#ffffff', 
+                borderColor: '#f3f4f6',
+                borderWidth: '1px',
+                borderStyle: 'solid',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+              }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="#E85D04" strokeWidth="2.2" className="w-7 h-7">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
+              <img src="/icon-512.png" alt="Logo" className="w-8 h-8 object-contain" crossOrigin="anonymous" />
             </div>
           </div>
         </div>
@@ -218,19 +272,19 @@ const UPIQRGenerator = ({
         {/* Payee Details */}
         <div className="mt-8 text-center w-full relative z-10">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="font-black text-2xl tracking-tight" style={{ color: '#000000' }}>{name || 'Secure Payment'}</p>
+            <p className="font-black text-2xl tracking-tight" style={{ color: '#000000', margin: 0 }}>{name || 'Secure Payment'}</p>
             {name && (
               <div 
-                className="w-5 h-5 rounded-full flex items-center justify-center shadow-sm"
+                className="w-5 h-5 rounded-full flex items-center justify-center"
                 style={{ backgroundColor: '#10b981' }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="w-3 h-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" className="w-3 h-3">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
             )}
           </div>
-          <p className="text-xs font-black tracking-widest uppercase opacity-40" style={{ color: '#3b82f6' }}>{upiId || 'VIRTUAL PAYMENT ADDRESS'}</p>
+          <p className="text-xs font-black tracking-widest uppercase" style={{ color: '#3b82f6', opacity: 0.4, margin: 0 }}>{upiId || 'VIRTUAL PAYMENT ADDRESS'}</p>
           
           {amount && (
             <div className="mt-6 relative inline-block">
@@ -239,11 +293,14 @@ const UPIQRGenerator = ({
                 style={{ backgroundColor: '#2563eb' }}
               ></div>
               <div 
-                className="relative py-3 px-8 rounded-2xl flex items-center gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.1)] border border-white/5"
-                style={{ backgroundColor: '#000000' }}
+                className="relative py-3 px-8 rounded-2xl flex items-center gap-3"
+                style={{ 
+                  backgroundColor: '#000000',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
+                }}
               >
                 <span className="text-[10px] font-black tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.3)' }}>TOTAL AMOUNT</span>
-                <span className="text-white font-black text-3xl tracking-tighter italic">₹{amount}</span>
+                <span className="text-white font-black text-3xl tracking-tighter italic" style={{ color: '#ffffff' }}>₹{amount}</span>
               </div>
             </div>
           )}
@@ -251,7 +308,7 @@ const UPIQRGenerator = ({
 
         {/* Footer Branding - UPI App Logos */}
         <div className="mt-12 pt-8 border-t w-full flex flex-col items-center gap-5" style={{ borderTopColor: '#f3f4f6' }}>
-          <div className="flex items-center justify-center gap-5 flex-wrap opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+          <div className="flex items-center justify-center gap-5 flex-wrap opacity-60">
             <img src={LOGOS.gpay} alt="Google Pay" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
             <img src={LOGOS.phonepe} alt="PhonePe" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
             <img src={LOGOS.paytm} alt="Paytm" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
