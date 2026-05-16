@@ -192,9 +192,10 @@ const UPIQRGenerator = ({
       <div 
         ref={cardRef}
         id="upi-qr-card-container"
-        className="rounded-[3rem] p-9 flex flex-col items-center relative overflow-hidden border shadow-2xl" 
+        className="rounded-[3rem] p-9 flex flex-col items-center relative overflow-hidden border shadow-2xl mx-auto" 
         style={{ 
-          width: '380px',
+          width: '100%',
+          maxWidth: '380px',
           minHeight: '560px',
           backgroundColor: '#ffffff', 
           borderColor: '#f1f5f9',
@@ -307,23 +308,23 @@ const UPIQRGenerator = ({
           </div>
           
           {amount && (
-            <div className="mt-4 relative inline-block w-full max-w-[200px]">
+            <div className="mt-6 relative inline-block w-full max-w-[220px]">
               <div 
-                className="absolute inset-x-0 -top-2 -bottom-2 blur-xl opacity-[0.05] rounded-full"
-                style={{ backgroundColor: '#1e293b' }}
+                className="absolute inset-0 blur-2xl opacity-[0.08] rounded-3xl"
+                style={{ background: 'linear-gradient(135deg, #1e293b, #64748b)' }}
               ></div>
               <div 
-                className="relative py-3 px-6 rounded-2xl flex flex-col items-center gap-0.5"
+                className="relative py-4 px-6 rounded-3xl flex flex-col items-center justify-center gap-1"
                 style={{ 
-                  background: '#f8fafc',
+                  background: 'linear-gradient(180deg, #ffffff, #f8fafc)',
                   border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)'
                 }}
               >
-                <span className="text-[9px] font-black tracking-[0.2em] opacity-50 uppercase text-slate-500">Amount to Pay</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black text-slate-400">₹</span>
-                  <span className="text-3xl font-black tracking-tighter text-slate-900">{amount}</span>
+                <span className="text-[10px] font-black tracking-[0.25em] opacity-40 uppercase text-slate-500">Amount to Pay</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl font-black text-slate-400">₹</span>
+                  <span className="text-4xl font-black tracking-tight text-slate-900">{amount}</span>
                 </div>
               </div>
             </div>
