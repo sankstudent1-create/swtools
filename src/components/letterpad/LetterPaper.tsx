@@ -225,7 +225,6 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
         <div className={styles.hA}>
           <div className={styles.hATop}>
             {E('fno', styles.hAFno, 'div', 'F.No.')}
-            <div className={styles.hARslot} />
           </div>
           <div className={styles.hACenter}>
             {(form.h1 || form.h2) && (
@@ -259,7 +258,6 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
       case 'B': return (
         <div className={styles.hB}>
           <div className={styles.hBCenter}>
-            <div className={styles.hBLogoSlot} />
             {E('sh', styles.hBHi, 'div', 'हिन्दी नाम')}
             {E('sn', styles.hBEn, 'div', 'Name')}
             {E('sd', styles.hBDg, 'div', 'Designation')}
@@ -274,7 +272,6 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
       case 'C': return (
         <div className={styles.hC}>
           <div className={styles.hCRow}>
-            <div className={styles.hCLogo} />
             <div className={styles.hCMid}>
               {E('sh', styles.hCHi, 'div', 'हिन्दी नाम')}
               {E('sn', styles.hCEn, 'div', 'Name')}
@@ -282,14 +279,12 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
               {E('dept', styles.hCSub, 'div', 'Department')}
               {E('sc', styles.hCSub, 'div', 'Constituency')}
             </div>
-            <div className={styles.hCLogo} />
           </div>
         </div>
       );
       case 'D': return (
         <div className={styles.hD}>
           <div className={styles.hDRow}>
-            <div className={styles.hDLogo} />
             <div className={styles.hDNames}>
               {E('sh', styles.hDHi, 'div', 'हिन्दी नाम')}
               {E('sn', styles.hDEn, 'div', 'Name')}

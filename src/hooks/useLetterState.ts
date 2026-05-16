@@ -112,7 +112,7 @@ export function useLetterState() {
         const fullDeptStr = [data.department, data.dept_english_1, data.dept_english_2, data.signatory_designation].join(' ').toLowerCase();
         
         const ASHOKA_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHAZ8fV85dhWQVY6Ol8Nu_FnNEx9Wjs5NFgQ&s";
-        const SWACHH_URL = "https://upload.wikimedia.org/wikipedia/en/thumb/e/ef/Swachh_Bharat_Mission_logo.png/320px-Swachh_Bharat_Mission_logo.png";
+        const SWACHH_URL = "https://upload.wikimedia.org/wikipedia/commons/3/32/Swachh_Bharat_Mission_Logo.svg";
         const INDIA_POST_URL = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgyE5GVmnBOyQiy0AveMpnPmeiJhLjLZld_-aEpgH9KpT_YSedoqnMagbtR3uP0KZvo0iiGqgESWSetBUgwwL1z-frzblwInOhqxyrcGUztjB4cB5k0dHbR_0pcj4JCX3Gzzs26LOfMFdyG1nuI7sWt4UbLCrVEhXvwX5uStq1r2PaofAqlM0a4tZ-aPhI/s2620-rw/India%20Post%20Dak%20Sewa%20Jan%20Sewa%20New%20Logo%20Final.png";
         const RAILWAY_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEXAnK6sQOu3_YQbcYZBv4wFbXEuyGu4qkvw&s";
 

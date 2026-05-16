@@ -60,12 +60,25 @@ const UPIQRGenerator = ({
       container.innerHTML = '';
       new window.QRCode(container, {
         text: uri,
-        width: 256,
-        height: 256,
+        width: 1024,
+        height: 1024,
         colorDark: '#000000',
         colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.H,
       });
+      // Scale it down in the UI
+      const qrImage = container.querySelector('img');
+      const qrCanvas = container.querySelector('canvas');
+      if (qrImage) {
+        qrImage.style.width = '260px';
+        qrImage.style.height = '260px';
+        qrImage.style.display = 'block';
+      }
+      if (qrCanvas) {
+        qrCanvas.style.width = '260px';
+        qrCanvas.style.height = '260px';
+        qrCanvas.style.display = 'none'; // qrcodejs shows both, we only need the img for consistency
+      }
     };
 
     loadQRCode();
@@ -75,29 +88,38 @@ const UPIQRGenerator = ({
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 8, // Extreme-high quality
+        scale: 4, // 4x is plenty for high-quality and avoids browser memory limits
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
         allowTaint: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight,
         onclone: (clonedDoc) => {
           const card = clonedDoc.getElementById('upi-qr-card-container');
           if (card) {
-            // Fix modern colors that html2canvas can't parse
+            // Force high-quality image rendering and fix any CSS issues
+            card.style.transform = 'none';
+            card.style.position = 'relative';
+            card.style.margin = '0';
+            
             const elements = card.getElementsByTagName('*');
             for (let i = 0; i < elements.length; i++) {
-              const el = elements[i];
+              const el = elements[i] as HTMLElement;
+              // Fix modern color functions
               const style = window.getComputedStyle(el);
               const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
               props.forEach(prop => {
-                const val = style[prop];
+                const val = (style as any)[prop];
                 if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
-                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000')
-                                    .replace(/oklab\([^)]+\)/g, '#000000')
-                                    .replace(/lab\([^)]+\)/g, '#000000')
-                                    .replace(/color-mix\([^)]+\)/g, '#000000');
+                  el.style[prop as any] = '#000000';
                 }
               });
+              // Force text rendering quality
+              el.style.webkitFontSmoothing = 'antialiased';
+              el.style.textRendering = 'optimizeLegibility';
             }
           }
         }
@@ -281,50 +303,46 @@ const UPIQRGenerator = ({
         </div>
 
         {/* Payee Details */}
-        <div className="mt-8 text-center w-full relative z-10 px-2">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <h3 className="font-black text-2xl tracking-tight leading-none" style={{ color: '#0f172a', margin: 0 }}>
+        <div className="mt-8 text-center w-full relative z-10 px-4">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="font-black text-2xl tracking-tight leading-tight text-slate-900 m-0">
                 {name || 'Secure Merchant'}
               </h3>
               <div 
-                className="w-6 h-6 rounded-full flex items-center justify-center shadow-md flex-shrink-0"
+                className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg flex-shrink-0"
                 style={{ 
                   background: 'linear-gradient(135deg, #10b981, #059669)', 
-                  boxShadow: '0 2px 8px rgba(16,185,129,0.3)' 
+                  boxShadow: '0 4px 12px rgba(16,185,129,0.4)' 
                 }}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="4" className="w-3.5 h-3.5">
-                  <path d="M20 6L9 17l-5-5" />
+                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             </div>
-            
-            <div className="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-slate-50 border border-slate-200/60 mb-5">
-               <span className="text-[10px] font-black tracking-wider uppercase" style={{ color: '#64748b' }}>
-                 {upiId || 'PAYMENT ADDRESS'}
-               </span>
-            </div>
+            <div className="flex items-center gap-1 opacity-40">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">{upiId}</span>
           </div>
           
           {amount && (
-            <div className="mt-6 relative inline-block w-full max-w-[220px]">
+            <div className="mt-5 relative inline-block w-full max-w-[180px]">
               <div 
-                className="absolute inset-0 blur-2xl opacity-[0.08] rounded-3xl"
+                className="absolute inset-0 blur-xl opacity-[0.06] rounded-2xl"
                 style={{ background: 'linear-gradient(135deg, #1e293b, #64748b)' }}
               ></div>
               <div 
-                className="relative py-4 px-6 rounded-3xl flex flex-col items-center justify-center gap-1"
+                className="relative py-3 px-5 rounded-2xl flex flex-col items-center justify-center gap-0.5"
                 style={{ 
                   background: 'linear-gradient(180deg, #ffffff, #f8fafc)',
                   border: '1px solid #e2e8f0',
-                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)'
+                  boxShadow: '0 8px 20px -4px rgba(0,0,0,0.04)'
                 }}
               >
-                <span className="text-[10px] font-black tracking-[0.25em] opacity-40 uppercase text-slate-500">Amount to Pay</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xl font-black text-slate-400">₹</span>
-                  <span className="text-4xl font-black tracking-tight text-slate-900">{amount}</span>
+                <span className="text-[9px] font-black tracking-[0.2em] opacity-40 uppercase text-slate-500">Amount to Pay</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-lg font-black text-slate-400">₹</span>
+                  <span className="text-3xl font-black tracking-tight text-slate-900">{amount}</span>
                 </div>
               </div>
             </div>
