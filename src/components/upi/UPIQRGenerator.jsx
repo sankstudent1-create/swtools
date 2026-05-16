@@ -148,22 +148,38 @@ const UPIQRGenerator = ({
   return (
     <div className="w-full max-w-sm flex flex-col gap-6">
       {/* Branded QR Card */}
-      <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100" ref={cardRef}>
+      <div 
+        className="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden border border-gray-100" 
+        ref={cardRef}
+        style={{ backgroundColor: '#ffffff', borderColor: '#f3f4f6' }}
+      >
+        {/* Subtle background gradient pattern */}
+        <div 
+          className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] blur-3xl rounded-full" 
+          style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', pointerEvents: 'none' }}
+        ></div>
+
         {/* Branding Header - SW Tools Logo */}
         <div className="w-full flex justify-between items-center mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md overflow-hidden">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md overflow-hidden"
+              style={{ backgroundColor: '#000000' }}
+            >
               <img src="/icon-512.png" alt="SW Tools" className="w-6 h-6 object-contain" crossOrigin="anonymous" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-900 uppercase tracking-[0.15em]">SW Info Systems</span>
-              <span className="text-sm font-black text-gray-900 tracking-tight leading-none">SW TOOLS</span>
-              <span className="text-[10px] font-semibold text-gray-400 tracking-wider">UPI Payment</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: '#111827' }}>SW Info Systems</span>
+              <span className="text-sm font-black tracking-tight leading-none" style={{ color: '#111827' }}>SW TOOLS</span>
+              <span className="text-[10px] font-semibold tracking-wider" style={{ color: '#9ca3af' }}>UPI Payment</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-6 w-px bg-gray-200"></div>
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+            <div className="h-6 w-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #f97316, #ec4899)' }}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" className="w-4 h-4">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
@@ -175,12 +191,21 @@ const UPIQRGenerator = ({
 
         {/* QR Canvas with Center Logo */}
         <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-tr from-orange-500 via-pink-500 to-red-400 rounded-[2rem] blur-md opacity-10 group-hover:opacity-25 transition duration-700"></div>
-          <div className="relative bg-white p-4 rounded-[1.8rem] border border-gray-50 shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center">
+          <div 
+            className="absolute -inset-2 rounded-[2rem] blur-md opacity-10"
+            style={{ background: 'linear-gradient(135deg, #f97316, #ec4899)' }}
+          ></div>
+          <div 
+            className="relative bg-white p-4 rounded-[1.8rem] border shadow-[0_10px_30px_rgba(0,0,0,0.05)] min-h-[260px] min-w-[260px] flex items-center justify-center"
+            style={{ backgroundColor: '#ffffff', borderColor: '#f9fafb' }}
+          >
             <div ref={canvasRef} className="qrcode-container" />
             
             {/* Center Logo overlay */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border border-gray-100 flex items-center justify-center z-10">
+            <div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-xl shadow-lg border flex items-center justify-center z-10"
+              style={{ backgroundColor: '#ffffff', borderColor: '#f3f4f6' }}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="#E85D04" strokeWidth="2.2" className="w-7 h-7">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                 <path d="M2 17l10 5 10-5"/>
@@ -191,37 +216,54 @@ const UPIQRGenerator = ({
         </div>
 
         {/* Payee Details */}
-        <div className="mt-8 text-center w-full">
+        <div className="mt-8 text-center w-full relative z-10">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <p className="text-gray-900 font-black text-xl tracking-tight">{name || 'Secure Payment'}</p>
-            {name && <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center"><div className="w-1.5 h-1.5 bg-white rounded-full"></div></div>}
+            <p className="font-black text-2xl tracking-tight" style={{ color: '#000000' }}>{name || 'Secure Payment'}</p>
+            {name && (
+              <div 
+                className="w-5 h-5 rounded-full flex items-center justify-center shadow-sm"
+                style={{ backgroundColor: '#10b981' }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" className="w-3 h-3">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+              </div>
+            )}
           </div>
-          <p className="text-blue-600 text-xs font-bold tracking-widest uppercase opacity-60">{upiId || 'Enter VPA ID'}</p>
+          <p className="text-xs font-black tracking-widest uppercase opacity-40" style={{ color: '#3b82f6' }}>{upiId || 'VIRTUAL PAYMENT ADDRESS'}</p>
           
           {amount && (
-            <div className="mt-5 relative inline-block">
-              <div className="absolute inset-0 bg-blue-600 blur-xl opacity-10 rounded-full"></div>
-              <div className="relative bg-gray-900 py-2.5 px-6 rounded-2xl flex items-center gap-2">
-                <span className="text-white/40 text-sm font-medium">AMOUNT</span>
-                <span className="text-white font-black text-2xl tracking-tighter italic">₹{amount}</span>
+            <div className="mt-6 relative inline-block">
+              <div 
+                className="absolute inset-0 blur-2xl opacity-10 rounded-full"
+                style={{ backgroundColor: '#2563eb' }}
+              ></div>
+              <div 
+                className="relative py-3 px-8 rounded-2xl flex items-center gap-3 shadow-[0_10px_25px_rgba(0,0,0,0.1)] border border-white/5"
+                style={{ backgroundColor: '#000000' }}
+              >
+                <span className="text-[10px] font-black tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.3)' }}>TOTAL AMOUNT</span>
+                <span className="text-white font-black text-3xl tracking-tighter italic">₹{amount}</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Footer Branding - UPI App Logos */}
-        <div className="mt-10 pt-6 border-t border-gray-200 w-full flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-4 flex-wrap opacity-80 hover:opacity-100 transition-opacity duration-300">
-            <img src={LOGOS.gpay} alt="Google Pay" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.phonepe} alt="PhonePe" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.paytm} alt="Paytm" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.amazon} alt="Amazon Pay" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.ippb} alt="India Post Payments Bank" className="h-4 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.cred} alt="Cred" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
-            <img src={LOGOS.bhim} alt="BHIM" className="h-6 w-auto object-contain" crossOrigin="anonymous" />
+        <div className="mt-12 pt-8 border-t w-full flex flex-col items-center gap-5" style={{ borderTopColor: '#f3f4f6' }}>
+          <div className="flex items-center justify-center gap-5 flex-wrap opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            <img src={LOGOS.gpay} alt="Google Pay" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.phonepe} alt="PhonePe" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.paytm} alt="Paytm" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.amazon} alt="Amazon Pay" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.ippb} alt="IPPB" className="h-3 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.cred} alt="Cred" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
+            <img src={LOGOS.bhim} alt="BHIM" className="h-5 w-auto object-contain" crossOrigin="anonymous" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[9px] font-bold text-gray-500 tracking-[0.3em] uppercase">Powered by SWTools</span>
+          <div className="flex items-center gap-2">
+            <div className="h-[1px] w-8" style={{ backgroundColor: '#e5e7eb' }}></div>
+            <span className="text-[10px] font-black tracking-[0.4em] uppercase" style={{ color: '#9ca3af' }}>Verified by SWTools</span>
+            <div className="h-[1px] w-8" style={{ backgroundColor: '#e5e7eb' }}></div>
           </div>
         </div>
       </div>

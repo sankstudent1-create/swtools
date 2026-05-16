@@ -147,6 +147,7 @@ export default async function DashboardPage() {
                   <Link 
                     key={tool.tool_id} 
                     href={`/tools/${tool.tool_id.replace(/_/g, '-')}`}
+                    prefetch={false}
                     className="group relative flex items-center gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-blue-500/30 hover:bg-white/[0.05] transition-all"
                   >
                     <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/10 transition-all">

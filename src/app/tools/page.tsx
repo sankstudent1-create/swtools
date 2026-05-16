@@ -113,6 +113,7 @@ export default function ToolsPage() {
                 <Link 
                   href={tool.href}
                   key={tool.id} 
+                  prefetch={false}
                   className="group relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] hover:bg-white/[0.04] hover:border-white/[0.15] hover:-translate-y-1 rounded-3xl p-7 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col h-full shadow-[0_8px_30px_rgb(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.05)]"
                 >
                   {/* Subtle inner card glow on hover */}
