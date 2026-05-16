@@ -107,14 +107,14 @@ const UPIQRGenerator = ({
             
             const elements = card.getElementsByTagName('*');
             for (let i = 0; i < elements.length; i++) {
-              const el = elements[i] as HTMLElement;
+              const el = elements[i];
               // Fix modern color functions
               const style = window.getComputedStyle(el);
               const props = ['color', 'backgroundColor', 'borderColor', 'boxShadow', 'background'];
               props.forEach(prop => {
-                const val = (style as any)[prop];
+                const val = style[prop];
                 if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
-                  el.style[prop as any] = '#000000';
+                  el.style[prop] = '#000000';
                 }
               });
               // Force text rendering quality
@@ -154,12 +154,12 @@ const UPIQRGenerator = ({
               props.forEach(prop => {
                 const val = style[prop];
                 if (val && (val.includes('oklch') || val.includes('oklab') || val.includes('lab') || val.includes('color-mix'))) {
-                  el.style[prop] = val.replace(/oklch\([^)]+\)/g, '#000000')
-                                    .replace(/oklab\([^)]+\)/g, '#000000')
-                                    .replace(/lab\([^)]+\)/g, '#000000')
-                                    .replace(/color-mix\([^)]+\)/g, '#000000');
+                  el.style[prop] = '#000000';
                 }
               });
+              // Force text rendering quality
+              el.style.webkitFontSmoothing = 'antialiased';
+              el.style.textRendering = 'optimizeLegibility';
             }
           }
         }
