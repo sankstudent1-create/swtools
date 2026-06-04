@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper } from "@/lib/canvasHelper";
 import { ChangeEvent, useState, useEffect } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -119,7 +120,7 @@ async function processImage(
   maxKb: number,
   outputType: "image/jpeg"
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(sourceFile);
+  const bitmap = await loadImageHelper(sourceFile);
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;

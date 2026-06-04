@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["convert webp to jpg","png to webp","image format changer online"],
   alternates: {
     canonical: '/tools/image-format-converter'
+  },
+  openGraph: {
+    title: 'Image Format Converter',
+    description: 'Convert images freely between JPG, PNG, and WebP using this high-performance secure in-browser tool.',
+    url: '/tools/image-format-converter'
   }
 };
 

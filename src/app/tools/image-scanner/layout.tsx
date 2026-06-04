@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["online document scanner","photo to scanner effect","scan image online"],
   alternates: {
     canonical: '/tools/image-scanner'
+  },
+  openGraph: {
+    title: 'Document Scanner Effect Tool',
+    description: 'Give photos of documents a clean, professional scanner effect. Black-and-white, grayscale, auto-cleanup tools.',
+    url: '/tools/image-scanner'
   }
 };
 

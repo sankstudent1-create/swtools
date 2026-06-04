@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -23,7 +24,7 @@ async function compressImage(
   resizePercent: number,
   maxWidth: number
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(sourceFile);
+  const bitmap = await loadImageHelper(sourceFile);
   const scaledWidth = Math.max(1, Math.round(bitmap.width * (resizePercent / 100)));
   const scaledHeight = Math.max(1, Math.round(bitmap.height * (resizePercent / 100)));
   const finalScale = maxWidth > 0 && scaledWidth > maxWidth ? maxWidth / scaledWidth : 1;
@@ -67,6 +68,15 @@ export default function ImageCompressorPage() {
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [outputName, setOutputName] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [quality, setQuality] = useState(72);
   const [targetKb, setTargetKb] = useState(0);
   const [resizePercent, setResizePercent] = useState(100);
@@ -167,7 +177,7 @@ export default function ImageCompressorPage() {
                   <span className="ui-label">Output Format</span>
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                     <option value="image/png">PNG</option>
                   </select>
                 </label>

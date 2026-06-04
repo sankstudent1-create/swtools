@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["online image resizer","scale image online","resize image pixels"],
   alternates: {
     canonical: '/tools/image-resizer'
+  },
+  openGraph: {
+    title: 'Free Online Image Resizer',
+    description: 'Resize images to precise dimensions with different fit modes, background fills, and quality controls. SW Tools premium utility.',
+    url: '/tools/image-resizer'
   }
 };
 

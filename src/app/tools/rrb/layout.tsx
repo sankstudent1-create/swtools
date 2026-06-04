@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["RRB signature size maker","Railway exam signature format"],
   alternates: {
     canonical: '/tools/rrb'
+  },
+  openGraph: {
+    title: 'RRB Railway Signature Formatter',
+    description: 'Easily format your signature to meet official Railway RRB recruitment guidelines. Ensure exact pixel width and KB limits for railway exams.',
+    url: '/tools/rrb'
   }
 };
 

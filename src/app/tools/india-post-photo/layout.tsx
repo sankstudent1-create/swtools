@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["India Post GDS photo","GDS photo resize","India post application photo 50kb"],
   alternates: {
     canonical: '/tools/india-post-photo'
+  },
+  openGraph: {
+    title: 'India Post GDS Photo Formatter',
+    description: 'Free online tool to crop and resize your passport photo to exactly 4:5 ratio and 50KB limit for India Post Gramin Dak Sevak online application.',
+    url: '/tools/india-post-photo'
   }
 };
 

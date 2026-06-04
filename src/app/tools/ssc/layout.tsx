@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["SSC signature formatting","SSC photo tool","SSC examination format"],
   alternates: {
     canonical: '/tools/ssc'
+  },
+  openGraph: {
+    title: 'SSC Exam Signature Formatter',
+    description: 'Format your signature for SSC exams (CGL, CHSL, MTS) to official dimensions and sizes perfectly. Free SSC signature template tool by SW Tools.',
+    url: '/tools/ssc'
   }
 };
 

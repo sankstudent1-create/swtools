@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["NEET signature format","NEET photo size tool","NTA signature resize"],
   alternates: {
     canonical: '/tools/neet-signature'
+  },
+  openGraph: {
+    title: 'NEET Signature & Photo Formatter',
+    description: 'Correctly format your online NEET application signature and photo attachments precisely to NTA guidelines.',
+    url: '/tools/neet-signature'
   }
 };
 

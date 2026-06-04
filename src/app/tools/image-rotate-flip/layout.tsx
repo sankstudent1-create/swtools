@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["rotate image","flip photo online","mirror image tool"],
   alternates: {
     canonical: '/tools/image-rotate-flip'
+  },
+  openGraph: {
+    title: 'Image Rotate & Flip Tool',
+    description: 'Rotate images to exact angles, flip horizontally or vertically without losing quality.',
+    url: '/tools/image-rotate-flip'
   }
 };
 

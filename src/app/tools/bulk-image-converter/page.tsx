@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -17,7 +18,7 @@ function ArrowLeftIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 async function convertSingle(file: File, format: OutputFormat, quality: number): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await loadImageHelper(file);
   const canvas = document.createElement("canvas");
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
@@ -36,6 +37,15 @@ async function convertSingle(file: File, format: OutputFormat, quality: number):
 export default function BulkImageConverterPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/webp");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [quality, setQuality] = useState(88);
   const [outputs, setOutputs] = useState<ConvertedItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -119,7 +129,7 @@ export default function BulkImageConverterPage() {
               <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                 <option value="image/jpeg">JPEG</option>
                 <option value="image/png">PNG</option>
-                <option value="image/webp">WEBP</option>
+                {webpSupported && <option value="image/webp">WEBP</option>}
               </select>
               <div className="ui-field">
                 <span className="ui-label">Quality ({quality}%)</span>

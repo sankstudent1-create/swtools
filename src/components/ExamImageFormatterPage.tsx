@@ -3,6 +3,7 @@
 import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
+import { loadImageHelper } from "@/lib/canvasHelper";
 
 function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -140,7 +141,7 @@ async function processImage(
   offsetX: number,
   offsetY: number
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(sourceFile);
+  const bitmap = await loadImageHelper(sourceFile);
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -163,7 +164,9 @@ async function processImage(
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
   context.drawImage(bitmap, dx, dy, drawWidth, drawHeight);
-  bitmap.close?.();
+  if (bitmap instanceof ImageBitmap) {
+    bitmap.close();
+  }
 
   const canvasToBlob = (quality: number) =>
     new Promise<Blob>((resolve, reject) => {

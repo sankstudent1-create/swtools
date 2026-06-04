@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["image compressor online","reduce image kb","compress photo size free"],
   alternates: {
     canonical: '/tools/image-compressor'
+  },
+  openGraph: {
+    title: 'Advanced Image Compressor',
+    description: 'Reduce image file size intelligently. Compress JPG, PNG, WEBP files while keeping high visual quality.',
+    url: '/tools/image-compressor'
   }
 };
 

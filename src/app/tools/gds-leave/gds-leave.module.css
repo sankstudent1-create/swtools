@@ -13,8 +13,8 @@
 .header {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(20px);
-  height: 60px;
-  padding: 0 24px;
+  height: calc(60px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 24px 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -107,7 +107,7 @@
   background: rgba(5, 5, 5, 0.85);
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255,255,255,.08);
-  padding: 16px 24px;
+  padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px)) 24px;
   display: flex;
   gap: 12px;
   justify-content: flex-end;

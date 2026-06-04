@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 
 type OutputFormat = "image/jpeg" | "image/png" | "image/webp";
 
@@ -16,7 +17,7 @@ function ArrowLeftIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 async function convertImage(file: File, format: OutputFormat, quality: number, background: string): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await loadImageHelper(file);
   const canvas = document.createElement("canvas");
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
@@ -51,6 +52,16 @@ export default function ImageFormatConverterPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [webpSupported, setWebpSupported] = useState(true);
+
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/png");
+    }
+  }, [outputFormat]);
+
 
   useEffect(() => {
     return () => {
@@ -133,7 +144,7 @@ export default function ImageFormatConverterPage() {
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                   </select>
                 </label>
                 <label className="ui-field">

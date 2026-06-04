@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["TD commission bill","BPM incentive bill generator","time deposit commission calculate"],
   alternates: {
     canonical: '/tools/td-commission'
+  },
+  openGraph: {
+    title: 'TD Commission / BPM Bill Generator',
+    description: 'Create official BPM Incentive Bills for Time Deposit (TD) commissions automatically. Calculations made easy with SW Tools.',
+    url: '/tools/td-commission'
   }
 };
 

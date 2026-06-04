@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -16,7 +17,7 @@ function ArrowLeftIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 async function transformImage(file: File, rotation: number, flipX: boolean, flipY: boolean, format: OutputFormat, background: string): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await loadImageHelper(file);
   const radians = (rotation * Math.PI) / 180;
   const swapSides = Math.abs(rotation) % 180 === 90;
   const width = swapSides ? bitmap.height : bitmap.width;
@@ -57,6 +58,15 @@ export default function ImageRotateFlipPage() {
   const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [background, setBackground] = useState("#0b1018");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +164,7 @@ export default function ImageRotateFlipPage() {
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                   </select>
                 </label>
                 <label className="ui-field">

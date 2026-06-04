@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["batch image converter","bulk convert photos","multiple image format tool"],
   alternates: {
     canonical: '/tools/bulk-image-converter'
+  },
+  openGraph: {
+    title: 'Bulk Image Converter',
+    description: 'Batch convert multiple images between formats, adjust sizes, and compress simultaneously.',
+    url: '/tools/bulk-image-converter'
   }
 };
 

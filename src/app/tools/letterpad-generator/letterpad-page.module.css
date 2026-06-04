@@ -11,12 +11,12 @@
   background: #111827;
   border-bottom: 1px solid #1e293b;
   position: sticky;
-  top: 52px;          /* desktop appbar height */
+  top: calc(52px + env(safe-area-inset-top, 0px));          /* desktop appbar height */
   z-index: 100;
   gap: 0;
 }
 /* On mobile the appbar is 48px */
-@media (max-width: 640px) { .mobileTabBar { top: 48px; } }
+@media (max-width: 640px) { .mobileTabBar { top: calc(48px + env(safe-area-inset-top, 0px)); } }
 
 .mobileTab {
   flex: 1;

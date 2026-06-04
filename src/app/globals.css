@@ -454,3 +454,12 @@ p {
     background: #fff !important;
   }
 }
+
+/* Notch & Safe Area Inset Support */
+header.fixed {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  padding-top: env(safe-area-inset-top, 0px);
+}

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["watermark tool online","add watermark to photo","text stamp image"],
   alternates: {
     canonical: '/tools/watermark-stamper'
+  },
+  openGraph: {
+    title: 'Watermark Stamper Tool',
+    description: 'Protect your images by stamping customized text watermarks securely in your browser.',
+    url: '/tools/watermark-stamper'
   }
 };
 

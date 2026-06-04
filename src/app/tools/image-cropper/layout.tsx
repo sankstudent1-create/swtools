@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["crop image online","photo cropping tool","free crop pictures"],
   alternates: {
     canonical: '/tools/image-cropper'
+  },
+  openGraph: {
+    title: 'Online Image Cropper',
+    description: 'Easily crop pictures using custom bounds or popular social media aspect ratios.',
+    url: '/tools/image-cropper'
   }
 };
 

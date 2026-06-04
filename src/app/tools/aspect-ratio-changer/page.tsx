@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -34,7 +35,7 @@ async function changeAspect(
   fitMode: FitMode,
   background: string
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await loadImageHelper(file);
   const targetRatio = ratioW / ratioH;
   const outputHeight = Math.max(60, Math.round(outputWidth / targetRatio));
 
@@ -90,6 +91,15 @@ export default function AspectRatioChangerPage() {
   const [ratioH, setRatioH] = useState(5);
   const [outputWidth, setOutputWidth] = useState(1200);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [fitMode, setFitMode] = useState<FitMode>("cover");
   const [background, setBackground] = useState("#0b1018");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -224,7 +234,7 @@ export default function AspectRatioChangerPage() {
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                   </select>
                 </label>
               </div>

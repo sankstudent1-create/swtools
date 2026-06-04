@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -26,7 +27,7 @@ async function scanImage(
   cleanup: number,
   outputFormat: OutputFormat
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await loadImageHelper(file);
   const canvas = document.createElement("canvas");
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
@@ -80,6 +81,15 @@ export default function ImageScannerPage() {
   const [invert, setInvert] = useState(false);
   const [cleanup, setCleanup] = useState(18);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -178,7 +188,7 @@ export default function ImageScannerPage() {
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                   </select>
                 </label>
               </div>

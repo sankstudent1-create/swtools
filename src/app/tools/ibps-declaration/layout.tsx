@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["IBPS handwritten declaration","IBPS declaration size","IBPS text formatting"],
   alternates: {
     canonical: '/tools/ibps-declaration'
+  },
+  openGraph: {
+    title: 'IBPS Handwritten Declaration Formatter',
+    description: 'Prepare handwritten declaration scans for IBPS PO, Clerk, SO exams with correct landscape size, dimension, and 50KB to 100KB limits.',
+    url: '/tools/ibps-declaration'
   }
 };
 

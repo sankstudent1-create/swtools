@@ -11,7 +11,7 @@ if (typeof Promise.withResolvers === 'undefined') {
   };
 }
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Poppins, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import AdSlot from "@/components/AdSlot";
@@ -19,6 +19,14 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import PwaRegister from "@/components/PwaRegister";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#07090f",
+  colorScheme: "dark",
+};
+
 
 const outfit = Outfit({
   variable: "--font-outfit",

@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   keywords: ["letterpad generator","office letterhead template","government formatting tool"],
   alternates: {
     canonical: '/tools/letterpad-generator'
+  },
+  openGraph: {
+    title: 'Professional Letterpad Generator',
+    description: 'Generate official government and business letterpads with our smart, customizable template output engine.',
+    url: '/tools/letterpad-generator'
   }
 };
 

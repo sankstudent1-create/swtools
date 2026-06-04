@@ -132,7 +132,7 @@ export default function TDCommissionPage() {
       </div>
 
       {/* ── HEADER ── */}
-      <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-6 bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+      <header className="sticky top-0 z-40 h-[calc(4rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] flex items-center justify-between px-6 bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
         <div className="flex items-center gap-3">
           <Link href="/tools" className="text-white/40 hover:text-white transition-colors mr-2 hidden sm:block">
              ← <span className="text-xs">Tools</span>
@@ -313,7 +313,7 @@ export default function TDCommissionPage() {
       </div>
 
       {/* ── STICKY ACTION BAR ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex gap-3 justify-end flex-wrap px-6 py-4 border-t border-white/10 bg-[#050505]/80 backdrop-blur-xl">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex gap-3 justify-end flex-wrap px-6 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] border-t border-white/10 bg-[#050505]/80 backdrop-blur-xl">
         <button onClick={clearAll}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/80 font-medium text-[13px] hover:bg-white/10 hover:text-white transition-all mr-auto sm:mr-0">
           <RotateCcw className="w-4 h-4" />

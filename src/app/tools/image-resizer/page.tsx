@@ -1,5 +1,6 @@
 "use client";
 
+import { loadImageHelper, isWebpSupported } from "@/lib/canvasHelper";
 import { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import SuccessPopup from "@/components/SuccessPopup";
@@ -48,7 +49,7 @@ async function processImage(
   quality: number,
   background: string
 ): Promise<Blob> {
-  const bitmap = await createImageBitmap(sourceFile);
+  const bitmap = await loadImageHelper(sourceFile);
   const canvas = document.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
@@ -111,6 +112,15 @@ export default function ImageResizerPage() {
   const [height, setHeight] = useState(600);
   const [fitMode, setFitMode] = useState<FitMode>("cover");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
+  const [webpSupported, setWebpSupported] = useState(true);
+  useEffect(() => {
+    const supported = isWebpSupported();
+    setWebpSupported(supported);
+    if (!supported && outputFormat === "image/webp") {
+      setOutputFormat("image/jpeg");
+    }
+  }, [outputFormat]);
+
   const [quality, setQuality] = useState(92);
   const [background, setBackground] = useState("#0b1018");
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(null);
@@ -238,7 +248,7 @@ export default function ImageResizerPage() {
                   <select className="ui-input" value={outputFormat} onChange={(event) => setOutputFormat(event.target.value as OutputFormat)}>
                     <option value="image/jpeg">JPEG</option>
                     <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
+                    {webpSupported && <option value="image/webp">WEBP</option>}
                   </select>
                 </label>
               </div>
