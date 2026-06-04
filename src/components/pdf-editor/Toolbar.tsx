@@ -73,7 +73,7 @@ export default function Toolbar({
   ];
 
   return (
-    <div className="w-full md:w-14 bg-[#0c1019] border-b md:border-b-0 md:border-r border-[color-mix(in_oklab,var(--foreground)_8%,transparent)] flex md:flex-col items-center py-2 px-2 md:px-0 gap-0.5 z-20 overflow-x-auto md:overflow-y-auto md:overflow-x-visible shrink-0 select-none"
+    <div className="w-full md:w-14 bg-[#0c1019] border-b md:border-b-0 md:border-r border-foreground/8 flex md:flex-col items-center py-2 px-2 md:px-0 gap-0.5 z-20 overflow-x-auto md:overflow-y-auto md:overflow-x-visible shrink-0 select-none"
          style={{ scrollbarWidth: 'thin' }}>
 
       <div className="w-8 h-px md:w-px md:h-px bg-white/10 shrink-0 my-1" />
@@ -97,7 +97,7 @@ export default function Toolbar({
                 onClick={handleClick}
                 className={`w-9 h-9 shrink-0 rounded-lg flex items-center justify-center transition-all duration-150 ${isActive
                   ? 'bg-gradient-to-br from-[var(--brand-orange)] to-[var(--brand-pink)] text-white shadow-lg shadow-[var(--brand-orange)]/20 scale-105'
-                  : 'text-[color-mix(in_oklab,var(--foreground)_60%,transparent)] hover:bg-white/5 hover:text-white'
+                  : 'text-foreground/60 hover:bg-white/5 hover:text-white'
                   }`}
                 title={tool.label}
               >
@@ -111,10 +111,10 @@ export default function Toolbar({
       <div className="w-8 h-px md:w-px md:h-px bg-white/10 shrink-0 my-1" />
 
       {/* Page & Watermark */}
-      <button onClick={onPageManager} className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-[color-mix(in_oklab,var(--foreground)_60%,transparent)] hover:bg-white/5 hover:text-white transition-all" title="Page Manager">
+      <button onClick={onPageManager} className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-foreground/60 hover:bg-white/5 hover:text-white transition-all" title="Page Manager">
         <FileText className="w-[18px] h-[18px]" />
       </button>
-      <button onClick={onWatermark} className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-[color-mix(in_oklab,var(--foreground)_60%,transparent)] hover:bg-white/5 hover:text-white transition-all" title="Watermark">
+      <button onClick={onWatermark} className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center text-foreground/60 hover:bg-white/5 hover:text-white transition-all" title="Watermark">
         <Stamp className="w-[18px] h-[18px]" />
       </button>
 
