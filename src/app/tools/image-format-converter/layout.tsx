@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Image Format Converter',
     description: 'Convert images freely between JPG, PNG, and WebP using this high-performance secure in-browser tool.',
-    url: '/tools/image-format-converter'
+    url: '/tools/image-format-converter',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

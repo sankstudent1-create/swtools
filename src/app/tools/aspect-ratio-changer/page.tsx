@@ -91,7 +91,7 @@ export default function AspectRatioChangerPage() {
   const [ratioH, setRatioH] = useState(5);
   const [outputWidth, setOutputWidth] = useState(1200);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

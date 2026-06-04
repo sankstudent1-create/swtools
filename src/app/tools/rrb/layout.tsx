@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'RRB Railway Signature Formatter',
     description: 'Easily format your signature to meet official Railway RRB recruitment guidelines. Ensure exact pixel width and KB limits for railway exams.',
-    url: '/tools/rrb'
+    url: '/tools/rrb',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

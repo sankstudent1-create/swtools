@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'SSC Exam Signature Formatter',
     description: 'Format your signature for SSC exams (CGL, CHSL, MTS) to official dimensions and sizes perfectly. Free SSC signature template tool by SW Tools.',
-    url: '/tools/ssc'
+    url: '/tools/ssc',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

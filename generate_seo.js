@@ -121,6 +121,18 @@ const tools = [
     name: "TD Commission / BPM Bill Generator",
     desc: "Create official BPM Incentive Bills for Time Deposit (TD) commissions automatically. Calculations made easy with SW Tools.",
     keywords: ["TD commission bill", "BPM incentive bill generator", "time deposit commission calculate"]
+  },
+  {
+    id: "pdf-editor",
+    name: "Pro PDF Editor",
+    desc: "Edit, whiteout, annotate, and bake interactive text into any PDF without server uploads. Secure browser-based PDF editor by SW Tools.",
+    keywords: ["Pro PDF Editor", "edit PDF online", "free PDF editor", "client-side PDF editor"]
+  },
+  {
+    id: "upi-qr",
+    name: "UPI QR Generator",
+    desc: "Generate premium glassmorphic UPI QR codes for payments with custom branding. Secure browser-based payment code creator.",
+    keywords: ["UPI QR Generator", "payment QR code maker", "glassmorphic QR code"]
   }
 ];
 
@@ -139,6 +151,12 @@ export const metadata: Metadata = {
   keywords: ${JSON.stringify(tool.keywords)},
   alternates: {
     canonical: '/tools/${tool.id}'
+  },
+  openGraph: {
+    title: '${tool.name.replace(/'/g, "\\'")}',
+    description: '${tool.desc.replace(/'/g, "\\'")}',
+    url: '/tools/${tool.id}',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

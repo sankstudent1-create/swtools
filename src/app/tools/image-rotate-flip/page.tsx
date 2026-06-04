@@ -58,7 +58,7 @@ export default function ImageRotateFlipPage() {
   const [flipX, setFlipX] = useState(false);
   const [flipY, setFlipY] = useState(false);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

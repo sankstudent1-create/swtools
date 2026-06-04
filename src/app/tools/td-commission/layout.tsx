@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TD Commission / BPM Bill Generator',
     description: 'Create official BPM Incentive Bills for Time Deposit (TD) commissions automatically. Calculations made easy with SW Tools.',
-    url: '/tools/td-commission'
+    url: '/tools/td-commission',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

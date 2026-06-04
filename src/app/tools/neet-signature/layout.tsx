@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'NEET Signature & Photo Formatter',
     description: 'Correctly format your online NEET application signature and photo attachments precisely to NTA guidelines.',
-    url: '/tools/neet-signature'
+    url: '/tools/neet-signature',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

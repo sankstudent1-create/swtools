@@ -52,8 +52,7 @@ export default function ImageFormatConverterPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [webpSupported, setWebpSupported] = useState(true);
-
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

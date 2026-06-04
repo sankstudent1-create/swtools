@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Advanced Image Compressor',
     description: 'Reduce image file size intelligently. Compress JPG, PNG, WEBP files while keeping high visual quality.',
-    url: '/tools/image-compressor'
+    url: '/tools/image-compressor',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

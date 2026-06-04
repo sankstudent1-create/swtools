@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Images to PDF Maker',
     description: 'Convert your scanned documents and images into a polished PDF file effortlessly with customized page properties.',
-    url: '/tools/pdf-maker'
+    url: '/tools/pdf-maker',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'GDS Leave Application PDF Generator',
     description: 'Auto-generate official GDS Leave Applications in 4-copy format. Complete paid leave and LWA form generator.',
-    url: '/tools/gds-leave'
+    url: '/tools/gds-leave',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Online Image Cropper',
     description: 'Easily crop pictures using custom bounds or popular social media aspect ratios.',
-    url: '/tools/image-cropper'
+    url: '/tools/image-cropper',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'India Post GDS Signature Formatter',
     description: 'Format your signature for the India Post Gramin Dak Sevak (GDS) application. Fast, secure, and accurate 20KB limit scaling.',
-    url: '/tools/india-post-signature'
+    url: '/tools/india-post-signature',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

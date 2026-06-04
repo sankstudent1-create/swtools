@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Bulk Image Converter',
     description: 'Batch convert multiple images between formats, adjust sizes, and compress simultaneously.',
-    url: '/tools/bulk-image-converter'
+    url: '/tools/bulk-image-converter',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

@@ -37,7 +37,7 @@ async function convertSingle(file: File, format: OutputFormat, quality: number):
 export default function BulkImageConverterPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/webp");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

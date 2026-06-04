@@ -82,7 +82,7 @@ export default function WatermarkStamperPage() {
   const [fontSize, setFontSize] = useState(42);
   const [color, setColor] = useState("#ffffff");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

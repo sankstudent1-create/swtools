@@ -68,7 +68,7 @@ export default function ImageCompressorPage() {
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [outputName, setOutputName] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

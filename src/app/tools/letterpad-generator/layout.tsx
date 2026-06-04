@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Professional Letterpad Generator',
     description: 'Generate official government and business letterpads with our smart, customizable template output engine.',
-    url: '/tools/letterpad-generator'
+    url: '/tools/letterpad-generator',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

@@ -112,7 +112,7 @@ export default function ImageResizerPage() {
   const [height, setHeight] = useState(600);
   const [fitMode, setFitMode] = useState<FitMode>("cover");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("image/jpeg");
-  const [webpSupported, setWebpSupported] = useState(true);
+  const [webpSupported, setWebpSupported] = useState(false);
   useEffect(() => {
     const supported = isWebpSupported();
     setWebpSupported(supported);

@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Aspect Ratio Changer',
     description: 'Change the aspect ratio of any image to 16:9, 4:3, 1:1 and other sizes instantly. Fill backgrounds easily.',
-    url: '/tools/aspect-ratio-changer'
+    url: '/tools/aspect-ratio-changer',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

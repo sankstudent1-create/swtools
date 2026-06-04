@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'India Post GDS Photo Formatter',
     description: 'Free online tool to crop and resize your passport photo to exactly 4:5 ratio and 50KB limit for India Post Gramin Dak Sevak online application.',
-    url: '/tools/india-post-photo'
+    url: '/tools/india-post-photo',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

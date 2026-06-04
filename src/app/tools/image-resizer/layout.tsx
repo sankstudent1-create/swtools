@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Free Online Image Resizer',
     description: 'Resize images to precise dimensions with different fit modes, background fills, and quality controls. SW Tools premium utility.',
-    url: '/tools/image-resizer'
+    url: '/tools/image-resizer',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

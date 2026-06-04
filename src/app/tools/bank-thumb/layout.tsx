@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Banking Thumb Impression Formatter',
     description: 'Format your left-thumb impression image for IBPS, SBI, and other banking rectruitments. Ensures square resolution and high clarity.',
-    url: '/tools/bank-thumb'
+    url: '/tools/bank-thumb',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

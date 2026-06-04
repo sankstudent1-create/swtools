@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Watermark Stamper Tool',
     description: 'Protect your images by stamping customized text watermarks securely in your browser.',
-    url: '/tools/watermark-stamper'
+    url: '/tools/watermark-stamper',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

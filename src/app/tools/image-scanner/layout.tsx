@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Document Scanner Effect Tool',
     description: 'Give photos of documents a clean, professional scanner effect. Black-and-white, grayscale, auto-cleanup tools.',
-    url: '/tools/image-scanner'
+    url: '/tools/image-scanner',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 

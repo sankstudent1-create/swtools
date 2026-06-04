@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Image Rotate & Flip Tool',
     description: 'Rotate images to exact angles, flip horizontally or vertically without losing quality.',
-    url: '/tools/image-rotate-flip'
+    url: '/tools/image-rotate-flip',
+    images: ['/brand/hero-ai-grid.svg']
   }
 };
 
