@@ -459,3 +459,49 @@ header.fixed {
 body {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* --- Older Browser Fallbacks (Chrome <76, Android 9) --- */
+
+/* 1. Explicitly map Tailwind's backdrop-blur utility classes to include vendor prefixes */
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px);
+}
+.backdrop-blur {
+  -webkit-backdrop-filter: blur(8px);
+}
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(12px);
+}
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(16px);
+}
+.backdrop-blur-xl {
+  -webkit-backdrop-filter: blur(24px);
+}
+.backdrop-blur-2xl {
+  -webkit-backdrop-filter: blur(40px);
+}
+.backdrop-blur-3xl {
+  -webkit-backdrop-filter: blur(64px);
+}
+
+/* 2. Fallbacks for browsers supporting NEITHER backdrop-filter NOR -webkit-backdrop-filter */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  /* Global fallback for any class containing backdrop-blur to make background opaque */
+  [class*="backdrop-blur"] {
+    background-color: var(--surface-2) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  /* Fix header & nav overlays being fully transparent */
+  header[class*="backdrop-blur"],
+  nav[class*="backdrop-blur"] {
+    background-color: var(--background) !important;
+  }
+  
+  /* Ensure popups/drawers are fully visible */
+  .ui-success-overlay,
+  [class*="backdrop-blur"][class*="bg-black/70"] {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+  }
+}
