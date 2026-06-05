@@ -447,7 +447,10 @@ export default function ExamImageFormatterPage({ config }: { config: FormatterCo
                         </div>
                         {imagePreviewUrl && outputFrame ? (
                           <div className="overflow-hidden rounded-lg border border-white/10 bg-white">
-                            <div className="relative w-full bg-white" style={{ aspectRatio: `${config.width} / ${config.height}` }}>
+                            <div className="relative w-full bg-white aspect-ratio-preview" style={{ 
+                              aspectRatio: `${config.width} / ${config.height}`,
+                              ['--aspect-padding' as any]: `${(config.height / config.width) * 100}%`
+                            }}>
                               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,42,0.04)_1px,transparent_1px)] bg-[size:18px_18px]" />
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img

@@ -521,3 +521,45 @@ body {
 .no-backdrop-filter [class*="backdrop-blur"][class*="bg-black/70"] {
   background-color: rgba(0, 0, 0, 0.95) !important;
 }
+
+/* --- Aspect Ratio Fallbacks for older browsers (Chrome <88, Android 9) --- */
+@supports not (aspect-ratio: 1/1) {
+  /* 1. Custom inline preview fallback using dynamic CSS variable */
+  .aspect-ratio-preview {
+    height: 0 !important;
+    padding-bottom: var(--aspect-padding) !important;
+    position: relative !important;
+  }
+  
+  /* 2. Custom Tailwind utilities fallback used in our codebase */
+  .aspect-\[1\/1\.4\],
+  .aspect-\[1\.414\],
+  .aspect-\[0\.707\] {
+    height: 0 !important;
+    position: relative !important;
+  }
+  
+  .aspect-\[1\/1\.4\] {
+    padding-bottom: 140% !important; /* 1.4 * 100% */
+  }
+  
+  .aspect-\[1\.414\] {
+    padding-bottom: 70.72% !important; /* (1 / 1.414) * 100% */
+  }
+  
+  .aspect-\[0\.707\] {
+    padding-bottom: 141.44% !important; /* (1 / 0.707) * 100% */
+  }
+  
+  /* Ensure children fill absolute container layout correctly */
+  .aspect-ratio-preview > *,
+  .aspect-\[1\/1\.4\] > *,
+  .aspect-\[1\.414\] > *,
+  .aspect-\[0\.707\] > * {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
