@@ -505,3 +505,19 @@ body {
     background-color: rgba(0, 0, 0, 0.95) !important;
   }
 }
+
+/* 3. Class-based fallbacks for when JS detects no-backdrop-filter support (resolves false positives) */
+.no-backdrop-filter [class*="backdrop-blur"] {
+  background-color: var(--surface-2) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.no-backdrop-filter header[class*="backdrop-blur"],
+.no-backdrop-filter nav[class*="backdrop-blur"] {
+  background-color: var(--background) !important;
+}
+
+.no-backdrop-filter .ui-success-overlay,
+.no-backdrop-filter [class*="backdrop-blur"][class*="bg-black/70"] {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+}

@@ -233,3 +233,20 @@
     background-color: #10b981 !important;
   }
 }
+
+/* Fallback when JS detects no-backdrop-filter (resolves false positives) */
+:global(.no-backdrop-filter) .header {
+  background-color: #0c1019 !important;
+}
+:global(.no-backdrop-filter) .banner {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+:global(.no-backdrop-filter) .actionBar {
+  background-color: #050505 !important;
+}
+:global(.no-backdrop-filter) .modalOverlay {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+}
+:global(.no-backdrop-filter) .toast {
+  background-color: #10b981 !important;
+}

@@ -113,6 +113,29 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var ua = navigator.userAgent;
+                  var index = ua.indexOf('Chrome/');
+                  var isOldChrome = false;
+                  if (index !== -1) {
+                    var version = parseInt(ua.substring(index + 7), 10);
+                    isOldChrome = version < 76;
+                  }
+                  var supportsBackdrop = window.CSS && CSS.supports && (CSS.supports('backdrop-filter', 'blur(1px)') || CSS.supports('-webkit-backdrop-filter', 'blur(1px)'));
+                  if (isOldChrome || !supportsBackdrop) {
+                    document.documentElement.className += ' no-backdrop-filter';
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
+      </head>
       <body className={`${outfit.variable} ${poppins.variable} ${jetbrainsMono.variable} font-sans antialiased text-white bg-[#07090f]`}>
         {adsEnabled && adClient ? (
           <Script
