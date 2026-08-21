@@ -502,15 +502,17 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
       )}
 
       {/* Footer */}
-      <div className={footerClass}>
-        {state.officeType === 'custom' ? (
-          <span>{form.dept || ''}</span>
-        ) : (
-          <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
-        )}
-        <span>{form.city}{form.pin ? ' – ' + form.pin : ''}</span>
-        <span>{form.wb}</span>
-      </div>
+      {state.officeType !== 'personal' && (
+        <div className={footerClass}>
+          {state.officeType === 'custom' ? (
+            <span>{form.dept || ''}</span>
+          ) : (
+            <span>{(form.dept || 'Government of India') + ' · Government of India'}</span>
+          )}
+          <span>{form.city}{form.pin ? ' – ' + form.pin : ''}</span>
+          <span>{form.wb}</span>
+        </div>
+      )}
 
       {/* Draggable Logos */}
       {logoL && (

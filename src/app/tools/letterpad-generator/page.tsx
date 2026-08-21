@@ -145,6 +145,8 @@ export default function LetterpadGeneratorPage() {
                 onToggleEncl={toggleEncl}
                 onToggleCopy={toggleCopy}
                 onToggleEndorse={toggleEndorse}
+                isPersonal={state.officeType === 'personal'}
+                onTogglePersonal={() => applyOfficePreset(state.officeType === 'personal' ? 'custom' : 'personal')}
                 onPrint={doPrint}
                 onPDF={doPrint}
               />

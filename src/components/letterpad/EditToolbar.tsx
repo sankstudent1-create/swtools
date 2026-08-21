@@ -14,12 +14,14 @@ interface EditToolbarProps {
   onToggleEndorse: () => void;
   onPrint: () => void;
   onPDF: () => void;
+  isPersonal?: boolean;
+  onTogglePersonal?: () => void;
 }
 
 export default function EditToolbar({
   showEncl, showCopy, showEndorse,
   onToggleEncl, onToggleCopy, onToggleEndorse,
-  onPrint, onPDF,
+  onPrint, onPDF, isPersonal, onTogglePersonal,
 }: EditToolbarProps) {
   function cmd(command: string, value?: string) {
     document.execCommand(command, false, value);
@@ -71,6 +73,12 @@ export default function EditToolbar({
       <button className={`${styles.btn} ${showEncl ? styles.btnOn : ''}`} onClick={onToggleEncl}>📎 Encl</button>
       <button className={`${styles.btn} ${showCopy ? styles.btnOn : ''}`} onClick={onToggleCopy}>📋 Copy</button>
       <button className={`${styles.btn} ${showEndorse ? styles.btnOn : ''}`} onClick={onToggleEndorse}>📝 Endorse</button>
+      <div className={styles.sep} />
+      {onTogglePersonal && (
+        <button className={`${styles.btn} ${isPersonal ? styles.btnOn : ''}`} onClick={onTogglePersonal} title="Hide Official Header">
+          🚫 Header
+        </button>
+      )}
       <div className={styles.sep} />
       <button className={styles.btn} onClick={onPrint}>🖨</button>
       <button className={`${styles.btn} ${styles.btnPDF}`} onClick={onPDF}>⬇ PDF</button>

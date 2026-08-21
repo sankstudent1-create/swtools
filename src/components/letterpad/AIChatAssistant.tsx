@@ -90,6 +90,11 @@ export default function AIChatAssistant({ state, onSetForm, onFillAI }: AIChatAs
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setIsLoading(true);
 
+    onSetForm({ 
+      sub: '', body: 'Generating completely new letter...', toD: '', toA: '', 
+      sal: '', cls: '', ref: '', encl: '', endorsement: '' 
+    }, true);
+
     try {
       const res = await fetch('/api/generate-letter', {
         method: 'POST',

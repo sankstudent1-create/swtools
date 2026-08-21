@@ -135,3 +135,9 @@
   /* But keep Print and PDF */
   .btnPrint, .btnSaffron { display: inline-flex !important; }
 }
+.swalekhaniName {
+  background: linear-gradient(90deg, #FF6600, #facc15);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 14px;
+}

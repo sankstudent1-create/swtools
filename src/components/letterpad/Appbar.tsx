@@ -25,8 +25,8 @@ export default function Appbar({ onPrint, onPDF, onToggleEndorse, onToggleCopy, 
         <Link href="/tools" className={styles.backBtn}>← Back to Tools</Link>
         <div className={styles.logo}>S</div>
         <div className={styles.brandText}>
-          <div className={styles.name}>SW Tools</div>
-          <div className={styles.sub}>Letterpad Generator · Groq AI</div>
+          <div className={`${styles.name} ${styles.swalekhaniName}`}>Swalekhani</div>
+          <div className={styles.sub}>By Sanket Wanve</div>
         </div>
         <div className={styles.tag}>🇮🇳 Gov Edition</div>
         {modelShort && (
