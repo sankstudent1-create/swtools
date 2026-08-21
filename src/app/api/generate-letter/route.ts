@@ -19,9 +19,9 @@ interface LetterGenerationRequest {
 // ── Groq model fallback chain ─────────────────────────────────
 // Ordered by quality → speed. Falls back automatically on rate-limit (429).
 const GROQ_FALLBACK_MODELS = [
-  'llama-3.1-70b-versatile',          // Best quality — try first
-  'llama-3.1-8b-instant',             // Fast fallback
-  'mixtral-8x7b-32768',               // Secondary fallback
+  'openai/gpt-oss-120b',              // Best quality — try first
+  'openai/gpt-oss-20b',               // Fast fallback
+  'qwen/qwen3.6-27b',                 // Secondary fallback
 ];
 
 async function callGroqModel(
