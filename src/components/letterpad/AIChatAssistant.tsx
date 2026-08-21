@@ -57,7 +57,7 @@ export default function AIChatAssistant({ state, onSetForm, onFillAI }: AIChatAs
         let changedCount = 0;
         for (const [key, value] of Object.entries(json.data)) {
           if (key in state.form && value !== state.form[key as keyof LetterForm]) {
-            changes[key as keyof LetterForm] = value as string;
+            (changes as any)[key] = value;
             changedCount++;
           }
         }
