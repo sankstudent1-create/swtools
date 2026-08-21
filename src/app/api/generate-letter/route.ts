@@ -19,8 +19,8 @@ interface LetterGenerationRequest {
 // ── Groq model fallback chain ─────────────────────────────────
 // Ordered by quality → speed. Falls back automatically on rate-limit (429).
 const GROQ_FALLBACK_MODELS = [
-  'llama-3.3-70b-versatile',          // Best quality — try first
-  'llama-3.1-8b-instant',             // Fast fallback
+  'llama3-70b-8192',                  // Best quality — try first
+  'llama3-8b-8192',                   // Fast fallback
   'mixtral-8x7b-32768',               // Secondary fallback
 ];
 
