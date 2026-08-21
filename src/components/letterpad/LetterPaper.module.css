@@ -297,3 +297,7 @@ div.editable { display: block; }
 .footerAB { border-top: 2px solid #06038D; background: #f0eee6; }
 .footerC  { background: #06038D; color: rgba(255,255,255,.85); }
 .footerD  { border-top: 3px solid #FF6600; background: #fff8f2; }
+
+.paperPersonal {
+  padding-top: 40px;
+}

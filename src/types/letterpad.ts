@@ -5,7 +5,7 @@
 export type TemplateType = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 export type OfficeType =
   | 'dop' | 'pm' | 'minister' | 'mp' | 'mla'
-  | 'district' | 'rms' | 'savings' | 'custom';
+  | 'district' | 'rms' | 'savings' | 'custom' | 'personal';
 export type FontClass = '' | 'fg' | 'fs' | 'fd2' | 'ft' | 'fn';
 export type SigMode = 'draw' | 'type' | 'upload';
 export type LogoSide = 'L' | 'R';

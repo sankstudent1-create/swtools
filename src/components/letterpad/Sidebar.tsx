@@ -116,13 +116,12 @@ export default function Sidebar({
       <div className={styles.section}>
         <SectionTitle>Office / Authority</SectionTitle>
         <div className={styles.officeGrid}>
-          {([
-            ['dop','📮','Dept of Posts'], ['pm','🇮🇳','Prime Minister'],
-            ['minister','🏛️','Cabinet Minister'], ['mp','🗳️','MP / Lok Sabha'],
+          {[
+            ['dop','🏛️','DoP'], ['pm','🇮🇳','PM / CM'], ['minister','🏢','Minister'],
             ['mla','📜','MLA / Assembly'], ['district','🏢','District Office'],
-            ['rms','🚂','RMS / Circle'], ['savings','🏦','POSB / Savings'],
-            ['custom','✏️','Custom'],
-          ] as [string, string, string][]).map(([key, icon, label]) => (
+            ['rms','🚂','RMS / Mail'], ['savings','₹','Savings Bank'], ['custom','✨','Custom / Private'],
+            ['personal','🎓','Personal (No Header)']
+          ].map(([key, icon, label]) => (
             <button
               key={key}
               className={`${styles.officeBtn} ${officeType === key ? styles.officeBtnActive : ''}`}

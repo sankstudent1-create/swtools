@@ -330,14 +330,18 @@ export default function LetterPaper({ state, onFormChange, onCopyChange, onLogoP
                                     `${styles.footer} ${styles.footerAB}`;
 
   return (
-    <div className={styles.paper} ref={paperRef} style={{ fontFamily }}>
-      <Tricolor />
+    <div className={`${styles.paper} ${state.officeType === 'personal' ? styles.paperPersonal : ''}`} ref={paperRef} style={{ fontFamily }}>
+      {state.officeType !== 'personal' && <Tricolor />}
 
       {/* Edit hint */}
       <div className={styles.editHint}>✏ Click any text to edit inline</div>
 
-      {renderHeader()}
-      {renderDivider()}
+      {state.officeType !== 'personal' && (
+        <>
+          {renderHeader()}
+          {renderDivider()}
+        </>
+      )}
 
       {/* Meta row */}
       {(tpl === 'A' || tpl === 'E' || tpl === 'F') && (

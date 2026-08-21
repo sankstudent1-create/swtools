@@ -81,6 +81,7 @@ export const OFFICE_PRESETS: Record<string, OfficePreset> = {
   rms:      { h1:'भारत सरकार', h2:'रेल डाक सेवा', e1:'Government of India', e2:'Railway Mail Service', dept:'Dept of Posts – RMS', divn:'', ofc:'O/o the Sr. Supdt., RMS', city:'', pin:'', ph:'', em:'', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
   savings:  { h1:'भारत सरकार', h2:'डाकघर बचत बैंक', e1:'Government of India', e2:'Post Office Savings Bank', dept:'Department of Posts', divn:'', ofc:'Head Post Office', city:'', pin:'', ph:'', em:'posb@indiapost.gov.in', wb:'www.indiapost.gov.in', ll:'ip', lr:'ashoka', t:'A' },
   custom:   { h1:'भारत सरकार', h2:'', e1:'Government of India', e2:'', dept:'', divn:'', ofc:'', city:'', pin:'', ph:'', em:'', wb:'', ll:null, lr:'ashoka', t:'A' },
+  personal: { h1:'', h2:'', e1:'', e2:'', dept:'', divn:'', ofc:'', city:'', pin:'', ph:'', em:'', wb:'', ll:null, lr:null, t:'A' },
 };
 
 // ── Default form values ───────────────────────
