@@ -7,6 +7,7 @@ import Appbar      from '@/components/letterpad/Appbar';
 import Sidebar     from '@/components/letterpad/Sidebar';
 import LetterPaper from '@/components/letterpad/LetterPaper';
 import EditToolbar from '@/components/letterpad/EditToolbar';
+import AIChatAssistant from '@/components/letterpad/AIChatAssistant';
 import { useLetterState } from '@/hooks/useLetterState';
 import type { LetterForm, LogoSide } from '@/types/letterpad';
 import styles from './letterpad-page.module.css';
@@ -161,6 +162,8 @@ export default function LetterpadGeneratorPage() {
           </div>
         </main>
       </div>
+      
+      <AIChatAssistant state={state} onUpdateForm={handleFormChange} />
     </div>
   );
 }

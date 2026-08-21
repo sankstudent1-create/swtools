@@ -26,6 +26,7 @@ export function buildPrompt(
     tour:         'Tour Programme Communication',
     pm_do:        'Prime Ministerial personal DO letter',
     mp_letter:    'MP Constituency Letter',
+    personal:     'Personal / School / Unofficial Letter',
     custom:       'Letter',
   };
 
@@ -34,9 +35,10 @@ export function buildPrompt(
     lang === 'bi' ? 'Write body in bilingual format (English paragraph then Hindi equivalent).' :
     'Write in English.';
 
-  const isOfficial = type !== 'custom' && type !== 'appreciation';
+  const isOfficial = type !== 'custom' && type !== 'appreciation' && type !== 'personal';
   
   const styleNote =
+    (type === 'personal')                 ? 'Personal or school letter. Natural format. Do NOT use strict government headers or numbered paragraphs.' :
     (tpl === 'B' || type === 'pm_do')     ? 'Warm formal DO letter — no numbered paragraphs.' :
     (tpl === 'C' || type === 'mp_letter') ? 'MP letter — formal but personal.' :
     (tpl === 'E' || type === 'om')        ? 'Office Memorandum — body starts "The undersigned is directed to inform..."' :

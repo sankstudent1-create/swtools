@@ -155,5 +155,6 @@ export const AI_LETTER_TYPES: Array<{ value: string; label: string }> = [
   { value: 'notification',  label: 'Public Notification' },
   { value: 'pm_do',         label: 'PM-style Personal DO Letter' },
   { value: 'mp_letter',     label: 'MP Constituency Letter' },
+  { value: 'personal',      label: 'Personal / School Letter' },
   { value: 'custom',        label: 'Custom' },
 ];

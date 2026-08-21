@@ -20,10 +20,8 @@ interface LetterGenerationRequest {
 // Ordered by quality → speed. Falls back automatically on rate-limit (429).
 const GROQ_FALLBACK_MODELS = [
   'llama-3.3-70b-versatile',          // Best quality — try first
-  'meta-llama/llama-4-scout-17b-16e-instruct', // Llama 4 Scout — good quality
-  'llama-3.1-70b-versatile',          // 70B alternative
-  'llama-3.1-8b-instant',             // Fast, low rate-limit pressure
-  'gemma2-9b-it',                     // Google fallback
+  'llama-3.1-8b-instant',             // Fast fallback
+  'mixtral-8x7b-32768',               // Secondary fallback
 ];
 
 async function callGroqModel(
@@ -209,6 +207,7 @@ RESPOND WITH ONLY THE JSON OBJECT. NO OTHER TEXT.`;
       tour: 'Tour Programme',
       pm_do: 'PM Personal D.O. Letter',
       mp_letter: 'MP Constituency Letter',
+      personal: 'Personal / School / Unofficial Letter',
       custom: 'Official Government Letter'
     };
 
@@ -234,10 +233,14 @@ The sender identity must logically match who the user says they are.`
 - Language: ${langNote}
 
 IMPORTANT RULES:
-1. Derive the sender's ministry/department/office from WHO the user says they are
+${letterType === 'personal' 
+  ? `1. This is a personal/school/unofficial letter. Do NOT add Government of India headers (leave h1, h2, e1, e2, dept empty unless specifically requested).
+2. The recipient (toD, toA) must match WHO the user is writing TO.
+3. Write a natural, personal or school-appropriate body. Do not use strict numbered paragraphs.`
+  : `1. Derive the sender's ministry/department/office from WHO the user says they are
 2. The recipient (toD, toA) must match WHO the user is writing TO
 3. Body must address the ACTUAL issue described — do not write a generic salary/circular letter
-4. copyList must include offices/persons logically relevant to this specific matter
+4. copyList must include offices/persons logically relevant to this specific matter`}
 5. All fields must be filled with realistic, accurate content
 
 RESPOND WITH ONLY THE JSON OBJECT.`;
