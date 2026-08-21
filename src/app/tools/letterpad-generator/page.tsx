@@ -16,6 +16,7 @@ export default function LetterpadGeneratorPage() {
   const {
     state,
     updateForm,
+    setForm,
     setTemplate,
     setFont,
     applyOfficePreset,
@@ -163,7 +164,7 @@ export default function LetterpadGeneratorPage() {
         </main>
       </div>
       
-      <AIChatAssistant state={state} onUpdateForm={handleFormChange} />
+      <AIChatAssistant state={state} onSetForm={setForm} onFillAI={fillFromAI} />
     </div>
   );
 }

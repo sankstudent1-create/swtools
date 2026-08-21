@@ -114,6 +114,7 @@
   background: white;
   border-top: 1px solid #e5e7eb;
   display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
@@ -131,22 +132,43 @@
   border-color: #111827;
 }
 
-.sendBtn {
-  background: #111827;
-  color: white;
+.actionButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.actionBtn {
   border: none;
   border-radius: 20px;
-  padding: 0 16px;
+  padding: 0 12px;
   font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.sendBtn:hover:not(:disabled) {
-  background: #374151;
-}
-.sendBtn:disabled {
+.actionBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.editBtn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+.editBtn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.newBtn {
+  background: #111827;
+  color: white;
+}
+.newBtn:hover:not(:disabled) {
+  background: #374151;
 }
 
 .typingIndicator {

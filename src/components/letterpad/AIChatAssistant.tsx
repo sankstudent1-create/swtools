@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import type { AppState, LetterForm } from '@/types/letterpad';
+import type { AppState, LetterForm, AILetterData } from '@/types/letterpad';
 import styles from './AIChatAssistant.module.css';
 
 interface Message {
@@ -10,13 +10,14 @@ interface Message {
 
 interface AIChatAssistantProps {
   state: AppState;
-  onUpdateForm: (key: keyof LetterForm, value: string) => void;
+  onSetForm: (form: Partial<LetterForm>, bumpTick?: boolean) => void;
+  onFillAI: (data: AILetterData, isFull: boolean) => void;
 }
 
-export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistantProps) {
+export default function AIChatAssistant({ state, onSetForm, onFillAI }: AIChatAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', text: 'Hi! I can help you edit this letter. Tell me what to change, like "Make the tone more polite" or "Change the recipient name to Rahul".' }
+    { role: 'assistant', text: 'Hi! I can help you edit this letter or write a completely new one. Type your request below and click the corresponding button.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistant
     }
   }, [messages, isOpen]);
 
-  const handleSend = async () => {
+  const handleEdit = async () => {
     if (!input.trim() || isLoading) return;
     const userText = input.trim();
     setInput('');
@@ -52,13 +53,17 @@ export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistant
       }
 
       if (json.data) {
-        // Apply changes
+        const changes: Partial<LetterForm> = {};
         let changedCount = 0;
         for (const [key, value] of Object.entries(json.data)) {
           if (key in state.form && value !== state.form[key as keyof LetterForm]) {
-            onUpdateForm(key as keyof LetterForm, value as string);
+            changes[key as keyof LetterForm] = value as string;
             changedCount++;
           }
+        }
+        
+        if (changedCount > 0) {
+          onSetForm(changes, true); // true = bump aiTick so UI updates
         }
         
         setMessages(prev => [...prev, { 
@@ -66,6 +71,47 @@ export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistant
           text: changedCount > 0 
             ? `I've updated the letter based on your request. (${changedCount} fields changed)` 
             : 'I processed your request but no fields needed changing.'
+        }]);
+      } else {
+        throw new Error('No data returned from AI');
+      }
+      
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: 'error', text: err.message || 'An error occurred' }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateNew = async () => {
+    if (!input.trim() || isLoading) return;
+    const userText = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', text: userText }]);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('/api/generate-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: userText,
+          letterType: 'custom', // Use custom for natural letters without strict GoI formatting
+          currentContext: {} // Start fresh
+        })
+      });
+
+      const json = await res.json();
+      
+      if (!res.ok || json.error) {
+        throw new Error(json.error || 'Failed to generate new letter');
+      }
+
+      if (json.data) {
+        onFillAI(json.data, true);
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          text: 'I have generated a completely new letter for you!'
         }]);
       } else {
         throw new Error('No data returned from AI');
@@ -89,7 +135,7 @@ export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistant
   return (
     <div className={styles.chatContainer}>
       <div className={styles.chatHeader} onClick={() => setIsOpen(false)}>
-        <div className={styles.chatTitle}>✨ AI Editor</div>
+        <div className={styles.chatTitle}>✨ AI Assistant</div>
         <button className={styles.closeBtn}>✕</button>
       </div>
       
@@ -116,13 +162,18 @@ export default function AIChatAssistant({ state, onUpdateForm }: AIChatAssistant
           className={styles.chatInput}
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          placeholder="Ask AI to change something..."
+          onKeyDown={e => e.key === 'Enter' && handleEdit()}
+          placeholder="Type instruction here..."
           disabled={isLoading}
         />
-        <button className={styles.sendBtn} onClick={handleSend} disabled={isLoading || !input.trim()}>
-          Send
-        </button>
+        <div className={styles.actionButtons}>
+          <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={handleEdit} disabled={isLoading || !input.trim()} title="Edit current letter">
+            ✏️ Edit
+          </button>
+          <button className={`${styles.actionBtn} ${styles.newBtn}`} onClick={handleGenerateNew} disabled={isLoading || !input.trim()} title="Generate completely new letter">
+            ✨ New
+          </button>
+        </div>
       </div>
     </div>
   );

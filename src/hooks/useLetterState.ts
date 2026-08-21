@@ -34,8 +34,12 @@ export function useLetterState() {
     setState(s => ({ ...s, form: { ...s.form, [key]: value } }));
   }, []);
 
-  const setForm = useCallback((form: Partial<LetterForm>) => {
-    setState(s => ({ ...s, form: { ...s.form, ...form } }));
+  const setForm = useCallback((form: Partial<LetterForm>, bumpTick: boolean = false) => {
+    setState(s => ({ 
+      ...s, 
+      form: { ...s.form, ...form },
+      ...(bumpTick ? { aiTick: (s.aiTick || 0) + 1 } : {})
+    }));
   }, []);
 
   // ── Template ─────────────────────────────────────────
