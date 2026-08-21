@@ -129,7 +129,7 @@ export const TEMPLATE_INFO: Record<TemplateType, { label: string; desc: string }
 };
 
 export const FONT_OPTIONS: Array<{ key: string; label: string; style: CSSProperties }> = [
-  { key: '',    label: 'Outfit (Default)', style: { fontFamily: "var(--font-outfit), sans-serif" } },
+  { key: '',    label: 'Outfit (Default)', style: { fontFamily: "var(--font-outfit), var(--font-poppins), sans-serif" } },
   { key: 'fg',  label: 'EB Garamond',      style: { fontFamily: "'EB Garamond', serif" } },
   { key: 'fs',  label: 'Source Serif',     style: { fontFamily: "'Source Serif 4', serif" } },
   { key: 'fd2', label: 'पोप्पिंस (Poppins)',style: { fontFamily: "var(--font-poppins), sans-serif" } },
